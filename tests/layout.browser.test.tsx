@@ -226,6 +226,180 @@ describe('the sheet passes its height constraint all the way down', () => {
   }
 });
 
+/* An 8x4 PNG, half red and half blue — enough for the quantizer to find two
+   colours without carrying a binary fixture around. */
+const PNG_8x4 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAECAIAAAA8r+mnAAAAFElEQVR4nGP4z8AARwwN/xGIeh' +
+  'IAmo0n4TFWVi0AAAAASUVORK5CYII=';
+
+function pngFile(name = 'fixture.png'): File {
+  const binary = atob(PNG_8x4);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], name, { type: 'image/png' });
+}
+
+/** Puts a file on an <input type="file"> the way a real picker would. */
+function attach(input: HTMLInputElement, file: File): void {
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  input.files = transfer.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+describe('slider thumbs are not clipped by the scroll port', () => {
+  // Regression: a thumb is centred on its value, so at either extreme it hangs
+  // half its width past the track. "overflow-y: auto" computes overflow-x to
+  // auto as well, and a scroll container clips BOTH axes — so the thumb came
+  // out sliced in half at maximum.
+  it('keeps every thumb inside the port at both extremes', async () => {
+    render(panel({ defaultValue: '#ff0000' }));
+    const host = await waitFor<HTMLElement>('.cp-panel-host');
+
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-sliders') === true)!;
+    tab.click();
+    await settle();
+
+    // #ff0000 puts red at its maximum and green and blue at their minimum, so
+    // both ends are exercised in one render.
+    const port = host.getBoundingClientRect();
+    const thumbs = Array.from(host.querySelectorAll<HTMLElement>('.cp-thumb'));
+    expect(thumbs.length, 'no thumbs found — test is not exercising anything')
+      .toBeGreaterThan(0);
+
+    for (const thumb of thumbs) {
+      const box = thumb.getBoundingClientRect();
+      expect(Math.round(box.right), 'thumb clipped on the right')
+        .toBeLessThanOrEqual(Math.round(port.right));
+      expect(Math.round(box.left), 'thumb clipped on the left')
+        .toBeGreaterThanOrEqual(Math.round(port.left));
+    }
+
+    // A thumb hanging past the port would also make the port scroll sideways.
+    expect(host.scrollWidth, 'the panel scrolls horizontally').toBe(host.clientWidth);
+  });
+});
+
+describe('scroll fades', () => {
+  it('marks only the edge that has more content, and clears at both ends', async () => {
+    render(panel());
+    const host = await waitFor<HTMLElement>('.cp-panel-host');
+
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-palettes') === true)!;
+    tab.click();
+    await settle();
+    expect(host.scrollHeight, 'nothing to scroll — test is not exercising the fade')
+      .toBeGreaterThan(host.clientHeight + 1);
+
+    expect(host.getAttribute('data-cp-fade'), 'at the top').toBe('bottom');
+
+    host.scrollTop = Math.round((host.scrollHeight - host.clientHeight) / 2);
+    await settle();
+    expect(host.getAttribute('data-cp-fade'), 'in the middle').toBe('both');
+
+    host.scrollTop = host.scrollHeight;
+    await settle();
+    expect(host.getAttribute('data-cp-fade'), 'at the bottom').toBe('top');
+
+    host.scrollTop = 0;
+    await settle();
+    expect(host.getAttribute('data-cp-fade'), 'back at the top').toBe('bottom');
+  });
+
+  it('applies no mask at all in a mode that fits', async () => {
+    // The attribute is removed rather than set to zero, so a mode with nothing
+    // to scroll carries no mask, no stacking context, and no dimmed edges.
+    render(panel());
+    const host = await waitFor<HTMLElement>('.cp-panel-host');
+    await settle();
+
+    const seen = await acrossModes('.cp-root', () => ({
+      fade: host.getAttribute('data-cp-fade'),
+      overflows: host.scrollHeight > host.clientHeight + 1,
+    }));
+
+    for (const { mode, value } of seen) {
+      if (value.overflows) continue;
+      expect(value.fade, `"${mode}" fits but still carries a fade`).toBeNull();
+    }
+  });
+});
+
+describe('the image mode', () => {
+  it('hides the native file control behind its own drop zone', async () => {
+    render(panel());
+    await waitFor('.cp-panel-host');
+
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-image') === true)!;
+    tab.click();
+    await settle();
+
+    const input = document.querySelector<HTMLInputElement>('.cp-panel-host input[type="file"]')!;
+    const zone = document.querySelector<HTMLLabelElement>('.cp-dropzone')!;
+
+    expect(zone, 'no drop zone rendered').not.toBeNull();
+    expect(zone.htmlFor, 'the label does not drive the input').toBe(input.id);
+    // Visually hidden, but still a real focusable control.
+    expect(Math.round(input.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
+    expect(getComputedStyle(input).display, 'display:none breaks Safari autofill')
+      .not.toBe('none');
+  });
+
+  it('shows a large preview with a working remove control', async () => {
+    render(panel());
+    await waitFor('.cp-panel-host');
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-image') === true)!;
+    tab.click();
+    await settle();
+
+    const input = document.querySelector<HTMLInputElement>('.cp-panel-host input[type="file"]')!;
+    attach(input, pngFile());
+
+    const preview = await waitFor<HTMLElement>('.cp-image-preview');
+    const img = preview.querySelector<HTMLImageElement>('img')!;
+    // The box shrink-wraps the image, so it has no final height until the
+    // image has decoded; measuring before that reads the min-height floor.
+    if (!img.complete) await new Promise((r) => { img.onload = r; img.onerror = r; });
+    await settle();
+
+    // The fixture is 8x4, so at the panel's content width this lands around
+    // 146px. The old preview was a fixed 90px cover strip.
+    expect(Math.round(preview.getBoundingClientRect().height)).toBeGreaterThan(90);
+    expect(getComputedStyle(img).objectFit).toBe('contain');
+
+    const remove = document.querySelector<HTMLButtonElement>('.cp-image-remove')!;
+    expect(remove, 'no remove control').not.toBeNull();
+    expect(remove.getAttribute('aria-label')).toBe('Remove image');
+
+    remove.click();
+    await settle();
+    expect(document.querySelector('.cp-image-preview'), 'preview survived remove').toBeNull();
+    expect(document.querySelector('.cp-dropzone'), 'drop zone did not come back').not.toBeNull();
+    expect(input.value, 're-picking the same file would fire no change event').toBe('');
+  });
+
+  it('accepts a dropped file', async () => {
+    render(panel());
+    await waitFor('.cp-panel-host');
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-image') === true)!;
+    tab.click();
+    await settle();
+
+    const target = document.querySelector<HTMLElement>('.cp-panel-host .cp-panel')!;
+    const transfer = new DataTransfer();
+    transfer.items.add(pngFile());
+    target.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: transfer }));
+
+    await waitFor('.cp-image-preview');
+    expect(document.querySelector('.cp-image-preview')).not.toBeNull();
+  });
+});
+
 describe('the popover never exceeds the viewport', () => {
   it('stays on screen and keeps the footer reachable in a short viewport', async () => {
     // Regression: place() flipped above only when there was room above, and

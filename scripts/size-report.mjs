@@ -24,6 +24,13 @@ import { rolldown } from 'rolldown';
  * Then for the pre-release correctness pass — native form semantics, the
  * honest contrast API and per-mode props: about 0.9 KB.
  *
+ * 20.5 -> 21.5 for a real image drop zone (the native file control was
+ * replaced with a hidden input behind a label, a preview that shows the whole
+ * image, and a remove button), plus scroll-edge fades and the horizontal bleed
+ * that stops the scroll port slicing a slider thumb in half: about 0.8 KB.
+ * Trimming the dead -webkit-mask- prefix and backdrop-filter first recovered
+ * only 0.03 KB, so the rest is genuinely new behaviour, not slack.
+ *
  * Raising a ceiling should always be a reviewed decision with a reason
  * attached, never a reflex when a build goes red.
  *
@@ -40,7 +47,7 @@ const BUDGETS = [
   { entry: 'dist/core.js', label: 'core (colour engine, no React)', limit: 2.5 },
   { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 5.0 },
   { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 6.0 },
-  { entry: 'dist/index.js', label: 'full package, all five modes', limit: 20.5 },
+  { entry: 'dist/index.js', label: 'full package, all five modes', limit: 21.5 },
   // Not bundled here — it is already self-contained and is loaded by URL, so
   // the point is the floor, not the ceiling.
   { entry: 'dist/image-worker.js', label: 'image worker (standalone)', limit: 6, floor: 1 },

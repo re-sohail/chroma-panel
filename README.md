@@ -92,7 +92,7 @@ external, minified and gzipped:
 | [@uiw/react-color](https://bundlephobia.com/package/@uiw/react-color) | 15.7 kB | 20 | several |
 
 Importing only `chroma-panel/panel` plus one mode adds about 8.5 kB. The
-package's own bundle measures larger in isolation (around 20 kB) because that
+package's own bundle measures larger in isolation (around 21 kB) because that
 figure counts code your bundler drops.
 
 **If you only need one picker and every kilobyte counts, use react-colorful.**

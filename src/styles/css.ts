@@ -319,19 +319,46 @@ export const css: string = `
     min-height: 0;
     overflow-y: auto; overscroll-behavior: contain;
 
-    /* A real scrollbar, not the fade mask this replaced.
-       The mask had to sit on the scroll PORT to stay at the visual bottom
-       edge, which meant it dimmed whatever happened to be there — including
-       the image drop zone's border — in the four modes that do not scroll.
-       A scrollbar appears only when there is genuinely more to see, which is
-       the conditional behaviour the mask was imitating, for free.
-       scrollbar-gutter: stable reserves the track in every mode, so the
-       content width does not shift by the scrollbar's width when you switch
-       to the one mode that scrolls. */
+    /* Horizontal bleed, then pulled straight back out again.
+       A slider thumb is centred on its value, so at either extreme it hangs
+       half its width past the end of the track. That was harmless until this
+       element existed: "overflow-y: auto" computes overflow-x to auto too, and
+       a scroll container clips BOTH axes — so the thumb was sliced in half at
+       maximum. The negative margin cancels the padding, so the content sits
+       exactly where it did before and only the clip edge moves outwards.
+       "overflow-x: clip" with "overflow-clip-margin" does NOT work here: the
+       spec forces clip to behave as hidden when the other axis scrolls, and
+       the margin is then ignored. Measured, not assumed. */
+    --cp-bleed: calc(var(--cp-thumb-size) / 2 + 2px);
+    padding-inline: var(--cp-bleed);
+    margin-inline: calc(var(--cp-bleed) * -1);
+
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: var(--cp-border) transparent;
   }
+
+  /* Fades the edge you can scroll towards, and ONLY that edge.
+     This is a mask, so the content fades itself — nothing is layered over it,
+     which is what stops a swatch ending up half-buried under an overlay. The
+     attribute is written by useScrollFade and removed entirely when there is
+     nothing to scroll, so the four modes that fit carry no mask at all: no
+     stacking context, and no dimming of content that is already fully
+     visible. Reaching either end clears that side back to zero. */
+  .cp-panel-host[data-cp-fade] {
+    --cp-fade-t: 0px;
+    --cp-fade-b: 0px;
+    /* No -webkit- twin. This sheet already uses light-dark(), which is
+       Safari 17.5+ and Chrome 123+; unprefixed mask-image landed in Safari
+       15.4, so the prefixed copy is bytes no browser can ever reach. */
+    mask-image: linear-gradient(to bottom,
+      transparent 0, #000 var(--cp-fade-t),
+      #000 calc(100% - var(--cp-fade-b)), transparent 100%);
+  }
+  .cp-panel-host[data-cp-fade="top"],
+  .cp-panel-host[data-cp-fade="both"] { --cp-fade-t: 18px; }
+  .cp-panel-host[data-cp-fade="bottom"],
+  .cp-panel-host[data-cp-fade="both"] { --cp-fade-b: 18px; }
   .cp-panel-host::-webkit-scrollbar { width: 8px; }
   .cp-panel-host::-webkit-scrollbar-track { background: transparent; }
   .cp-panel-host::-webkit-scrollbar-thumb {
@@ -736,18 +763,92 @@ export const css: string = `
     white-space: nowrap; border: 0;
   }
 
-  /* Grows into whatever the fixed panel height leaves over. Image is the
-     shortest mode by a long way, so pinning it to the top would leave an
-     obvious void; filling the space makes it a large drop target instead, and
-     the constant height reads as deliberate rather than as dead space. */
+  /* Centres in whatever space is left, but draws NO box. It is shared by the
+     palettes "no colours match" and pencils "none configured" messages, and a
+     dashed outline there reads as a drop target, which those are not. The
+     dashed box belongs to .cp-dropzone below, and only there. */
   .cp-empty {
     margin: 0;
     color: var(--cp-text-muted); padding: 20px 12px; text-align: center; font-size: 12px;
     flex: 1 1 auto; min-height: 0;
     display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Image mode
+   *
+   * The file input itself is visually hidden and driven by a <label>, which
+   * gives click and keyboard activation with no JavaScript. It is hidden by
+   * clipping rather than "display: none" so it stays focusable and Safari
+   * still treats it as a real control.
+   * ---------------------------------------------------------------- */
+
+  .cp-dropzone {
+    flex: 1 1 auto; min-height: 92px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    padding: 16px; text-align: center; cursor: pointer;
+    color: var(--cp-text-muted); font-size: 12px; line-height: 1.4;
     border: 1px dashed var(--cp-border);
     border-radius: var(--cp-radius);
+    background: transparent;
+    transition: border-color 120ms ease, background-color 120ms ease;
   }
+  .cp-dropzone svg { width: 26px; height: 26px; opacity: 0.65; }
+  .cp-dropzone-title { color: var(--cp-text); font-weight: 550; font-size: 12px; }
+  .cp-dropzone-hint { font-size: 11px; opacity: 0.8; }
+
+  .cp-dropzone:hover { border-color: var(--cp-text-muted); color: var(--cp-text); }
+  /* Focus lands on the visually hidden input, so the ring has to be drawn on
+     the label the user can actually see. */
+  .cp-dropzone:has(:focus-visible) {
+    outline: 2px solid var(--cp-focus); outline-offset: 2px;
+  }
+  .cp-dropzone[data-cp-dragging="true"] {
+    border-color: var(--cp-accent); border-style: solid;
+    background: color-mix(in srgb, var(--cp-accent) 10%, transparent);
+    color: var(--cp-text);
+  }
+  .cp-root[data-cp-disabled="true"] .cp-dropzone { cursor: default; }
+
+  /* Grows into the space the fixed panel height leaves over — the old preview
+     was a fixed 90px strip with object-fit: cover, which cropped a wide image
+     down to a band you could not read. */
+  .cp-image-preview {
+    position: relative;
+    /* Takes the space the swatch grid does not, so the panel never ends in an
+       orphan gap. The image inside keeps its own aspect ratio (height: auto,
+       capped at 100%), so it is never stretched or cropped — at a typical
+       photo ratio it very nearly fills this box anyway, and a panorama simply
+       sits centred in the frame rather than leaving a hole under the
+       swatches. */
+    flex: 1 1 auto; min-height: 72px;
+    display: flex;
+    border-radius: var(--cp-radius);
+    overflow: hidden;
+    background: var(--cp-surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--cp-border-subtle);
+  }
+  .cp-image-preview img {
+    width: 100%; height: auto; max-height: 100%; margin: auto; display: block;
+    /* contain, not cover: the point is to see what you loaded. The old 90px
+       cover strip cropped a wide image down to a band. */
+    object-fit: contain;
+  }
+  .cp-image-remove {
+    position: absolute; top: 6px; right: 6px;
+    width: 24px; height: 24px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 50%;
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer;
+    /* Dark chip with a light glyph, so it stays legible over any image. */
+    background: rgb(0 0 0 / 62%);
+    color: #fff;
+  }
+  .cp-image-remove:hover { background: rgb(0 0 0 / 78%); }
+  .cp-image-remove:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: 2px; }
+  .cp-image-remove svg { width: 13px; height: 13px; display: block; }
 }
 
 /* Scroll lock, outside the layer so a consumer's own body rules cannot

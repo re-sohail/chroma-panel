@@ -12,6 +12,7 @@ import {
 import { warnOnce } from '../core/dev';
 import { createColorStore, type ColorStore } from '../core/store';
 import { useTransientColor } from '../core/useColorStore';
+import { useScrollFade } from '../core/useScrollFade';
 import { injectStyles } from '../core/styleInjector';
 import { css, STYLE_ID } from '../styles/css';
 import { resolveModes, type ModeId, type PickerMode } from '../modes/registry';
@@ -141,6 +142,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   } = props;
 
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const panelHostRef = React.useRef<HTMLDivElement>(null);
   const idPrefix = useStableId('cp');
 
   // ---- store -------------------------------------------------------------
@@ -238,6 +240,10 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const [internalMode, setInternalMode] = React.useState(() => defaultMode ?? first?.id ?? 'wheel');
   const activeId = mode ?? internalMode;
   const active = resolved.find((m) => m.id === activeId) ?? first;
+
+  // Keyed on the active mode: switching tabs replaces the panel wholesale, so
+  // the observer has to be pointed at the new child.
+  useScrollFade(panelHostRef, activeId);
 
   const selectMode = (id: string): void => {
     if (mode === undefined) setInternalMode(id);
@@ -374,6 +380,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
               role="tabpanel"
               id={`${idPrefix}-panel-${active.id}`}
               aria-labelledby={`${idPrefix}-tab-${active.id}`}
+              ref={panelHostRef}
               tabIndex={-1}
               // cp-panel-host is the element that carries the fixed height and
               // owns the scrolling, so it needs a class of its own. It is
