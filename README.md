@@ -12,7 +12,7 @@ chroma-panel is a colour picker for React with the feel of the macOS colour pane
 - Five modes: wheel, sliders, palettes, image sampling, and a 120-colour pencil grid
 - Zero runtime dependencies, types included, ESM and CommonJS
 - Dragging renders React zero times
-- React 16.14 to 19, server-rendering safe, keyboard operable throughout
+- React 16.14 and newer, server-rendering safe, keyboard operable throughout
 
 **[API](https://github.com/re-sohail/chroma-panel/blob/main/docs/api.md)** ·
 **[Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)**
@@ -59,7 +59,7 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 13.9 kB instead of 21.9. Each extra mode you import adds its own weight
+That is 14.1 kB instead of 22.1. Each extra mode you import adds its own weight
 and nothing else.
 
 ## Theming
@@ -91,15 +91,15 @@ external and gzipped:
 
 | | added to your app |
 | --- | --- |
-| all five modes | **21.9 kB** |
-| the shell plus one mode | **13.9 kB** |
+| all five modes | **22.1 kB** |
+| the shell plus one mode | **14.1 kB** |
 
 Zero runtime dependencies, in either case.
 
 Five modes, a bottom sheet, an image quantiser and the stylesheet all cost
 something. If you only need one or two modes,
 [ship only those](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
-and pay 13.9 kB instead of 21.9.
+and pay 14.1 kB instead of 22.1.
 
 ## Licence
 

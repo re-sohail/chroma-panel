@@ -20,8 +20,14 @@ Everything is themed with CSS custom properties:
   --cp-width: 320px;
   --cp-disc-size: 196px;
   --cp-panel-h: 344px;
+  --cp-control-height: 32px;
 }
 ```
+
+`--cp-control-height` sizes the tab bar, the text inputs, the eyedropper and
+the footer preview together — the input height derives from it, so the search
+field and the tab bar above it always match. Change this one value to scale
+every control at once.
 
 `--cp-panel-h` is the height reserved for the mode content. It is the same in
 every mode, so the panel does not resize when you switch tabs — and on a phone,
@@ -122,7 +128,7 @@ await extractPalette(file, { size: 400, worker });
 
 ## Named colours
 
-The 148 CSS colour names are about 1 KB, and a bundler cannot prove an unused
+The 148 CSS colour names are about 1.3 kB gzipped, and a bundler cannot prove an unused
 table is unused if the parser references it. So they are opt-in:
 
 ```ts
