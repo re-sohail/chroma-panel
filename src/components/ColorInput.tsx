@@ -11,7 +11,9 @@ import {
   visuallyHiddenInput,
 } from '../core/useFormControl';
 import { useTransientColor } from '../core/useColorStore';
-import { ChromaPanel, type ChromaPanelProps } from './ChromaPanel';
+import { injectStyles } from '../core/styleInjector';
+import { css, STYLE_ID } from '../styles/css';
+import { ChromaPanel, DEFAULT_COLOR, FALLBACK, type ChromaPanelProps } from './ChromaPanel';
 import { Popover } from './Popover';
 
 export interface ColorInputProps extends ChromaPanelProps {
@@ -37,7 +39,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     validationBehavior = 'native',
     id, 'aria-label': ariaLabel = 'Choose a colour', triggerClassName,
     disabled: disabledProp = false, className, classNames = {}, format = 'hex',
-    value, defaultValue = '#ffffff', store: externalStore,
+    value, defaultValue = DEFAULT_COLOR, store: externalStore,
     mode, defaultMode, onModeChange,
     ...panelProps
   } = props;
@@ -48,6 +50,11 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
   const fieldsetDisabled = useFieldsetDisabled(hiddenRef);
   const disabled = disabledProp || fieldsetDisabled;
   const [trigger, setTrigger] = React.useState<HTMLButtonElement | null>(null);
+
+  const shouldInject = panelProps.injectStyles ?? true;
+  React.useEffect(() => {
+    if (shouldInject) injectStyles(css, STYLE_ID, trigger);
+  }, [shouldInject, trigger]);
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const isOpen = open ?? internalOpen;
 
@@ -63,7 +70,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     () => {
       const seed = value ?? defaultValue;
       const parsed = typeof seed === 'string' ? parse(seed) : seed;
-      return createColorStore(parsed ?? { h: 0, s: 0, v: 100, a: 1 });
+      return createColorStore(parsed ?? FALLBACK);
     },
     [],
   );

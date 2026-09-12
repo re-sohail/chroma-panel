@@ -21,7 +21,8 @@ import { WindowGlyph } from '../primitives/icons';
 import { ModeToolbar } from './ModeToolbar';
 import { PanelFooter, pushRecent } from './PanelFooter';
 
-const FALLBACK: Hsva = { h: 0, s: 0, v: 100, a: 1 };
+export const DEFAULT_COLOR = '#3366cc';
+export const FALLBACK: Hsva = { h: 220, s: 75, v: 80, a: 1 };
 
 export type PanelSize = 'default' | 'expanded';
 
@@ -74,7 +75,7 @@ export interface ChromaPanelProps {
 
 export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const {
-    value, defaultValue = '#ffffff', onChange, onChangeComplete,
+    value, defaultValue = DEFAULT_COLOR, onChange, onChangeComplete,
     modes = ['wheel', 'sliders', 'palettes', 'image', 'pencils'],
     mode, defaultMode, onModeChange,
     format = 'hex',
@@ -96,7 +97,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const initial = React.useMemo<Hsva>(() => {
     const seed = value ?? defaultValue;
     const parsed = typeof seed === 'string' ? parse(seed) : seed;
-    if (parsed === null) warnOnce(`could not parse "${seed}"; falling back to #ffffff.`);
+    if (parsed === null) warnOnce(`could not parse "${seed}"; falling back to ${DEFAULT_COLOR}.`);
     return parsed ?? FALLBACK;
   }, []);
 

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-react';
 import * as React from 'react';
-import { ChromaPanel, PENCIL_COLUMNS } from '../src/index';
+import { ChromaPanel, ColorInput, PENCIL_COLUMNS } from '../src/index';
+import { DEFAULT_COLOR, FALLBACK } from '../src/components/ChromaPanel';
+import { toHex } from '../src/color/serialize';
 
 async function waitFor<T extends Element>(selector: string, timeout = 3000): Promise<T> {
   const deadline = Date.now() + timeout;
@@ -62,5 +64,31 @@ describe('mode options reach their mode', () => {
     await waitFor('.cp-root');
     await openMode('Image');
     expect(await waitFor('input[type=file]')).toBeTruthy();
+  });
+});
+
+describe('the colour a picker starts on', () => {
+  it('keeps FALLBACK and DEFAULT_COLOR the same colour', () => {
+    expect(toHex(FALLBACK)).toBe(DEFAULT_COLOR);
+  });
+
+  it('is visible rather than white, with no props at all', async () => {
+    render(<ColorInput />);
+    const trigger = await waitFor<HTMLElement>('.cp-trigger');
+    await new Promise((r) => setTimeout(r, 80));
+
+    const painted = getComputedStyle(trigger).getPropertyValue('--cp-trigger-color').trim();
+    expect(painted, 'the trigger is not painted at all').not.toBe('');
+    expect(painted).not.toMatch(/255,\s*255,\s*255/);
+  });
+
+  it('falls back to the same colour when the value cannot be parsed', async () => {
+    render(<ChromaPanel value="definitely-not-a-colour" showTitleBar={false} modes={['sliders']} />);
+    await waitFor('.cp-panel-host');
+    await new Promise((r) => setTimeout(r, 80));
+
+    const hex = [...document.querySelectorAll<HTMLInputElement>('.cp-input')]
+      .map((i) => i.value).find((v) => v.startsWith('#'));
+    expect(hex?.slice(0, 7)).toBe(DEFAULT_COLOR);
   });
 });

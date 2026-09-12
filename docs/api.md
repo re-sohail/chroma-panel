@@ -16,7 +16,7 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 | Prop | Type | Default |
 | --- | --- | --- |
 | `value` | `string \| Hsva` | — |
-| `defaultValue` | `string \| Hsva` | `'#ffffff'` |
+| `defaultValue` | `string \| Hsva` | `'#3366cc'` |
 | `onChange` | `(c: ColorChangeResult) => void` | — |
 | `onChangeComplete` | `(c: ColorChangeResult) => void` | — |
 | `modes` | `(ModeId \| PickerMode)[]` | all five |
