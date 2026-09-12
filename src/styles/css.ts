@@ -24,6 +24,7 @@ export const css: string = `
     --cp-radius-sm: 7px;
     --cp-seg-pad: 3px;
 
+    --cp-ring-bleed: 4px;
     --cp-thumb-size: 18px;
     --cp-track-height: 12px;
     --cp-control-height: 32px;
@@ -363,6 +364,7 @@ export const css: string = `
     grid-template-columns: repeat(var(--cp-columns, 10), minmax(0, 1fr));
     gap: 8px; margin: 0; padding: 0; list-style: none;
   }
+  .cp-swatch-grid:not([data-cp-variant="mosaic"]) { padding-block: var(--cp-ring-bleed); }
   .cp-swatch-grid > li { display: block; min-width: 0; }
   .cp-swatch-grid[data-cp-large="true"] > li {
     content-visibility: auto;

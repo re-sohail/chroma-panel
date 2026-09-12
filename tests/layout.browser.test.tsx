@@ -403,6 +403,50 @@ describe('the popover never exceeds the viewport', () => {
   });
 });
 
+describe('the selection ring', () => {
+  it('is never clipped by the scroll port', async () => {
+    // outline is drawn outside the border box and does NOT contribute to
+    // scrollable overflow, so a swatch flush with the port's edge loses its
+    // ring -- and overflow-y: auto clips even when nothing needs to scroll.
+    render(panel());
+    const host = await waitFor<HTMLElement>('.cp-panel-host');
+
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-palettes') === true)!;
+    tab.click();
+    await settle();
+
+    const swatches = Array.from(
+      document.querySelectorAll<HTMLElement>('.cp-swatch-grid:not([data-cp-variant="mosaic"]) .cp-swatch'),
+    );
+    expect(swatches.length, 'no spaced swatches — test is not exercising anything')
+      .toBeGreaterThan(0);
+
+    // Scroll to the very end: the last row sits flush against the port's edge,
+    // which is where an outward ring gets cut.
+    host.scrollTop = host.scrollHeight;
+    await settle();
+    swatches[swatches.length - 1]!.click();
+    await settle();
+
+    const selected = document.querySelector<HTMLElement>('.cp-swatch[aria-pressed="true"]')!;
+    const style = getComputedStyle(selected);
+    const reach = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
+    expect(reach, 'the ring is drawn inside — this test assumes an outward ring')
+      .toBeGreaterThan(0);
+
+    const grid = selected.closest('.cp-swatch-grid') as HTMLElement;
+    const reserved = parseFloat(getComputedStyle(grid).paddingBottom);
+    expect(reserved, `ring reaches ${reach}px past the swatch but only ${reserved}px is reserved`)
+      .toBeGreaterThanOrEqual(reach);
+
+    const box = selected.getBoundingClientRect();
+    const port = host.getBoundingClientRect();
+    expect(box.bottom + reach, 'the ring is cut off at the bottom edge')
+      .toBeLessThanOrEqual(port.bottom + 0.5);
+  });
+});
+
 describe('the footer', () => {
   it('shows the current colour once, not twice', async () => {
     render(panel());
