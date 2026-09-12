@@ -35,8 +35,18 @@ export interface ColorPalette {
  * through props — so a new mode can be registered without touching the shell.
  */
 export interface PanelOptions {
-  palettes: ColorPalette[];
-  pencils: string[];
+  /**
+   * Props forwarded to a mode's Panel, keyed by mode id.
+   *
+   * Modes are rendered as `<active.Panel />` with no props of their own, so
+   * without this a mode's options are unreachable from ChromaPanel — which is
+   * exactly what happened to the image mode's worker and sample size.
+   * Keyed by id so a new mode needs no plumbing.
+   */
+  modeProps: Record<string, Record<string, unknown>>;
+  /** Undefined means "use the mode's own defaults" — see the palettes mode. */
+  palettes: ColorPalette[] | undefined;
+  pencils: string[] | undefined;
   showAlpha: boolean;
   showEyedropper: boolean;
   showRecentColors: boolean;

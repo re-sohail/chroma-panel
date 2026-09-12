@@ -15,6 +15,7 @@ import { useTransientColor } from '../core/useColorStore';
 import { injectStyles } from '../core/styleInjector';
 import { css, STYLE_ID } from '../styles/css';
 import { resolveModes, type ModeId, type PickerMode } from '../modes/registry';
+import type { ExtractOptions } from '../image/extract';
 import { WindowGlyph } from '../primitives/icons';
 import { ModeToolbar } from './ModeToolbar';
 import { PanelFooter, pushRecent } from './PanelFooter';
@@ -24,10 +25,14 @@ const FALLBACK: Hsva = { h: 0, s: 0, v: 100, a: 1 };
 export type PanelSize = 'default' | 'expanded';
 
 export interface ChromaPanelProps {
-  /** Controlled colour, as any CSS colour string. */
-  value?: string;
+  /**
+   * Controlled colour. A CSS colour string, or the unrounded `hsva` object
+   * from a change result — the object form round-trips without the precision
+   * loss of serialising through hex.
+   */
+  value?: string | Hsva;
   /** Initial colour when uncontrolled. Default `#ffffff`. */
-  defaultValue?: string;
+  defaultValue?: string | Hsva;
   /** Fires continuously while dragging (coalesced to one per frame). */
   onChange?: (color: ColorChangeResult) => void;
   /** Fires once when an interaction settles — use this for saves and undo. */
@@ -46,8 +51,21 @@ export interface ChromaPanelProps {
   showRecentColors?: boolean;
   recentColors?: string[];
   onRecentColorsChange?: (colors: string[]) => void;
+  /**
+   * Colour groups for the palettes mode.
+   * Defaults to `defaultPalettes()` so the mode is never empty out of the box.
+   */
   palettes?: ColorPalette[];
+  /**
+   * Swatches for the pencils mode.
+   * Defaults to `defaultPencils()` so the mode is never empty out of the box.
+   */
   pencils?: string[];
+
+  /** Props forwarded to each mode's Panel, keyed by mode id. */
+  modeProps?: Record<string, Record<string, unknown>>;
+  /** Typed shortcut for `modeProps.image` — worker, sample size, colour count. */
+  imageOptions?: ExtractOptions;
 
   disabled?: boolean;
   theme?: 'dark' | 'light';
@@ -104,7 +122,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     format = 'hex',
     showAlpha = true, showEyedropper = true, showRecentColors = true,
     recentColors, onRecentColorsChange,
-    palettes, pencils,
+    palettes, pencils, modeProps, imageOptions,
     disabled = false, theme, showTitleBar = true, title = 'Colours',
     onClose,
     collapsed, defaultCollapsed = false, onCollapsedChange,
@@ -119,7 +137,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   // ---- store -------------------------------------------------------------
   const initial = React.useMemo<Hsva>(() => {
     const seed = value ?? defaultValue;
-    const parsed = parse(seed);
+    const parsed = typeof seed === 'string' ? parse(seed) : seed;
     if (parsed === null) warnOnce(`could not parse "${seed}"; falling back to #ffffff.`);
     return parsed ?? FALLBACK;
     // Intentionally seeded once; later `value` changes flow through the sync
@@ -149,8 +167,8 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   // ---- controlled value --------------------------------------------------
   React.useEffect(() => {
     if (value === undefined) return;
-    const parsed = parse(value);
-    if (parsed === null) {
+    const parsed = typeof value === 'string' ? parse(value) : value;
+    if (parsed === null || parsed === undefined) {
       warnOnce(`could not parse value "${value}".`);
       return;
     }
@@ -219,13 +237,23 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   // ---- context -----------------------------------------------------------
   const options = React.useMemo<PanelOptions>(
     () => ({
-      palettes: palettes ?? [],
-      pencils: pencils ?? [],
+      // `palettes` and `pencils` stay undefined here rather than defaulting.
+      // Each mode falls back to its own generated data instead, so the shell
+      // and the other three modes never carry palette or pencil bytes.
+      modeProps: {
+        ...modeProps,
+        ...(imageOptions !== undefined
+          ? { image: { extractOptions: imageOptions, ...modeProps?.image } }
+          : {}),
+      },
+      palettes,
+      pencils,
       showAlpha, showEyedropper, showRecentColors,
       recentColors: recentColors ?? [],
       onRecentColorsChange,
     }),
-    [palettes, pencils, showAlpha, showEyedropper, showRecentColors, recentColors, onRecentColorsChange],
+    [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper,
+     showRecentColors, recentColors, onRecentColorsChange],
   );
 
   const context = React.useMemo<PanelContextValue>(
@@ -315,7 +343,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
               tabIndex={-1}
               className={cx(classNames.panel)}
             >
-              <active.Panel />
+              <active.Panel {...(options.modeProps[active.id] ?? {})} />
             </div>
           )}
 

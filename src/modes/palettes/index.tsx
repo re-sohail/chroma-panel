@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { usePanel } from '../../core/context';
+import { defaultPalettes } from '../../data/defaults';
 import { PalettesIcon } from '../../primitives/icons';
 import { SwatchGrid, type SwatchEntry } from '../../primitives/SwatchGrid';
 import type { PickerMode } from '../registry';
@@ -19,7 +20,9 @@ export function PalettesPanel(): React.ReactElement {
 
   const groups = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return options.palettes
+    // Falling back here rather than in the shell keeps this data out of every
+    // bundle that does not include the palettes mode.
+    return (options.palettes ?? defaultPalettes())
       .map((palette) => ({
         name: palette.name,
         swatches: normalise(palette.colors).filter(

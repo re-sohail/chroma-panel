@@ -21,7 +21,7 @@ const minifyInlinedCss = {
   },
 };
 
-export default defineConfig({
+const library = defineConfig({
   plugins: [minifyInlinedCss],
   entry: [
     'src/index.ts',
@@ -34,7 +34,6 @@ export default defineConfig({
     'src/pencils.ts',
     'src/named-colors.ts',
     'src/contrast.ts',
-    'src/image-worker.ts',
   ],
 
   // ESM is canonical; CJS is kept for older webpack/Jest setups.
@@ -74,3 +73,34 @@ export default defineConfig({
   // (which cleans dist on every run). The build script orders them correctly
   // and still fails on any packaging mistake.
 });
+
+/**
+ * The worker is built in its own pass, and every option here differs from the
+ * library build for a reason.
+ *
+ * A worker is fetched by URL, not imported. Unbundled output would emit
+ * `import "./image/mmcq.js"`, which breaks the moment a consumer copies the
+ * single file and makes Blob-URL instantiation impossible — so it must be
+ * self-contained.
+ *
+ * `treeshake: false` is scoped to this entry and costs nothing: the whole file
+ * is one side-effectful listener, and tree-shaking it is what emptied the
+ * artifact in the first place.
+ */
+const worker = defineConfig({
+  entry: ['src/image-worker.ts'],
+  format: ['esm'],        // `new Worker(url, { type: 'module' })` needs ESM.
+  unbundle: false,        // Self-contained: no relative imports to resolve.
+  platform: 'browser',
+  target: 'es2020',
+  treeshake: false,
+  dts: false,             // Nothing to type; also avoids an `export {}` stub.
+  sourcemap: true,
+  exports: false,
+
+  // MANDATORY. The default `clean: true` would wipe dist/ and delete the
+  // entire library build that ran before this one.
+  clean: false,
+});
+
+export default [library, worker];

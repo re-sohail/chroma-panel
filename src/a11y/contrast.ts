@@ -1,6 +1,7 @@
 import { hsvaToRgba } from '../color/convert';
 import { parse } from '../color/parse';
 import type { Hsva, Rgb } from '../color/types';
+import { warnOnce } from '../core/dev';
 
 function toRgb(input: string | Hsva): Rgb | null {
   if (typeof input !== 'string') return hsvaToRgba(input);
@@ -12,9 +13,23 @@ function toRgb(input: string | Hsva): Rgb | null {
  * WCAG 2.1
  * ------------------------------------------------------------------ */
 
+/**
+ * sRGB inverse transfer function.
+ *
+ * The breakpoint is 0.04045, matching the current WCAG 2.1/2.2 text. WCAG 2.0
+ * printed 0.03928 — a number taken from the 1996 pre-standard sRGB proposal
+ * rather than the IEC standard it cited — and a published erratum corrected it
+ * on 2022-02-22.
+ *
+ * The correction changes nothing for 8-bit input: no integer channel value
+ * falls between 10.0164 and 10.31475, so both constants select the same branch
+ * for all 256 inputs and produce bit-identical luminance. It is used here for
+ * spec conformance, and because it does matter if this ever accepts float or
+ * wide-gamut channels.
+ */
 function linearise(channel: number): number {
   const c = channel / 255;
-  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 }
 
 /** WCAG 2.1 relative luminance, 0-1. */
@@ -39,9 +54,89 @@ export function contrastRatio(a: string | Hsva, b: string | Hsva): number {
   return (light + 0.05) / (dark + 0.05);
 }
 
+/** Text size as WCAG defines it: 18pt, or 14pt bold, and above is "large". */
+export type TextSize = 'normal' | 'large';
+
+export interface ContrastOptions {
+  level: 'AA' | 'AAA';
+  /** Defaults to `normal` — the stricter threshold, so omitting it fails closed. */
+  size?: TextSize;
+}
+
+/**
+ * Does this pair meet a specific WCAG criterion?
+ *
+ * The level and the text size both have to be supplied, because a ratio on its
+ * own does not determine a verdict. 5:1 passes AA for any text, passes AAA for
+ * large text, and fails AAA for normal text — all at once.
+ *
+ * Thresholds come from SC 1.4.3 (AA) and SC 1.4.6 (AAA).
+ */
+export function meetsContrast(
+  a: string | Hsva,
+  b: string | Hsva,
+  options: ContrastOptions,
+): boolean {
+  const { level, size = 'normal' } = options;
+  const ratio = contrastRatio(a, b);
+  if (level === 'AAA') return ratio >= (size === 'large' ? 4.5 : 7);
+  return ratio >= (size === 'large' ? 3 : 4.5);
+}
+
+/**
+ * SC 1.4.11 Non-text Contrast: a flat 3:1 for UI components and graphical
+ * objects. It has no AAA counterpart and no size distinction, which is why it
+ * is a separate function rather than an option.
+ */
+export function meetsNonTextContrast(a: string | Hsva, b: string | Hsva): boolean {
+  return contrastRatio(a, b) >= 3;
+}
+
+export interface ContrastReport {
+  ratio: number;
+  text: {
+    normal: { aa: boolean; aaa: boolean };
+    large: { aa: boolean; aaa: boolean };
+  };
+  nonText: boolean;
+}
+
+/**
+ * Every outcome for a pair at once.
+ *
+ * A ratio maps to a SET of conformance results, not a point on a ladder, so
+ * this returns the set rather than collapsing it into one misleading label.
+ */
+export function contrastReport(a: string | Hsva, b: string | Hsva): ContrastReport {
+  const ratio = contrastRatio(a, b);
+  return {
+    ratio,
+    text: {
+      normal: { aa: ratio >= 4.5, aaa: ratio >= 7 },
+      large: { aa: ratio >= 3, aaa: ratio >= 4.5 },
+    },
+    nonText: ratio >= 3,
+  };
+}
+
+/** @deprecated Ambiguous by construction — see `wcagLevel` below. */
 export type WcagLevel = 'AAA' | 'AA' | 'AA Large' | 'Fail';
 
+/**
+ * @deprecated Use `meetsContrast`, `meetsNonTextContrast` or `contrastReport`.
+ *
+ * This cannot be correct. "AA Large" is not a WCAG conformance level — the
+ * string does not appear anywhere in WCAG 2.2 — and the function cannot know
+ * the text size that would decide between thresholds. It also understates
+ * AAA: 5:1 is AAA-conformant for large text but is reported here as "AA".
+ *
+ * Kept for one version so existing callers do not break.
+ */
 export function wcagLevel(a: string | Hsva, b: string | Hsva): WcagLevel {
+  warnOnce(
+    'wcagLevel() is deprecated and cannot be accurate — a ratio alone does not ' +
+      'determine a level. Use meetsContrast(a, b, { level, size }) instead.',
+  );
   const ratio = contrastRatio(a, b);
   if (ratio >= 7) return 'AAA';
   if (ratio >= 4.5) return 'AA';

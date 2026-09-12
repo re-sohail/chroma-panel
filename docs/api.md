@@ -15,8 +15,8 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `value` | `string` | — |
-| `defaultValue` | `string` | `'#ffffff'` |
+| `value` | `string \| Hsva` | — |
+| `defaultValue` | `string \| Hsva` | `'#ffffff'` |
 | `onChange` | `(c: ColorChangeResult) => void` | — |
 | `onChangeComplete` | `(c: ColorChangeResult) => void` | — |
 | `modes` | `(ModeId \| PickerMode)[]` | all five |
@@ -29,8 +29,8 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 | `showRecentColors` | `boolean` | `true` |
 | `recentColors` | `string[]` | `[]` |
 | `onRecentColorsChange` | `(colors: string[]) => void` | — |
-| `palettes` | `ColorPalette[]` | `[]` |
-| `pencils` | `string[]` | `[]` |
+| `palettes` | `ColorPalette[]` | built-in set |
+| `pencils` | `string[]` | built-in 120-colour grid |
 | `disabled` | `boolean` | `false` |
 | `theme` | `'dark' \| 'light'` | system |
 | `showTitleBar` | `boolean` | `true` |
@@ -46,6 +46,8 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 | `size` | `'default' \| 'expanded'` | `'default'` |
 | `defaultSize` | `'default' \| 'expanded'` | `'default'` |
 | `onSizeChange` | `(size) => void` | — |
+| `modeProps` | `Record<string, Record<string, unknown>>` | — |
+| `imageOptions` | `ExtractOptions` | — |
 
 `ColorInput` adds:
 
@@ -56,7 +58,16 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 | `onOpenChange` | `(open: boolean) => void` | — |
 | `sheetOnMobile` | `boolean` | `true` |
 | `name` | `string` | — |
+| `form` | `string` | — |
+| `required` | `boolean` | `false` |
+| `readOnly` | `boolean` | `false` |
+| `autoComplete` | `string` | — |
+| `validationBehavior` | `'native' \| 'aria'` | `'native'` |
 | `aria-label` | `string` | `'Choose a colour'` |
+
+`ColorInput` behaves like a native form control: a disabled one does not
+submit, a read-only one does, both `form` association and `<fieldset disabled>`
+are honoured, and `form.reset()` restores `defaultValue`.
 
 Slots for `classNames`: `root`, `titlebar`, `toolbar`, `tab`, `panel`, `footer`,
 `swatch`, `slider`, `thumb`, `field`, `trigger`, `popover`.
@@ -88,8 +99,9 @@ interface ColorChangeResult {
 }
 ```
 
-`hsva` is the internal value, unrounded. The rest are rounded projections of it.
-To keep precision across a round trip, store `hsva`.
+`hsva` is the internal value, unrounded. The rest are rounded projections of
+it. To keep precision across a round trip, store `hsva` and pass it straight
+back — `value` accepts the object as well as a string.
 
 ## Entry points
 
@@ -102,6 +114,27 @@ To keep precision across a round trip, store `hsva`.
 | `chroma-panel/contrast` | APCA and WCAG contrast |
 | `chroma-panel/named-colors` | The 148 CSS colour names |
 | `chroma-panel/styles.css` | The stylesheet, if you turn off injection |
+
+## Contrast
+
+```ts
+import { contrastRatio, meetsContrast, contrastReport } from 'chroma-panel';
+
+contrastRatio('#767676', '#fff');                          // 4.54
+meetsContrast('#767676', '#fff', { level: 'AA' });          // true
+meetsContrast('#767676', '#fff', { level: 'AAA' });         // false
+meetsNonTextContrast('#949494', '#fff');                    // SC 1.4.11, 3:1
+contrastReport('#5b5b5b', '#fff');                          // every outcome
+```
+
+Both the level and the text size are required, because a ratio alone does not
+decide a verdict: 5:1 passes AA for any text, passes AAA for large text and
+fails AAA for normal text, all at once. `size` defaults to `'normal'`, the
+stricter threshold.
+
+`wcagLevel()` is deprecated. It returned `"AA Large"`, which is not a WCAG
+conformance level, and could not know the text size that would decide between
+thresholds.
 
 ## Colour maths
 

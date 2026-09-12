@@ -10,9 +10,9 @@
 chroma-panel is a colour picker for React with the feel of the macOS colour panel.
 
 - Five modes: wheel, sliders, palettes, image sampling, and a 120-colour pencil grid
-- 13.9 kB gzipped for all five, zero runtime dependencies, types included
+- Zero runtime dependencies, types included, ESM and CommonJS
 - Dragging renders React zero times
-- React 16.8 to 19, server-rendering safe, keyboard operable throughout
+- React 16.14 to 19, server-rendering safe, keyboard operable throughout
 
 **[API](https://github.com/re-sohail/chroma-panel/blob/main/docs/api.md)** ·
 **[Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)**
@@ -81,14 +81,19 @@ trip through RGB destroys them. Drag brightness to zero and back, and the hue
 you chose comes back as red. chroma-panel keeps unrounded float HSVA and merges
 incoming values rather than replacing them.
 
-Sizes, measured by building the same app with each, React external:
+Measured as the delta a real Vite app gains by adding each one, React
+external, minified and gzipped:
 
-| | gzipped | deps | modes |
+| | added to your app | deps | modes |
 | --- | --- | --- | --- |
 | [react-colorful](https://bundlephobia.com/package/react-colorful) | 4.8 kB | 0 | one |
 | [@rc-component/color-picker](https://bundlephobia.com/package/@rc-component/color-picker) | 6.6 kB | 3 | one |
 | **chroma-panel** | **13.9 kB** | **0** | **five** |
 | [@uiw/react-color](https://bundlephobia.com/package/@uiw/react-color) | 15.7 kB | 20 | several |
+
+Importing only `chroma-panel/panel` plus one mode adds about 8.5 kB. The
+package's own bundle measures larger in isolation (around 20 kB) because that
+figure counts code your bundler drops.
 
 **If you only need one picker and every kilobyte counts, use react-colorful.**
 It is excellent, and smaller. Reach for this one when you want several modes,

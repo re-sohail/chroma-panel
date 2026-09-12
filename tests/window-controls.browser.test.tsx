@@ -31,7 +31,10 @@ const light = (which: 'close' | 'min' | 'max'): HTMLButtonElement =>
 const committedColour = (): { trigger: string; form: string | undefined } => ({
   trigger: getComputedStyle(document.querySelector('.cp-trigger')!)
     .getPropertyValue('--cp-trigger-color').trim(),
-  form: document.querySelector<HTMLInputElement>('input[type=hidden][name=c]')?.value,
+  // Not `type=hidden` any more: the spec bars `readonly`, `required` and
+  // constraint validation on hidden inputs, so this is a visually hidden
+  // real input instead.
+  form: document.querySelector<HTMLInputElement>('input[name=c]')?.value,
 });
 
 afterEach(async () => {

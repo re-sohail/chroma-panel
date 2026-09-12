@@ -147,3 +147,14 @@ describe('serialize', () => {
     }
   });
 });
+
+describe('image extraction options are validated', () => {
+  it('rejects nonsense rather than failing deep inside the decoder', async () => {
+    const { extractPalette } = await import('../src/image/extract');
+    const blob = new Blob([], { type: 'image/png' });
+
+    await expect(extractPalette(blob, { maxColors: 1 })).rejects.toThrow(/maxColors/);
+    await expect(extractPalette(blob, { size: 2 })).rejects.toThrow(/size/);
+    await expect(extractPalette(blob, { alphaThreshold: 999 })).rejects.toThrow(/alphaThreshold/);
+  });
+});

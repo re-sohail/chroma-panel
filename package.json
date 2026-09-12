@@ -21,8 +21,8 @@
   "author": "Sohail Khan (https://resohail.me)",
   "type": "module",
   "sideEffects": [
-    "*.css",
-    "**/*.css"
+    "**/*.css",
+    "./dist/image-worker.js"
   ],
   "files": [
     "dist",
@@ -148,7 +148,7 @@
     "test:browser": "vitest run --project browser",
     "test:watch": "vitest",
     "lint:publint": "publint --strict",
-    "lint:attw": "attw --pack . --profile node16 --exclude-entrypoints styles.css style.css --ignore-rules cjs-resolves-to-esm",
+    "lint:attw": "attw --pack . --profile node16 --exclude-entrypoints styles.css style.css image-worker",
     "verify:directives": "node scripts/verify-directives.mjs",
     "size": "node scripts/size-report.mjs",
     "prepublishOnly": "npm run build && npm run verify:directives && npm run size",
@@ -156,8 +156,10 @@
     "build:fast": "tsdown && node scripts/emit-css.mjs"
   },
   "peerDependencies": {
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
-    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    "react": "^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0-0",
+    "react-dom": "^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0-0",
+    "@types/react": "*",
+    "@types/react-dom": "*"
   },
   "publishConfig": {
     "access": "public",
@@ -190,5 +192,13 @@
   "homepage": "https://github.com/re-sohail/chroma-panel#readme",
   "bugs": {
     "url": "https://github.com/re-sohail/chroma-panel/issues"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
+      "optional": true
+    }
   }
 }

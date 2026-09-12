@@ -2,15 +2,17 @@
 
 import * as React from 'react';
 import { usePanel } from '../../core/context';
-import { PENCIL_COLUMNS } from '../../data/defaults';
+import { PENCIL_COLUMNS, defaultPencils } from '../../data/defaults';
 import { PencilsIcon } from '../../primitives/icons';
 import { SwatchGrid } from '../../primitives/SwatchGrid';
 import type { PickerMode } from '../registry';
 
 export function PencilsPanel(): React.ReactElement {
   const { options } = usePanel();
+  // Same reasoning as the palettes mode: the fallback lives with the mode
+  // that needs it, not in the shared shell.
   const swatches = React.useMemo(
-    () => options.pencils.map((color) => ({ color })),
+    () => (options.pencils ?? defaultPencils()).map((color) => ({ color })),
     [options.pencils],
   );
 

@@ -61,14 +61,34 @@ async function decode(blob: Blob, size: number): Promise<ImageBitmap> {
   if (typeof createImageBitmap !== 'function') {
     throw new Error('chroma-panel: this browser cannot decode images off-thread.');
   }
-  // resizeWidth/Height downscale inside the decoder, so a 4000x3000 source is
-  // never fully materialised in memory.
-  return await createImageBitmap(blob, {
-    resizeWidth: size,
-    resizeHeight: size,
-    resizeQuality: 'medium',
-    premultiplyAlpha: 'none',
-  });
+
+  // Scale the LONGEST edge to `size` and let the decoder derive the other.
+  //
+  // Passing `size` for both dimensions — which this did previously — squashes
+  // a 4000x1000 photo into a square. That is not merely cosmetic: resampling
+  // a wide image into a square changes how many source pixels land in each
+  // sampled pixel, which skews the population weights the quantizer sorts by,
+  // so the "most common" colour can come back wrong.
+  //
+  // Supplying only ONE of resizeWidth/resizeHeight makes the decoder preserve
+  // the aspect ratio itself, so the source dimensions never need reading.
+  const longest = Math.max(8, Math.round(size));
+
+  try {
+    const probe = await createImageBitmap(blob);
+    const wide = probe.width >= probe.height;
+    probe.close();
+
+    return await createImageBitmap(blob, {
+      ...(wide ? { resizeWidth: longest } : { resizeHeight: longest }),
+      resizeQuality: 'medium',
+      premultiplyAlpha: 'none',
+    });
+  } catch {
+    // Some decoders reject the resize options entirely. A full-size bitmap is
+    // slower but correct, and readPixels still works.
+    return await createImageBitmap(blob);
+  }
 }
 
 function readPixels(bitmap: ImageBitmap): Uint8ClampedArray {
@@ -151,12 +171,22 @@ export async function extractPalette(
     signal,
   } = options;
 
+  if (!Number.isFinite(maxColors) || maxColors < 2) {
+    throw new RangeError('chroma-panel: maxColors must be a number of at least 2.');
+  }
+  if (!Number.isFinite(size) || size < 8) {
+    throw new RangeError('chroma-panel: size must be a number of at least 8.');
+  }
+  if (!Number.isFinite(alphaThreshold) || alphaThreshold < 0 || alphaThreshold > 255) {
+    throw new RangeError('chroma-panel: alphaThreshold must be between 0 and 255.');
+  }
+
   if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');
 
   const blob = await toBlob(source);
   if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');
 
-  const bitmap = await decode(blob, Math.max(8, Math.round(size)));
+  const bitmap = await decode(blob, size);
   let data: Uint8ClampedArray;
   try {
     if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');

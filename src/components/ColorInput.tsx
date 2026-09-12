@@ -6,6 +6,10 @@ import { toFormat, toRgbaString } from '../color/serialize';
 import type { Hsva } from '../color/types';
 import { cx, useStableId } from '../core/context';
 import { createColorStore } from '../core/store';
+import {
+  setNativeValue, useConstraintValidation, useFieldsetDisabled, useFormReset,
+  visuallyHiddenInput,
+} from '../core/useFormControl';
 import { useTransientColor } from '../core/useColorStore';
 import { ChromaPanel, type ChromaPanelProps } from './ChromaPanel';
 import { Popover } from './Popover';
@@ -18,6 +22,22 @@ export interface ColorInputProps extends ChromaPanelProps {
 
   /** Submits the current colour with a form, like a native input would. */
   name?: string;
+  /** Associates with a form by id, for a control rendered outside it. */
+  form?: string;
+  /** Blocks submission while no colour has been chosen. */
+  required?: boolean;
+  /**
+   * Value is submitted but cannot be changed. Unlike `disabled`, a read-only
+   * control stays focusable and still submits — that is the spec distinction.
+   */
+  readOnly?: boolean;
+  autoComplete?: string;
+  /**
+   * `native` blocks submission via constraint validation. `aria` only marks
+   * the field invalid for assistive technology, which is what form libraries
+   * such as react-hook-form generally want.
+   */
+  validationBehavior?: 'native' | 'aria';
   id?: string;
   /** Accessible name for the trigger. Default "Choose a colour". */
   'aria-label'?: string;
@@ -35,8 +55,10 @@ export interface ColorInputProps extends ChromaPanelProps {
 export function ColorInput(props: ColorInputProps): React.ReactElement {
   const {
     open, defaultOpen = false, onOpenChange,
-    name, id, 'aria-label': ariaLabel = 'Choose a colour', triggerClassName,
-    disabled = false, className, classNames = {}, format = 'hex',
+    name, form, required = false, readOnly = false, autoComplete,
+    validationBehavior = 'native',
+    id, 'aria-label': ariaLabel = 'Choose a colour', triggerClassName,
+    disabled: disabledProp = false, className, classNames = {}, format = 'hex',
     value, defaultValue = '#ffffff', store: externalStore,
     // Pulled out of panelProps so this component can own the active mode.
     mode, defaultMode, onModeChange,
@@ -44,6 +66,12 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
   } = props;
 
   const triggerId = useStableId('cp-trigger-');
+  const hiddenRef = React.useRef<HTMLInputElement>(null);
+
+  // A <fieldset disabled> ancestor disables descendants natively, but React
+  // cannot see that, so the panel would still render as enabled.
+  const fieldsetDisabled = useFieldsetDisabled(hiddenRef);
+  const disabled = disabledProp || fieldsetDisabled;
   const [trigger, setTrigger] = React.useState<HTMLButtonElement | null>(null);
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const isOpen = open ?? internalOpen;
@@ -59,7 +87,11 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
   // One store shared between the trigger swatch, the hidden form input and
   // the panel, so the trigger tracks a drag without re-rendering.
   const ownStore = React.useMemo(
-    () => createColorStore(parse(value ?? defaultValue) ?? { h: 0, s: 0, v: 100, a: 1 }),
+    () => {
+      const seed = value ?? defaultValue;
+      const parsed = typeof seed === 'string' ? parse(seed) : seed;
+      return createColorStore(parsed ?? { h: 0, s: 0, v: 100, a: 1 });
+    },
     // Seeded once; `value` changes are handled by ChromaPanel's sync effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -101,7 +133,6 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     trigger?.focus({ preventScroll: true });
   }, [setOpen, trigger]);
 
-  const hiddenRef = React.useRef<HTMLInputElement>(null);
   const formatRef = React.useRef(format);
   React.useEffect(() => {
     formatRef.current = format;
@@ -110,7 +141,21 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
   useTransientColor(store, (c: Hsva) => {
     trigger?.style.setProperty('--cp-trigger-color', toRgbaString(c));
     const hidden = hiddenRef.current;
-    if (hidden !== null) hidden.value = toFormat(c, formatRef.current);
+    // Through the native setter, so React's value tracker does not swallow it
+    // and the surrounding form's onChange actually fires.
+    if (hidden !== null) setNativeValue(hidden, toFormat(c, formatRef.current));
+  });
+
+  useFormReset(hiddenRef, () => {
+    const parsed = typeof defaultValue === 'string' ? parse(defaultValue) : defaultValue;
+    if (parsed !== null && parsed !== undefined) store.ingest(parsed);
+  });
+
+  useConstraintValidation(hiddenRef, {
+    behavior: validationBehavior,
+    required,
+    isEmpty: false, // A colour picker always holds a colour.
+    focusTrigger: () => trigger?.focus(),
   });
 
   const seed = store.get();
@@ -126,12 +171,34 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
+        aria-readonly={readOnly || undefined}
         disabled={disabled}
-        onClick={() => setOpen(!isOpen)}
+        onClick={() => { if (!readOnly) setOpen(!isOpen); }}
       />
 
+      {/* A visually hidden REAL input, not type="hidden".
+          The spec bars `readonly` and `required` on hidden inputs and excludes
+          them from constraint validation entirely, so they can support none of
+          the behaviour below. Clipped rather than display:none, which would
+          remove it from the accessibility tree and break Safari autofill. */}
       {name !== undefined && (
-        <input ref={hiddenRef} type="hidden" name={name} defaultValue={toFormat(seed, format)} />
+        <input
+          ref={hiddenRef}
+          type="text"
+          name={name}
+          form={form}
+          defaultValue={toFormat(seed, format)}
+          // A disabled control is skipped when the form data set is built,
+          // which is what stops it submitting. A read-only one still submits.
+          disabled={disabled}
+          required={required}
+          readOnly={readOnly}
+          autoComplete={autoComplete}
+          tabIndex={-1}
+          aria-hidden="true"
+          style={visuallyHiddenInput}
+          onChange={() => {}}
+        />
       )}
 
       <Popover
@@ -147,7 +214,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
             value={value}
             defaultValue={defaultValue}
             format={format}
-            disabled={disabled}
+            disabled={disabled || readOnly}
             classNames={classNames}
             mode={activeMode}
             onModeChange={handleModeChange}

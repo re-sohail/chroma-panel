@@ -71,8 +71,9 @@ export { usePanel, type ChromaClassNames, type ColorPalette, type PanelOptions }
 /* Also available from `chroma-panel/contrast` for consumers who want only the
    maths without any React. */
 export {
-  relativeLuminance, contrastRatio, wcagLevel, apcaContrast, readableTextColor,
-  type WcagLevel,
+  relativeLuminance, contrastRatio, apcaContrast, readableTextColor,
+  meetsContrast, meetsNonTextContrast, contrastReport, wcagLevel,
+  type ContrastOptions, type ContrastReport, type TextSize, type WcagLevel,
 } from './a11y/contrast';
 
 /* ---- colour engine ---- */
