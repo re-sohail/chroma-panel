@@ -4,7 +4,7 @@
 
 ## Theming
 
-Everything is themed with CSS custom properties:
+Every color and size is a CSS variable:
 
 ```css
 .cp-root {
@@ -24,18 +24,16 @@ Everything is themed with CSS custom properties:
 }
 ```
 
-`--cp-control-height` sizes the tab bar, the text inputs, the eyedropper and
-the footer preview together — the input height derives from it, so the search
-field and the tab bar above it always match. Change this one value to scale
-every control at once.
+Two of these do more than they look:
 
-`--cp-panel-h` is the height reserved for the mode content. It is the same in
-every mode, so the panel does not resize when you switch tabs — and on a phone,
-where the sheet is anchored to the bottom edge, its top edge does not jump
-either. Anything taller than it scrolls. Set it to `auto` to let each mode size
-itself, at the cost of that stability.
+**`--cp-control-height`** sizes the tab bar, the text inputs, the eyedropper and
+the footer swatch together. Change this one value to scale every control.
 
-The panel follows the system colour scheme unless you pass `theme`.
+**`--cp-panel-h`** is the height reserved for the mode content. It is the same
+in every mode, so the panel does not resize when you switch tabs. Content taller
+than this scrolls. Set it to `auto` if you would rather each mode sized itself.
+
+The panel follows the system color scheme unless you pass `theme`.
 
 ### With Tailwind
 
@@ -50,26 +48,25 @@ Pass your own classes per slot:
 />
 ```
 
-### One thing to know about the cascade
+### If the panel looks wrong
 
-The stylesheet sits in `@layer chroma-panel`, so your CSS always wins. That
-includes CSS you did not mean to apply here — an unlayered element rule
-anywhere in your app beats every rule in this package, however specific:
+The stylesheet lives in `@layer chroma-panel`, so your CSS always wins. That
+also means CSS you did not aim at the picker wins. Any unlayered element rule
+in your app beats every rule here, however specific:
 
 ```css
 /* This restyles the picker's swatches and tabs too. */
 button { border-radius: 7px; }
 ```
 
-That is cascade layers working as designed. If the picker's geometry looks
-wrong, look for an unlayered element selector first. Scope the rule, or put
-your own resets in a layer:
+If the geometry looks off, look for a rule like that first. Scope it, or put
+your resets in a layer:
 
 ```css
 @layer reset, chroma-panel, utilities;
 ```
 
-### Importing the stylesheet yourself
+### Loading the CSS yourself
 
 For a strict `style-src` policy, or to extract critical CSS:
 
@@ -79,8 +76,8 @@ import 'chroma-panel/styles.css';
 <ColorInput injectStyles={false} />
 ```
 
-Injection is keyed on `getRootNode()`, so the picker works inside a shadow root
-or an iframe, and many panels produce exactly one `<style>` element.
+Injection is keyed on `getRootNode()`. The picker works inside a shadow root or
+an iframe, and many panels still produce one `<style>` element.
 
 ## Window controls
 
@@ -90,16 +87,14 @@ or an iframe, and many panels produce exactly one `<style>` element.
 | Yellow | Collapses the panel to its title bar. |
 | Green | Widens the panel, and the wheel with it. |
 
-Glyphs appear when the pointer is over the title bar, and on keyboard focus.
+The glyphs appear on hover and on keyboard focus.
 
-Closing is not cancelling. The colour is kept, and reopening returns the same
-colour and the same mode you were last on.
+Closing keeps the color. Reopen and you get the same color and the same mode.
 
-An inline panel has nothing to close, so the red control is shown dimmed rather
-than removed. Supply `onClose` and it becomes live.
+Collapsing hides the body with CSS instead of unmounting it, so nothing is lost.
 
-Collapsing hides the body with CSS rather than unmounting it, so nothing is
-lost and expanding is instant.
+An inline panel has nothing to close, so the red control is dimmed. Pass
+`onClose` to make it live.
 
 ## Image sampling
 
@@ -110,19 +105,15 @@ const { swatches } = await extractPalette(file, { maxColors: 8 });
 // [{ hex: '#3e5f8a', rgb: [62, 95, 138], population: 4213 }, ...]
 ```
 
-The image is downscaled inside the decoder, so a 4000x3000 photo is never fully
-materialised, then quantized with modified median cut. Averages come from the
-true channel values rather than 5-bit bin centres, so a flat region of
-`#ff0000` extracts as `#ff0000` and not `#fc0404`.
+Large images are downscaled before they are read, so a 4000x3000 photo never
+loads in full.
 
-A loaded image survives closing and reopening the picker, so reaching for a
-second colour does not mean choosing the file again. It is held for the life of
-the page and released when you replace it, remove it with the control on the
-preview, or leave the page.
+A loaded image stays put when you close and reopen the picker. It is released
+when you replace it, remove it, or leave the page.
 
-At the default sample size the quantizer takes a few milliseconds, so it runs
-on the main thread. To raise `size` substantially, move it to a worker —
-constructed in your source, so your bundler resolves the URL:
+Sampling takes a few milliseconds, so it runs on the main thread. If you raise
+`size` a lot, move it to a worker. Build the URL in your own source so your
+bundler resolves it:
 
 ```ts
 const url = new URL('chroma-panel/image-worker', import.meta.url);
@@ -131,10 +122,9 @@ const worker = new Worker(url, { type: 'module' });
 await extractPalette(file, { size: 400, worker });
 ```
 
-## Named colours
+## Named colors
 
-The 148 CSS colour names are about 1.3 kB gzipped, and a bundler cannot prove an unused
-table is unused if the parser references it. So they are opt-in:
+The 148 CSS color names cost about 1.3 kB gzipped, so they are opt-in:
 
 ```ts
 import { registerNamedColors } from 'chroma-panel';
@@ -143,39 +133,41 @@ import { namedColors } from 'chroma-panel/named-colors';
 registerNamedColors(namedColors);
 ```
 
+Now `parse('rebeccapurple')` works.
+
 ## On a phone
 
-Below 640px the popover becomes a bottom sheet: full width, rounded top, grab
-handle, capped at 88% of the small viewport height, with a scrim and scroll
-locked behind it. Controls keep their compact size on a mouse and grow to a
-44px hit area on a touch screen.
+Below 640px the popover becomes a bottom sheet. Full width, rounded top, grab
+handle, and a scrim with the page locked behind it.
+
+Controls stay compact for a mouse and grow to a 44px hit area for touch.
 
 Pass `sheetOnMobile={false}` to keep an anchored popover at every size.
 
-One page-level line a library cannot add for you:
+Add this to your page, because a library cannot:
 
 ```html
 <meta name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover">
 ```
 
-Without `viewport-fit=cover`, `env(safe-area-inset-bottom)` resolves to `0` and
-the sheet will not clear the home indicator on a notched iPhone. The CSS
-degrades gracefully either way.
+Without `viewport-fit=cover` the sheet will not clear the home indicator on a
+notched iPhone. Everything still works, it just sits a little low.
 
 ## Accessibility
 
-Every colour axis is a real `<input type="range">`, visually hidden, so
-keyboard handling, `aria-valuenow` and screen-reader support come from the
-platform rather than an approximation of it. The wheel and the 2D area expose
-two slider values sharing one visual thumb.
+Every color axis is a real `<input type="range">`, hidden visually. Keyboard
+handling and screen-reader support come from the browser, not from our own
+version of it.
 
-- Arrows step; Shift+arrow and Page Up/Down step by ten; Home and End jump
-- The mode switcher is a tablist with a roving tab stop
-- Values announce as text: "Hue 210 degrees", not a bare number
-- The popover traps focus, closes on Escape, returns focus to the trigger
-- Swatches are buttons with accessible names
-- `prefers-reduced-motion` and forced-colours mode are both handled
+- Arrows step. Shift+arrow and Page Up/Down step by ten. Home and End jump.
+- The mode switcher is a tablist with a roving tab stop.
+- Values are announced as text: "Hue 210 degrees", not a bare number.
+- The popover traps focus, closes on Escape, and returns focus to the trigger.
+- Swatches are buttons with accessible names.
+- `prefers-reduced-motion` and forced-colors mode are both handled.
+
+Two helpers for your own UI:
 
 ```ts
 import { readableTextColor, contrastRatio } from 'chroma-panel';
@@ -184,21 +176,21 @@ readableTextColor('#001f3f');       // '#ffffff'
 contrastRatio('#fff', '#001f3f');   // WCAG 2.1 ratio
 ```
 
-`readableTextColor` decides with APCA rather than the usual luminance
-shortcut, which picks black over mid-blues where white reads better.
+`readableTextColor` uses APCA rather than plain luminance. It picks white over
+mid-blues, where the older method wrongly picks black.
 
 ## Custom modes
 
-A mode is data, so adding one touches no existing file:
+A mode is plain data, so adding one changes no existing file:
 
 ```tsx
 import { registerMode, ChromaPanel } from 'chroma-panel';
 
 registerMode({
   id: 'brand',
-  label: 'Brand colours',
+  label: 'Brand colors',
   icon: BrandIcon,
-  Panel: BrandPanel,   // reads the store through usePanel()
+  Panel: BrandPanel,   // reads the color with usePanel()
 });
 
 <ChromaPanel modes={['wheel', 'brand']} />

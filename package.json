@@ -15,7 +15,13 @@
     "accessible",
     "a11y",
     "typescript",
-    "zero-dependency"
+    "zero-dependency",
+    "react-color-picker",
+    "colour-picker",
+    "color-wheel",
+    "swatch",
+    "macos",
+    "hsl"
   ],
   "license": "MIT",
   "author": "Sohail Khan (https://resohail.me)",

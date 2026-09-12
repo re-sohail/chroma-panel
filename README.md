@@ -1,25 +1,23 @@
-![chroma-panel](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)
+![chroma-panel, a React color picker](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)
 
-[![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
-[![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)](https://bundlephobia.com/package/chroma-panel)
-[![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
-[![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)](./LICENSE)
+![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)# chroma-panel
 
-# chroma-panel
+chroma-panel is a React color picker with the look and feel of the macOS color panel.
 
-chroma-panel is a colour picker for React with the feel of the macOS colour panel.
+- Five modes: wheel, sliders, palettes, image, and a 120-color pencil grid
+- No dependencies. Types included. ESM and CommonJS
+- React does not re-render while you drag, so it stays smooth
+- React 16.14 and newer. Works with SSR. Full keyboard support
 
-- Five modes: wheel, sliders, palettes, image sampling, and a 120-colour pencil grid
-- Zero runtime dependencies, types included, ESM and CommonJS
-- Dragging renders React zero times
-- React 16.14 and newer, server-rendering safe, keyboard operable throughout
+[**API**](https://github.com/re-sohail/chroma-panel/blob/main/docs/api.md) · [**Guides**](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
 
-**[API](https://github.com/re-sohail/chroma-panel/blob/main/docs/api.md)** ·
-**[Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)**
+## Install
 
 ```bash
 npm install chroma-panel
 ```
+
+## Use it
 
 ```tsx
 import { useState } from 'react';
@@ -40,7 +38,11 @@ export function Example() {
 
 That is the whole setup. No CSS import, no provider.
 
-## Inline, without the popover
+`onChange` fires while you drag. `onChangeComplete` fires once, when you let go. Use the first for live preview, the second for anything you save.
+
+## Inline panel
+
+Skip the popover and render the panel on the page:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel';
@@ -48,9 +50,9 @@ import { ChromaPanel } from 'chroma-panel';
 <ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false} />
 ```
 
-## Ship fewer modes
+## Smaller bundle
 
-The main entry registers all five. Import the shell and only the modes you use:
+The main entry loads all five modes. Import the shell and pick your own instead:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel/panel';
@@ -59,47 +61,41 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 14.1 kB instead of 22.2. Each extra mode you import adds its own weight
-and nothing else.
+That is 14.1 kB instead of 22.2 kB. Each mode you add costs only itself.
 
 ## Theming
 
-![Light and dark](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
-
-The panel follows the system colour scheme. Override any of the CSS custom
-properties, or pass your own classes per slot:
+![The chroma-panel color picker in light and dark themes](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)The panel follows the system color scheme. Override the CSS variables, or pass your own class per slot:
 
 ```tsx
 <ColorInput classNames={{ root: 'shadow-2xl', trigger: 'h-8 w-12' }} />
 ```
 
-See **[Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)**
-for theming, window controls, image sampling, mobile and accessibility.
+See the [Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md) for theming, image sampling, mobile and accessibility.
 
-## Why not one of the others?
+## Your hue survives
 
-Most React pickers store colour as RGB or hex. In HSV, hue is undefined when
-saturation is zero and saturation is undefined when brightness is zero, so a
-trip through RGB destroys them. Drag brightness to zero and back, and the hue
-you chose comes back as red. chroma-panel keeps unrounded float HSVA and merges
-incoming values rather than replacing them.
+Most React color pickers store the color as RGB or hex. That throws information away.
 
-## What it costs
+Drag brightness down to black, then back up. In those pickers the hue returns as red. Here it comes back as the hue you picked.
 
-Measured as the delta a real Vite production build gains by adding it, React
-external and gzipped:
+chroma-panel keeps the full HSVA value and never rounds it on the way through.
 
-| | added to your app |
-| --- | --- |
-| all five modes | **22.2 kB** |
-| the shell plus one mode | **14.1 kB** |
+## Size
 
-Zero runtime dependencies, in either case.
+Measured as the increase in a real Vite production build, gzipped, with React external.
 
-Five modes, a bottom sheet, an image quantiser and the stylesheet all cost
-something. If you only need one or two modes,
-[ship only those](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
-and pay 14.1 kB instead of 22.2.
+<!-- board:start id="b-0y1i" field-types="Title=text,Status=status,added to your app=text,id=text" hidden-fields="id" active-view="table" -->
+<!-- board:view name="table" hidden="Status,Description" -->
+
+| Title | Status | added to your app | id |
+|---|---|---|---|
+| all five modes |  | 22.2 kB | C1 |
+| shell plus one mode |  | 14.1 kB | C2 |
+
+<!-- board:end -->
+
+No runtime dependencies either way.
 
 ## Licence
 
