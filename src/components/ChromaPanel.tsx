@@ -272,6 +272,10 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
         data-cp-disabled={disabled ? 'true' : undefined}
         data-cp-collapsed={isCollapsed ? 'true' : undefined}
         data-cp-size={activeSize === 'expanded' ? 'expanded' : undefined}
+        // Lets CSS drop the fixed panel height when there is only one mode:
+        // nothing can jump when there is nothing to switch to, and reserving
+        // room for the tallest mode would just waste space.
+        data-cp-modes={resolved.length}
         style={{
           ['--cp-h' as string]: String(seed.h),
           ['--cp-s' as string]: `${seed.s}%`,
@@ -341,7 +345,11 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
               id={`${idPrefix}-panel-${active.id}`}
               aria-labelledby={`${idPrefix}-tab-${active.id}`}
               tabIndex={-1}
-              className={cx(classNames.panel)}
+              // cp-panel-host is the element that carries the fixed height and
+              // owns the scrolling, so it needs a class of its own. It is
+              // ADDITIVE: the mode's inner .cp-panel and the consumer's
+              // classNames.panel are both public API and are untouched.
+              className={cx('cp-panel-host', classNames.panel)}
             >
               <active.Panel {...(options.modeProps[active.id] ?? {})} />
             </div>

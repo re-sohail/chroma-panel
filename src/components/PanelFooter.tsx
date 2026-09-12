@@ -26,7 +26,33 @@ export function PanelFooter(): React.ReactElement | null {
     store.commit();
   };
 
-  const recents = options.showRecentColors ? options.recentColors.slice(0, 10) : [];
+  // The preview beside this row already shows the current colour, so repeating
+  // it as the newest "recent" drew the same colour twice, side by side, after
+  // every single pick — which reads as a duplicate, not as history.
+  //
+  // subscribeCommit, NOT subscribe: commits fire on pointerup rather than once
+  // per frame, and this component already re-renders on commit because
+  // recentColors changes. So the filter costs zero extra renders and the
+  // zero-render drag guarantee is untouched.
+  const [current, setCurrent] = React.useState<string | null>(null);
+  React.useEffect(
+    () => store.subscribeCommit((c) => setCurrent(toHex(c).toLowerCase())),
+    [store],
+  );
+
+  // Only the rendered list is filtered. options.recentColors is the consumer's
+  // own state and stays exactly as they gave it, so the colour reappears in the
+  // row the moment the selection moves on.
+  const recents = options.showRecentColors
+    ? options.recentColors
+        .filter((color) => {
+          if (current === null) return true;
+          const parsed = parse(color);
+          const hex = parsed === null ? color : toHex(parsed);
+          return hex.toLowerCase() !== current;
+        })
+        .slice(0, 10)
+    : [];
   const showEyedropper = options.showEyedropper && supported;
 
   return (

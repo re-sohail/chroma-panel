@@ -77,15 +77,18 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   };
 
   return (
-    <div className="cp-panel">
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          onFiles(e.dataTransfer.files);
-        }}
-        style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-      >
+    // Drop is handled on the panel itself, not just the field: the empty state
+    // below stretches to fill the panel's fixed height, and a drop target that
+    // looks like the whole area has to behave like it.
+    <div
+      className="cp-panel"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        onFiles(e.dataTransfer.files);
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 'none' }}>
         <label className="cp-field-label" htmlFor={inputId}>Image</label>
         <input
           id={inputId}

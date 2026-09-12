@@ -20,6 +20,12 @@ export interface PopoverProps {
   children: React.ReactNode;
 }
 
+/** Breathing room between the panel and the viewport edge, in px. */
+const MARGIN = 8;
+
+/** Floor for the clamp, so an extreme viewport still leaves something usable. */
+const MIN_AVAILABLE = 160;
+
 const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),' +
   'textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -41,7 +47,8 @@ export function Popover(props: PopoverProps): React.ReactElement | null {
   } = props;
 
   const panelRef = React.useRef<HTMLDivElement>(null);
-  const [position, setPosition] = React.useState<{ top: number; left: number } | null>(null);
+  const [position, setPosition] =
+    React.useState<{ top: number; left: number; available: number } | null>(null);
 
   const compact = useMediaQuery(COMPACT_QUERY);
   const asSheet = sheetOnMobile && compact;
@@ -57,19 +64,41 @@ export function Popover(props: PopoverProps): React.ReactElement | null {
     const a = anchor.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
 
-    // Below by default; flip above when it would overflow and there is more
-    // room up there.
-    let top = a.bottom + offset;
-    if (top + p.height > window.innerHeight && a.top - offset - p.height > 0) {
-      top = a.top - offset - p.height;
+    // Room on each side, measured from the ANCHOR and the viewport only —
+    // never from the panel's own height. That independence is what stops this
+    // oscillating: clamping changes p.height, and a side chosen from p.height
+    // could then flip back and forth on every scroll event.
+    const below = window.innerHeight - a.bottom - offset - MARGIN;
+    const above = a.top - offset - MARGIN;
+
+    // Below by default; flip above when it does not fit and would there.
+    // When it fits neither, take the roomier side and let the panel scroll —
+    // previously it stayed below and simply ran off the screen, putting the
+    // footer and its OK button out of reach.
+    let top: number;
+    let available: number;
+    if (p.height <= below || (below >= above && p.height > above)) {
+      top = a.bottom + offset;
+      available = below;
+    } else {
+      available = above;
+      // Pin to the top margin when the panel is taller than the gap it is
+      // about to occupy, so its top edge stays on screen.
+      top = Math.max(MARGIN, a.top - offset - p.height);
     }
 
     let left = a.left;
-    const maxLeft = window.innerWidth - p.width - 8;
-    if (left > maxLeft) left = Math.max(8, maxLeft);
-    if (left < 8) left = 8;
+    const maxLeft = window.innerWidth - p.width - MARGIN;
+    if (left > maxLeft) left = Math.max(MARGIN, maxLeft);
+    if (left < MARGIN) left = MARGIN;
 
-    setPosition({ top: top + window.scrollY, left: left + window.scrollX });
+    setPosition({
+      top: top + window.scrollY,
+      left: left + window.scrollX,
+      // Never negative: a tiny viewport should give a small scrollable panel,
+      // not a collapsed one.
+      available: Math.max(available, MIN_AVAILABLE),
+    });
   }, [anchor, offset]);
 
   React.useLayoutEffect(() => {
@@ -195,7 +224,13 @@ export function Popover(props: PopoverProps): React.ReactElement | null {
         left: position?.left ?? 0,
         // Avoid a first-frame flash at 0,0 before measurement lands.
         visibility: position === null ? 'hidden' : 'visible',
-      }}
+        // Spent by ".cp-popover .cp-root { max-height: var(--cp-available-h) }".
+        // Left unset until measured, so the panel is its natural height for the
+        // measurement that decides the clamp.
+        ...(position === null
+          ? null
+          : { ['--cp-available-h' as string]: `${position.available}px` }),
+      } as React.CSSProperties}
     >
       {children}
     </div>,

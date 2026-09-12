@@ -84,6 +84,17 @@ export const css: string = `
     --cp-width: 320px;
     --cp-disc-size: 196px;
 
+    /* The panel is the SAME height in every mode.
+       Each mode is content-sized, and left to themselves they range from 147px
+       (image) to 325px (wheel). Letting that through resizes the popover on
+       every tab switch, and — because a bottom sheet is anchored to the bottom
+       edge — moves the sheet TOP edge by the same amount, which is what makes
+       it feel broken on a phone.
+       Sized to clear the tallest mode with headroom. A test asserts every mode
+       still fits, so adding a row fails CI rather than silently reintroducing
+       a scrollbar. Set to "auto" to opt out. */
+    --cp-panel-h: 332px;
+
     /* Set once per frame on colour change; CSS propagates from here. */
     --cp-h: 0;
     --cp-s: 0%;
@@ -218,6 +229,12 @@ export const css: string = `
      is discarded. */
   .cp-body {
     display: flex; flex-direction: column; gap: var(--cp-gap); min-width: 0;
+    /* min-height: 0 is load-bearing, here and on every element between the
+       root and .cp-panel-host. A flex item defaults to min-height: auto, which
+       refuses to shrink below its content — so a clamped root would overflow
+       instead of letting the panel scroll. This is the usual reason a nested
+       scroller silently does nothing. */
+    flex: 1 1 auto; min-height: 0;
   }
   .cp-root[data-cp-collapsed="true"] .cp-body { display: none; }
 
@@ -225,6 +242,7 @@ export const css: string = `
   .cp-root[data-cp-size="expanded"] {
     --cp-width: 420px;
     --cp-disc-size: 260px;
+    --cp-panel-h: 372px;
   }
 
   /* ---------------------------------------------------------------- *
@@ -285,7 +303,30 @@ export const css: string = `
   .cp-seg-sm .cp-tab { height: 24px; font-size: 11px; letter-spacing: 0.02em; }
   .cp-tab svg { width: 17px; height: 17px; display: block; }
 
-  .cp-panel { display: flex; flex-direction: column; gap: var(--cp-gap); }
+  /* The tab panel host — the ONLY scroll container inside the panel.
+     There used to be a second one nested inside it (.cp-scroll). Two nested
+     scroll ports is what broke scrolling outright on phones: the inner one was
+     given "max-height: none" below 640px, which left it a scroll container
+     that could not scroll, permanently sitting at its own boundary, where
+     overscroll-behavior: contain blocks chaining. It swallowed every gesture
+     over it rather than passing it up. One port cannot get into that state. */
+  .cp-panel-host {
+    display: flex; flex-direction: column;
+    /* Does both jobs in one declaration: with room to spare the host is
+       exactly --cp-panel-h, and when the root is clamped to the viewport it
+       shrinks and scrolls instead of overflowing. */
+    flex: 1 1 var(--cp-panel-h);
+    min-height: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* Nothing can jump when there is nothing to switch to, so a single-mode
+     panel is content-sized and wastes no space. */
+  .cp-root[data-cp-modes="1"] .cp-panel-host { flex-basis: auto; }
+
+  .cp-panel {
+    display: flex; flex-direction: column; gap: var(--cp-gap);
+    flex: 1 1 auto; min-height: 0;
+  }
 
   /* ---------------------------------------------------------------- *
    * Colour disc
@@ -517,12 +558,14 @@ export const css: string = `
     margin: 0 0 7px; font-size: 11px; font-weight: 600; color: var(--cp-text-muted);
   }
 
-  /* Fades the last few pixels instead of slicing a row in half. */
-  .cp-scroll {
-    max-height: 216px; overflow-y: auto; overscroll-behavior: contain;
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
-  }
+  /* Retained as a public class and a layout wrapper, but NOT a scroll port
+     any more — .cp-panel-host above is. The max-height, overflow, overscroll
+     and the bottom fade mask all moved out with it; the mask in particular is
+     meaningless on something that no longer scrolls, and dimmed the last 16px
+     of content that was already fully visible.
+     Anyone styling .cp-scroll keeps matching it; only the scrolling moved up
+     one level. */
+  .cp-scroll { min-height: 0; }
 
   /* ---------------------------------------------------------------- *
    * Footer
@@ -544,10 +587,21 @@ export const css: string = `
     background: var(--cp-preview-color, transparent);
     box-shadow: inset 0 0 0 1px rgb(0 0 0 / 12%);
   }
+  /* Scrolls sideways rather than clipping. At 320px only seven of the ten
+     stored swatches fit, and "overflow: hidden" made the other three
+     unreachable with nothing to suggest they existed.
+     Horizontal, so it cannot fight the vertical panel host; wrapping instead
+     would make the footer height depend on the swatch count, which is the
+     height swing this pass exists to remove. */
   .cp-recents {
     display: flex; gap: 6px; flex: 1; min-width: 0;
-    margin: 0; padding: 0; list-style: none; overflow: hidden;
+    margin: 0; padding: 0; list-style: none;
+    overflow-x: auto; overflow-y: hidden;
+    /* Also stops the gesture turning into an iOS back-swipe. */
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
   }
+  .cp-recents::-webkit-scrollbar { display: none; }
   .cp-recents > li { flex: none; }
   .cp-recents .cp-swatch { width: 22px; height: 22px; }
 
@@ -587,7 +641,15 @@ export const css: string = `
   .cp-popover {
     position: absolute; z-index: 2147483000; margin: 0; padding: 0; border: 0;
   }
-  .cp-popover .cp-root { box-shadow: var(--cp-elevation); }
+  .cp-popover .cp-root {
+    box-shadow: var(--cp-elevation);
+    /* Written by Popover.place() from the room left on the chosen side.
+       Without it a 479px panel opened 254px down a 420px viewport simply ran
+       off the bottom with overflow: visible — the footer and its OK button
+       were unreachable, in every mode. The fallback keeps this inert if the
+       property is ever missing. */
+    max-height: var(--cp-available-h, none);
+  }
 
   .cp-sheet-root {
     position: fixed; inset: 0; z-index: 2147483000;
@@ -601,7 +663,10 @@ export const css: string = `
        which janks. svh is the safe one. */
     max-height: 88svh;
     display: flex; flex-direction: column;
-    overflow-y: auto; overscroll-behavior: contain;
+    /* The sheet itself no longer scrolls; .cp-panel-host does. That keeps the
+       title bar and the footer pinned while the content moves under them,
+       instead of scrolling the OK button off the screen. */
+    overflow: hidden;
     background: var(--cp-surface);
     border-radius: var(--cp-radius-lg) var(--cp-radius-lg) 0 0;
     box-shadow: 0 -8px 32px rgb(0 0 0 / 35%);
@@ -628,6 +693,8 @@ export const css: string = `
   .cp-sheet .cp-root {
     width: 100%; max-width: none;
     border-radius: 0; box-shadow: none; background: transparent;
+    /* Fill the sheet so the panel host, not the sheet, owns the overflow. */
+    flex: 1 1 auto; min-height: 0;
   }
   /* Desktop window chrome on a phone sheet reads as a mistake; the grabber is
      the sheet's own affordance. */
@@ -640,8 +707,17 @@ export const css: string = `
     white-space: nowrap; border: 0;
   }
 
+  /* Grows into whatever the fixed panel height leaves over. Image is the
+     shortest mode by a long way, so pinning it to the top would leave an
+     obvious void; filling the space makes it a large drop target instead, and
+     the constant height reads as deliberate rather than as dead space. */
   .cp-empty {
-    color: var(--cp-text-muted); padding: 20px 0; text-align: center; font-size: 12px;
+    margin: 0;
+    color: var(--cp-text-muted); padding: 20px 12px; text-align: center; font-size: 12px;
+    flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px dashed var(--cp-border);
+    border-radius: var(--cp-radius);
   }
 }
 
@@ -661,7 +737,12 @@ body:has(.cp-sheet-root[data-cp-open="true"]) { overflow: hidden; }
    * ---------------------------------------------------------------- */
 
   @media (pointer: coarse) {
-    .cp-root { --cp-control-height: 34px; --cp-input-height: 34px; --cp-thumb-size: 22px; }
+    /* The taller inputs below are the entire reason the wheel measures 6px
+       more here than on a mouse, so the panel height moves with them. */
+    .cp-root {
+      --cp-control-height: 34px; --cp-input-height: 34px; --cp-thumb-size: 22px;
+      --cp-panel-h: 340px;
+    }
     .cp-tab::after,
     .cp-icon-button::after,
     .cp-trigger::before {
@@ -689,7 +770,12 @@ body:has(.cp-sheet-root[data-cp-open="true"]) { overflow: hidden; }
       --cp-disc-size: 240px;
       --cp-pad: 16px;
     }
-    .cp-scroll { max-height: none; }
+    /* ".cp-scroll { max-height: none }" used to live here. It turned the
+       inner wrapper into a scroll container that could not scroll, which — via
+       overscroll-behavior: contain — swallowed every touch and wheel gesture
+       over it instead of chaining to the sheet. Palettes was then genuinely
+       unscrollable on a phone. The wrapper is not a scroll port any more, so
+       there is nothing left to override. */
   }
 
   /* ---------------------------------------------------------------- *
