@@ -284,6 +284,58 @@ Injection is keyed on `getRootNode()`, so the picker also works inside a shadow 
 
 ---
 
+## Window controls
+
+The three dots in the title bar are working controls, not decoration:
+
+| | |
+| --- | --- |
+| Red | Closes the picker. Fires `onClose`. |
+| Yellow | Collapses the panel to just its title bar. |
+| Green | Widens the panel, and the colour wheel with it. |
+
+The glyphs appear when the pointer is over the title bar, and when a control
+takes keyboard focus.
+
+**Closing is not cancelling.** The colour you picked is kept — there is no
+revert. Closing and reopening returns the same colour *and* the same mode you
+were last on.
+
+On an inline `<ChromaPanel>` there is nothing to close, so the red control is
+shown dimmed and disabled rather than removed, which keeps the row's shape.
+Supply `onClose` and it becomes live:
+
+```tsx
+<ChromaPanel
+  defaultValue="#3366cc"
+  onClose={() => setVisible(false)}
+  defaultCollapsed={false}
+  defaultSize="default"
+/>
+```
+
+Each follows the same controlled/uncontrolled pattern as `value` and `mode`:
+
+| Prop | Type | Default | |
+| --- | --- | --- | --- |
+| `onClose` | `() => void` | — | Red. Omit it and red is disabled. |
+| `collapsed` / `defaultCollapsed` | `boolean` | `false` | Yellow |
+| `onCollapsedChange` | `(collapsed: boolean) => void` | — | |
+| `size` / `defaultSize` | `'default' \| 'expanded'` | `'default'` | Green |
+| `onSizeChange` | `(size) => void` | — | |
+
+Set `showTitleBar={false}` to drop the title bar and its controls entirely.
+
+Collapsing hides the body with CSS rather than unmounting it, so nothing you
+had set is discarded and expanding is instant.
+
+The controls sit at a slightly wider spacing than the desktop chrome they
+imitate. That is deliberate: WCAG 2.5.8 asks that a 24px circle centred on
+each target not reach another target, so the distance between their centres
+has to be at least 24px. Authentic spacing would fail it.
+
+---
+
 ## On a phone
 
 Below 640px the popover becomes a bottom sheet — full width, rounded top,
@@ -387,7 +439,4 @@ registerMode({
 
 ## Licence
 
-MIT.
-
-Icon path data is from [Lucide](https://lucide.dev), used under the ISC
-licence — see `LICENSE-THIRD-PARTY` in the published package.
+MIT. See `LICENSE` for the full text.

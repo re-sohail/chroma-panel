@@ -5,10 +5,13 @@ import * as React from 'react';
 /**
  * Icons.
  *
- * Path data from Lucide (https://lucide.dev), ISC licensed — see
- * LICENSE-THIRD-PARTY. Inlined rather than taken as a dependency to keep the
- * package at zero runtime dependencies, and because barrel-file icon packages
+ * Path data is ISC licensed; the notice is reproduced at the bottom of
+ * LICENSE. Inlined rather than taken as a dependency, both to keep the package
+ * at zero runtime dependencies and because barrel-file icon packages
  * tree-shake unreliably.
+ *
+ * Keep that notice in LICENSE if you touch these paths — it is what the ISC
+ * terms require, and it is the only record of where they came from.
  *
  * Two deliberate choices:
  *
@@ -138,13 +141,12 @@ const make = (name: IconName): (() => React.ReactElement) => {
 /* ------------------------------------------------------------------ *
  * Window-chrome glyphs
  *
- * These are deliberately NOT from the Lucide set, and that is not an
- * oversight. They render inside an 11px traffic-light dot, so the glyph is
- * about 7px across; a 24-grid icon with a 2px stroke scales to a 0.58px
- * stroke at that size and blurs into nothing. They are drawn on their own
- * 8x8 grid with a stroke chosen for this size.
+ * Original work, on their own 8x8 grid — deliberately not from the icon set
+ * above, and not an oversight. They render inside a 14px window dot, so the
+ * glyph is about 8px across; a 24-grid icon with a 2px stroke scales to well
+ * under a pixel at that size and blurs into nothing.
  *
- * Do not "fix" the inconsistency by swapping in Lucide icons here.
+ * Do not "fix" the apparent inconsistency by swapping the set's icons in.
  * ------------------------------------------------------------------ */
 
 const GLYPHS = {
