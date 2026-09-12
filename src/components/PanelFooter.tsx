@@ -8,12 +8,12 @@ import { EyedropperIcon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
 
 /**
- * Current colour, eyedropper and recently used swatches.
+ * Current colour, recently used swatches, and the eyedropper.
  *
- * The preview itself is painted from a CSS custom property set by the panel,
- * so it tracks a drag without this component rendering.
+ * The preview is painted from a CSS custom property written by the panel, so
+ * it tracks a drag without this component rendering.
  */
-export function PanelFooter(): React.ReactElement {
+export function PanelFooter(): React.ReactElement | null {
   const { store, classNames, options, disabled } = usePanel();
   const { supported, pick } = useEyedropper();
 
@@ -26,13 +26,16 @@ export function PanelFooter(): React.ReactElement {
     store.commit();
   };
 
+  const recents = options.showRecentColors ? options.recentColors.slice(0, 10) : [];
+  const showEyedropper = options.showEyedropper && supported;
+
   return (
     <div className={cx('cp-footer', classNames.footer)}>
       <div className="cp-preview" aria-hidden="true" />
 
-      {options.showRecentColors && (
+      {recents.length > 0 ? (
         <ul className="cp-recents" aria-label="Recent colours">
-          {options.recentColors.slice(0, 8).map((color, index) => (
+          {recents.map((color, index) => (
             <li key={`${color}-${index}`}>
               <button
                 type="button"
@@ -50,10 +53,14 @@ export function PanelFooter(): React.ReactElement {
             </li>
           ))}
         </ul>
+      ) : (
+        // Keeps the eyedropper pinned right without an empty list taking up
+        // the space and reading as a gap in the layout.
+        <div className="cp-footer-spacer" />
       )}
 
-      {/* Chromium-only API: the button is absent rather than dead elsewhere. */}
-      {options.showEyedropper && supported && (
+      {/* Chromium-only API: the control is absent, not dead, elsewhere. */}
+      {showEyedropper && (
         <button
           type="button"
           className="cp-icon-button"
@@ -70,7 +77,7 @@ export function PanelFooter(): React.ReactElement {
 }
 
 /** Prepend `hex` to `list`, de-duplicated, capped at `limit`. */
-export function pushRecent(list: string[], hex: string, limit: number = 8): string[] {
+export function pushRecent(list: string[], hex: string, limit: number = 10): string[] {
   const key = hex.toLowerCase();
   const next = [hex, ...list.filter((c) => {
     const parsed = parse(c);

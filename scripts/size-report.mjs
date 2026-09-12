@@ -19,15 +19,19 @@ import { rolldown } from 'rolldown';
  *   @rc-component/color-picker  6.6 KB gzip, 3 deps, one mode
  *   react-color                37.5 KB gzip, 7 deps, unmaintained since 2020
  *
- * About 2.5 KB gzip of the full bundle is the stylesheet, which is inlined so
+ * Raised once, deliberately, for the production UI rebuild: a real design
+ * system, a segmented control, responsive rules and the mobile sheet cost
+ * about 2 KB gzip over the first pass.
+ *
+ * About 3.5 KB gzip of the full bundle is the stylesheet, which is inlined so
  * that the picker works with no CSS import. Consumers who prefer the separate
  * file can pass injectStyles={false} and import 'chroma-panel/styles.css'.
  */
 const BUDGETS = [
   { entry: 'dist/core.js', label: 'core (colour engine, no React)', limit: 2.5 },
-  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 4.4 },
-  { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 5.5 },
-  { entry: 'dist/index.js', label: 'full package, all five modes', limit: 16.5 },
+  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 5.0 },
+  { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 6.0 },
+  { entry: 'dist/index.js', label: 'full package, all five modes', limit: 19.5 },
 ];
 
 const EXTERNAL = [/^react$/, /^react-dom$/, /^react\//, /^react-dom\//];

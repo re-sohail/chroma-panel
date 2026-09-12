@@ -2,74 +2,142 @@
 
 import * as React from 'react';
 
-const base = {
-  viewBox: '0 0 16 16',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.4,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-  'aria-hidden': true,
-  focusable: false,
+/**
+ * Icons.
+ *
+ * Path data from Lucide (https://lucide.dev), ISC licensed — see
+ * LICENSE-THIRD-PARTY. Inlined rather than taken as a dependency to keep the
+ * package at zero runtime dependencies, and because barrel-file icon packages
+ * tree-shake unreliably.
+ *
+ * Two deliberate choices:
+ *
+ * - Every icon comes from ONE set. Mixing a 2px-stroke set with a 1.5px one is
+ *   the most visible tell of a cobbled-together interface, even to people who
+ *   cannot say why it looks wrong.
+ * - Shapes are stored as data and rendered by one component, rather than as
+ *   six components with repeated markup. The shared stroke attributes are
+ *   written once on the <svg>, which is most of the byte saving.
+ *
+ * `dangerouslySetInnerHTML` is deliberately NOT used: sites enforcing Trusted
+ * Types would have the icons blocked outright.
+ */
+
+/** A path `d` string, or a primitive shape too costly to express as a path. */
+type Shape =
+  | string
+  | ['circle', number, number, number]
+  | ['dot', number, number, number]
+  | ['rect', number, number, number, number, number];
+
+export type IconName =
+  | 'palette'
+  | 'sliders'
+  | 'swatches'
+  | 'image'
+  | 'brush'
+  | 'pipette';
+
+const ICONS: Record<IconName, Shape[]> = {
+  // lucide/palette
+  palette: [
+    'M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z',
+    ['dot', 13.5, 6.5, 0.5],
+    ['dot', 17.5, 10.5, 0.5],
+    ['dot', 6.5, 12.5, 0.5],
+    ['dot', 8.5, 7.5, 0.5],
+  ],
+  // lucide/sliders-horizontal
+  sliders: [
+    'M10 5H3', 'M12 19H3', 'M14 3v4', 'M16 17v4',
+    'M21 12h-9', 'M21 19h-5', 'M21 5h-7', 'M8 10v4', 'M8 12H3',
+  ],
+  // lucide/swatch-book
+  swatches: [
+    'M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z',
+    'M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7',
+    'M7 17h.01',
+    'm11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8',
+  ],
+  // lucide/image
+  image: [
+    ['rect', 3, 3, 18, 18, 2],
+    ['circle', 9, 9, 2],
+    'm21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21',
+  ],
+  // lucide/paintbrush — no open icon set ships a "crayons" glyph; a brush is
+  // the universal stand-in.
+  brush: [
+    'm14.622 17.897-10.68-2.913',
+    'M18.376 2.622a1 1 0 1 1 3.002 3.002L17.36 9.643a.5.5 0 0 0 0 .707l.944.944a2.41 2.41 0 0 1 0 3.408l-.944.944a.5.5 0 0 1-.707 0L8.354 7.348a.5.5 0 0 1 0-.707l.944-.944a2.41 2.41 0 0 1 3.408 0l.944.944a.5.5 0 0 0 .707 0z',
+    'M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15',
+  ],
+  // lucide/pipette
+  pipette: [
+    'm12 9-8.414 8.414A2 2 0 0 0 3 18.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 3.828 21h1.344a2 2 0 0 0 1.414-.586L15 12',
+    'm18 9 .4.4a1 1 0 1 1-3 3l-3.8-3.8a1 1 0 1 1 3-3l.4.4 3.4-3.4a1 1 0 1 1 3 3z',
+    'm2 22 .414-.414',
+  ],
 };
 
-export function WheelIcon(): React.ReactElement {
+export interface IconProps {
+  name: IconName;
+  className?: string;
+}
+
+/**
+ * Renders one icon.
+ *
+ * `fill="none"` on the root is load-bearing: the palette icon's four dots are
+ * filled while its outline is stroked, so dropping it turns the icon into a
+ * solid blob.
+ */
+export function Icon(props: IconProps): React.ReactElement {
+  const { name, className } = props;
+
   return (
-    <svg {...base}>
-      <circle cx="8" cy="8" r="6" />
-      <circle cx="8" cy="8" r="2" />
-      <path d="M8 2v4M8 10v4M2 8h4M10 8h4" />
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {ICONS[name].map((shape, index) => {
+        if (typeof shape === 'string') return <path key={index} d={shape} />;
+        if (shape[0] === 'rect') {
+          return (
+            <rect key={index} x={shape[1]} y={shape[2]} width={shape[3]} height={shape[4]} rx={shape[5]} />
+          );
+        }
+        return (
+          <circle
+            key={index}
+            cx={shape[1]}
+            cy={shape[2]}
+            r={shape[3]}
+            fill={shape[0] === 'dot' ? 'currentColor' : undefined}
+          />
+        );
+      })}
     </svg>
   );
 }
 
-export function SlidersIcon(): React.ReactElement {
-  return (
-    <svg {...base}>
-      <path d="M2 4.5h12M2 8h12M2 11.5h12" />
-      <circle cx="5.5" cy="4.5" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="10" cy="8" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="6.5" cy="11.5" r="1.6" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
+/* Named wrappers keep the PickerMode.icon contract (a zero-prop component). */
+const make = (name: IconName): (() => React.ReactElement) => {
+  const Component = (): React.ReactElement => <Icon name={name} />;
+  Component.displayName = `ChromaIcon(${name})`;
+  return Component;
+};
 
-export function PalettesIcon(): React.ReactElement {
-  return (
-    <svg {...base}>
-      <rect x="2" y="2" width="5" height="5" rx="1" />
-      <rect x="9" y="2" width="5" height="5" rx="1" />
-      <rect x="2" y="9" width="5" height="5" rx="1" />
-      <rect x="9" y="9" width="5" height="5" rx="1" />
-    </svg>
-  );
-}
-
-export function ImageIcon(): React.ReactElement {
-  return (
-    <svg {...base}>
-      <rect x="2" y="3" width="12" height="10" rx="1.5" />
-      <circle cx="5.75" cy="6.5" r="1.15" />
-      <path d="M2.5 11.5 6 8.5l2.5 2 2-1.5 3 2.5" />
-    </svg>
-  );
-}
-
-export function PencilsIcon(): React.ReactElement {
-  return (
-    <svg {...base}>
-      <path d="M4 13V6l1.75-3L7.5 6v7a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1Z" />
-      <path d="M10 13V6l1.75-3L13.5 6v7a1 1 0 0 1-1 1H11a1 1 0 0 1-1-1Z" />
-      <path d="M4 7h3.5M10 7h3.5" />
-    </svg>
-  );
-}
-
-export function EyedropperIcon(): React.ReactElement {
-  return (
-    <svg {...base}>
-      <path d="m10.5 2.5 3 3M12 4 6.5 9.5 4 10l-.5 2.5L6 12l.5-2.5L12 4Z" />
-      <path d="M2.5 13.5 4 12" />
-    </svg>
-  );
-}
+export const WheelIcon: () => React.ReactElement = make('palette');
+export const SlidersIcon: () => React.ReactElement = make('sliders');
+export const PalettesIcon: () => React.ReactElement = make('swatches');
+export const ImageIcon: () => React.ReactElement = make('image');
+export const PencilsIcon: () => React.ReactElement = make('brush');
+export const EyedropperIcon: () => React.ReactElement = make('pipette');

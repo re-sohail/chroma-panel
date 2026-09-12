@@ -48,12 +48,19 @@ export function PalettesPanel(): React.ReactElement {
 
       <div className="cp-scroll">
         {groups.length === 0 ? (
-          <p className="cp-empty">No colours match "{query}".</p>
+          <p className="cp-empty">No colours match &ldquo;{query}&rdquo;.</p>
         ) : (
           groups.map((group) => (
-            <section key={group.name} style={{ marginBottom: 10 }}>
-              <div className="cp-field-label" style={{ marginBottom: 6 }}>{group.name}</div>
-              <SwatchGrid swatches={group.swatches} label={group.name} columns={10} />
+            <section key={group.name} className="cp-group">
+              <h3 className="cp-group-title">{group.name}</h3>
+              {/* Spaced swatches: these are discrete, nameable colours, so
+                  each one gets its own outline and gutter. */}
+              <SwatchGrid
+                swatches={group.swatches}
+                label={group.name}
+                columns={6}
+                variant="spaced"
+              />
             </section>
           ))
         )}

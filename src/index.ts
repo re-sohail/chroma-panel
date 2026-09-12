@@ -38,7 +38,9 @@ export { ChannelSlider, type ChannelSliderProps } from './primitives/ChannelSlid
 export { ColorField, type ColorFieldProps } from './primitives/ColorField';
 export { NumberField, type NumberFieldProps } from './primitives/NumberField';
 export { Swatch, type SwatchProps } from './primitives/Swatch';
-export { SwatchGrid, type SwatchGridProps, type SwatchEntry } from './primitives/SwatchGrid';
+export { SwatchGrid, type SwatchGridProps, type SwatchEntry, type SwatchVariant } from './primitives/SwatchGrid';
+export { SegmentedControl, type SegmentedControlProps, type SegmentedItem } from './primitives/SegmentedControl';
+export { Icon, type IconProps, type IconName } from './primitives/icons';
 export { useEyedropper, type Eyedropper } from './primitives/useEyedropper';
 
 /* ---- modes ---- */
@@ -56,7 +58,7 @@ export { extractPalette, type ExtractOptions, type ExtractResult } from './image
 export { quantize, type QuantizedSwatch } from './image/mmcq';
 
 /* ---- data ---- */
-export { defaultPalettes, defaultPencils } from './data/defaults';
+export { defaultPalettes, defaultPencils, PENCIL_COLUMNS } from './data/defaults';
 
 /* ---- hooks, store and styling ---- */
 export { createColorStore, type ColorStore } from './core/store';

@@ -12,9 +12,20 @@ export interface SwatchEntry {
   name?: string;
 }
 
+/**
+ * How the grid is drawn.
+ *
+ * - `mosaic`  — gapless, borderless tiles under one corner radius, as the iOS
+ *   colour grid does it. Correct for a dense generated ramp.
+ * - `spaced`  — separated swatches with their own outline. Correct for
+ *   discrete, nameable colours.
+ */
+export type SwatchVariant = 'mosaic' | 'spaced';
+
 export interface SwatchGridProps {
   swatches: SwatchEntry[];
   columns?: number;
+  variant?: SwatchVariant;
   round?: boolean;
   label: string;
   className?: string;
@@ -23,19 +34,22 @@ export interface SwatchGridProps {
 /**
  * A grid of selectable colours.
  *
- * Two deliberate scaling choices:
+ * On separation: the instinct when adjacent colours blur together is to add
+ * borders and widen the gap. Apple's grid has neither — it is a gapless
+ * mosaic, and it reads as distinct tiles because the colour steps are coarse
+ * enough to clear the just-noticeable difference. Separation is bought with
+ * step size; chrome only helps once the steps are already far enough apart.
+ * Hence two variants rather than one compromise.
  *
- * - One delegated click handler on the grid, not one per swatch. 500 swatches
- *   would otherwise mean 500 closures allocated on every render.
- * - Selection is applied imperatively to the one element that changed, so
- *   moving the colour never re-renders the grid. Re-rendering all 500 on each
- *   selection change is what makes large palettes feel slow elsewhere.
- *
- * Past ~1000 entries `content-visibility: auto` on the items gives the effect
- * of virtualization without the keyboard and find-in-page cost of it.
+ * Scaling choices that are not obvious:
+ * - One delegated click handler on the grid, not one closure per swatch.
+ * - Selection is applied imperatively to the single element that changed, so
+ *   moving the colour never re-renders the grid.
  */
 export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
-  const { swatches, columns = 10, round = false, label, className } = props;
+  const {
+    swatches, columns = 10, variant = 'spaced', round = false, label, className,
+  } = props;
   const { store, disabled, classNames } = usePanel();
 
   const gridRef = React.useRef<HTMLUListElement>(null);
@@ -46,7 +60,7 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
     if (grid === null) return;
 
     const hex = toHex(c);
-    // One indexed lookup per colour change, not a scan of every swatch.
+    // One indexed lookup per change, not a scan of every swatch.
     const next = grid.querySelector(`[data-cp-color="${hex}"]`);
     if (next === selected.current) return;
 
@@ -64,11 +78,14 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
     store.commit();
   };
 
-  return (
+  const grid = (
     <ul
       ref={gridRef}
-      className={cx('cp-swatch-grid', className)}
+      className={cx('cp-swatch-grid', variant === 'spaced' && className)}
       style={{ ['--cp-columns' as string]: columns } as React.CSSProperties}
+      data-cp-variant={variant}
+      // Past ~1000 entries content-visibility gives virtualization's effect
+      // without losing keyboard order or find-in-page.
       data-cp-large={swatches.length > 1000 ? 'true' : undefined}
       aria-label={label}
       onClick={handleClick}
@@ -92,4 +109,13 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
       })}
     </ul>
   );
+
+  // The mosaic needs a padded, clipped frame: its selection ring straddles the
+  // cell edge, so without the inset the ring would be cut off on the outermost
+  // cells. Apple insets its grid for the same reason.
+  if (variant === 'mosaic') {
+    return <div className={cx('cp-mosaic', className)}>{grid}</div>;
+  }
+
+  return grid;
 }

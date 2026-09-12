@@ -9,6 +9,7 @@ import { ChannelSlider } from '../../primitives/ChannelSlider';
 import { ColorField } from '../../primitives/ColorField';
 import { NumberField } from '../../primitives/NumberField';
 import { SlidersIcon } from '../../primitives/icons';
+import { SegmentedControl } from '../../primitives/SegmentedControl';
 import {
   alphaTrack, blueTrack, brightnessTrack, greenTrack,
   lightnessTrack, redTrack, saturationTrack,
@@ -16,6 +17,12 @@ import {
 import type { PickerMode } from '../registry';
 
 type Model = 'rgb' | 'hsl' | 'hsb';
+
+const MODELS = [
+  { id: 'rgb', label: 'RGB', content: 'RGB' },
+  { id: 'hsl', label: 'HSL', content: 'HSL' },
+  { id: 'hsb', label: 'HSB', content: 'HSB' },
+];
 
 /**
  * Every write below routes through `ingest`.
@@ -52,20 +59,15 @@ export function SlidersPanel(): React.ReactElement {
 
   return (
     <div className="cp-panel">
-      <div className="cp-toolbar" role="tablist" aria-label="Colour model">
-        {(['rgb', 'hsl', 'hsb'] as Model[]).map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            className="cp-tab"
-            aria-selected={model === id}
-            onClick={() => setModel(id)}
-          >
-            {id.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      {/* Same component as the mode switcher, one size down. Two identically
+          weighted rows of buttons read as a hierarchy failure. */}
+      <SegmentedControl
+        size="sm"
+        ariaLabel="Colour model"
+        items={MODELS}
+        value={model}
+        onChange={(id) => setModel(id as Model)}
+      />
 
       {model === 'rgb' && (
         <>

@@ -31,6 +31,10 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // Explicit desktop viewport: the picker switches to a bottom
+            // sheet below 640px, and the default browser-mode viewport is
+            // narrower than that. Tests that want the sheet resize themselves.
+            viewport: { width: 1280, height: 900 },
             instances: [{ browser: 'chromium' }],
           },
         },

@@ -46,12 +46,12 @@ Measured by building a real Vite app with and without the package, React externa
 | What you import | Added to your bundle |
 | --- | --- |
 | `chroma-panel/core` — colour maths only, no React | **2.2 KB** |
-| `chroma-panel/panel` + one mode | **6.7 KB** |
-| `chroma-panel` — all five modes | **11.6 KB** |
+| `chroma-panel/panel` + one mode | **8.5 KB** |
+| `chroma-panel` — all five modes | **13.9 KB** |
 
 For comparison, measured the same way: `react-colorful` 4.8 KB (one mode, 0 deps), `@rc-component/color-picker` 6.6 KB (one mode, 3 deps), `@uiw/react-color` 15.7 KB (20 deps), `react-color` 37.5 KB (7 deps, unmaintained since 2020).
 
-About 2.4 KB of every figure above is the stylesheet, which is inlined so the picker works with no CSS import.
+About 3.5 KB of every figure above is the stylesheet, which is inlined so the picker works with no CSS import, and which carries the full design system, the responsive rules and the mobile sheet.
 
 ---
 
@@ -243,6 +243,26 @@ Or map your design tokens onto ours, with no build integration at all:
 }
 ```
 
+### One thing to know about `@layer`
+
+Being in a layer means **your** CSS wins — including CSS you did not mean to
+apply to us. A bare element rule anywhere in your app, unlayered, beats every
+rule in this package no matter how specific ours is:
+
+```css
+/* This restyles the picker's swatches, tabs and eyedropper too. */
+button { border-radius: 7px; }
+```
+
+That is cascade layers working as designed, not a bug. If you see the picker's
+geometry looking wrong, look for an unlayered element selector first. The fix
+is to scope your rule, or to put your own resets in a layer:
+
+```css
+@layer reset, chroma-panel, utilities;
+@layer reset { button { border-radius: 7px; } }
+```
+
 ### Importing the stylesheet yourself
 
 If you use a strict `style-src` Content Security Policy, or you extract critical CSS:
@@ -261,6 +281,31 @@ setStyleNonce(() => window.__CSP_NONCE__);
 ```
 
 Injection is keyed on `getRootNode()`, so the picker also works inside a shadow root or an iframe, and mounting many panels still produces exactly one `<style>` element.
+
+---
+
+## On a phone
+
+Below 640px the popover becomes a bottom sheet — full width, rounded top,
+grab handle, capped at 88% of the small viewport height, with a scrim and
+scroll locked behind it. Controls keep their compact desktop size on a mouse
+and grow to a 44px hit area on a touch screen, so the desktop layout is not
+inflated to serve the phone.
+
+Pass `sheetOnMobile={false}` to `Popover` if you want an anchored popover at
+every size.
+
+Two page-level things a library cannot set for you, both one line:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+```
+
+Without `viewport-fit=cover`, `env(safe-area-inset-bottom)` resolves to `0`
+and the sheet will not clear the home indicator on a notched iPhone. The CSS
+degrades gracefully either way. Adding `interactive-widget=resizes-content`
+also makes the layout shrink when the on-screen keyboard opens, rather than
+the sheet sliding under it.
 
 ---
 
@@ -342,4 +387,7 @@ registerMode({
 
 ## Licence
 
-MIT
+MIT.
+
+Icon path data is from [Lucide](https://lucide.dev), used under the ISC
+licence — see `LICENSE-THIRD-PARTY` in the published package.

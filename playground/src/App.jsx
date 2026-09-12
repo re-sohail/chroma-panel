@@ -85,7 +85,7 @@ export default function App() {
               <code className="chip" style={{ background: color, color: readableTextColor(color) }}>
                 {color}
               </code>
-              <button type="submit">Submit form</button>
+              <button type="submit" className="demo-button">Submit form</button>
             </div>
           </form>
 
@@ -143,7 +143,7 @@ export default function App() {
             Themed purely with CSS custom properties — no build step.
           </p>
           <div className="row">
-            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            <button className="demo-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
               Theme: {theme}
             </button>
           </div>

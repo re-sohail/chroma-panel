@@ -26,7 +26,9 @@ export { ChannelSlider, type ChannelSliderProps } from './primitives/ChannelSlid
 export { ColorField, type ColorFieldProps } from './primitives/ColorField';
 export { NumberField, type NumberFieldProps } from './primitives/NumberField';
 export { Swatch, type SwatchProps } from './primitives/Swatch';
-export { SwatchGrid, type SwatchGridProps, type SwatchEntry } from './primitives/SwatchGrid';
+export { SwatchGrid, type SwatchGridProps, type SwatchEntry, type SwatchVariant } from './primitives/SwatchGrid';
+export { SegmentedControl, type SegmentedControlProps, type SegmentedItem } from './primitives/SegmentedControl';
+export { Icon, type IconProps, type IconName } from './primitives/icons';
 export { useEyedropper, type Eyedropper } from './primitives/useEyedropper';
 
 export {

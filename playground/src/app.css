@@ -17,11 +17,16 @@ article {
 h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
 .hint { margin: 0 0 14px; color: #9a9aa2; font-size: 12.5px; }
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-button {
+/* Scoped to this demo's own buttons.
+   A bare `button { ... }` rule here is UNLAYERED, and unlayered CSS beats
+   every layered rule regardless of specificity — so it silently restyled the
+   picker's swatches and tabs too. That is cascade layers working as intended
+   (the consumer wins), but it is not what this demo meant to do. */
+.demo-button {
   background: #2c2c33; color: #e8e8ea; border: 1px solid #3a3a42;
   border-radius: 7px; padding: 6px 11px; font: inherit; cursor: pointer;
 }
-button:hover { background: #3a3a42; }
+.demo-button:hover { background: #3a3a42; }
 .chip {
   padding: 5px 10px; border-radius: 7px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
