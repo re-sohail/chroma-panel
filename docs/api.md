@@ -27,7 +27,8 @@ import { ColorInput, ChromaPanel } from 'chroma-panel';
 | `showAlpha` | `boolean` | `true` |
 | `showEyedropper` | `boolean` | `true` |
 | `showRecentColors` | `boolean` | `true` |
-| `recentColors` | `string[]` | `[]` |
+| `recentColors` | `string[]` | uncontrolled |
+| `defaultRecentColors` | `string[]` | `[]` |
 | `onRecentColorsChange` | `(colors: string[]) => void` | — |
 | `palettes` | `ColorPalette[]` | built-in set |
 | `pencils` | `string[]` | built-in 120-colour grid |

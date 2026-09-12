@@ -49,7 +49,16 @@ export interface ChromaPanelProps {
   showAlpha?: boolean;
   showEyedropper?: boolean;
   showRecentColors?: boolean;
+  /**
+   * Recently committed colours, newest first.
+   *
+   * Optional: leave it out and the panel keeps the list itself, like `mode`
+   * and `collapsed`. Pass it to take control — then `onRecentColorsChange` is
+   * how you hear about changes, and the panel renders only what you pass back.
+   */
   recentColors?: string[];
+  /** Initial recents when `recentColors` is not supplied. */
+  defaultRecentColors?: string[];
   onRecentColorsChange?: (colors: string[]) => void;
   /**
    * Colour groups for the palettes mode.
@@ -121,7 +130,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     mode, defaultMode, onModeChange,
     format = 'hex',
     showAlpha = true, showEyedropper = true, showRecentColors = true,
-    recentColors, onRecentColorsChange,
+    recentColors, defaultRecentColors, onRecentColorsChange,
     palettes, pencils, modeProps, imageOptions,
     disabled = false, theme, showTitleBar = true, title = 'Colours',
     onClose,
@@ -181,9 +190,25 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   }, [value, store]);
 
   // ---- callbacks (subscriptions, so they never cause a render) -----------
-  const callbacks = React.useRef({ onChange, onChangeComplete, format, recentColors, onRecentColorsChange });
+  // Recents follow the same controlled-or-uncontrolled shape as mode,
+  // collapsed and size. They used to be controlled-ONLY, which meant
+  // showRecentColors defaulted to true while the row stayed permanently empty
+  // unless the consumer wired up two props — the row simply never worked out
+  // of the box.
+  const [internalRecents, setInternalRecents] = React.useState<string[]>(
+    () => defaultRecentColors ?? [],
+  );
+  const activeRecents = recentColors ?? internalRecents;
+
+  const callbacks = React.useRef({
+    onChange, onChangeComplete, format, activeRecents, onRecentColorsChange,
+    controlled: recentColors !== undefined,
+  });
   React.useEffect(() => {
-    callbacks.current = { onChange, onChangeComplete, format, recentColors, onRecentColorsChange };
+    callbacks.current = {
+      onChange, onChangeComplete, format, activeRecents, onRecentColorsChange,
+      controlled: recentColors !== undefined,
+    };
   });
 
   React.useEffect(
@@ -194,10 +219,15 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   React.useEffect(
     () =>
       store.subscribeCommit((c) => {
-        const { onChangeComplete: done, format: fmt, recentColors: recents, onRecentColorsChange: setRecents } =
-          callbacks.current;
+        const { onChangeComplete: done, format: fmt, activeRecents: recents,
+          onRecentColorsChange: notify, controlled } = callbacks.current;
         done?.(toResult(c, fmt));
-        if (setRecents !== undefined) setRecents(pushRecent(recents ?? [], toHex(c)));
+
+        const next = pushRecent(recents, toHex(c));
+        // Commits fire on pointerup, not per frame, so this does not touch the
+        // zero-render drag path.
+        if (!controlled) setInternalRecents(next);
+        notify?.(next);
       }),
     [store],
   );
@@ -249,11 +279,11 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       palettes,
       pencils,
       showAlpha, showEyedropper, showRecentColors,
-      recentColors: recentColors ?? [],
+      recentColors: activeRecents,
       onRecentColorsChange,
     }),
     [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper,
-     showRecentColors, recentColors, onRecentColorsChange],
+     showRecentColors, activeRecents, onRecentColorsChange],
   );
 
   const context = React.useMemo<PanelContextValue>(

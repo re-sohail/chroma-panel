@@ -19,8 +19,15 @@ Everything is themed with CSS custom properties:
   --cp-radius: 10px;
   --cp-width: 320px;
   --cp-disc-size: 196px;
+  --cp-panel-h: 332px;
 }
 ```
+
+`--cp-panel-h` is the height reserved for the mode content. It is the same in
+every mode, so the panel does not resize when you switch tabs — and on a phone,
+where the sheet is anchored to the bottom edge, its top edge does not jump
+either. Anything taller than it scrolls. Set it to `auto` to let each mode size
+itself, at the cost of that stability.
 
 The panel follows the system colour scheme unless you pass `theme`.
 

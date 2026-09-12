@@ -207,7 +207,12 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
         onClose={() => setOpen(false)}
         className={classNames.popover}
       >
-        <div role="dialog" aria-label={ariaLabel} aria-modal="false">
+        {/* Sits between the sheet and the panel, so it has to pass the sheet's
+            height constraint through rather than absorb it. Without the class
+            it defaulted to min-height: auto and refused to shrink, and at
+            320x568 the footer was pushed 10px into the sheet's clipped
+            region — reachable by nothing. */}
+        <div className="cp-dialog" role="dialog" aria-label={ariaLabel} aria-modal="false">
           <ChromaPanel
             {...panelProps}
             store={store}

@@ -318,6 +318,25 @@ export const css: string = `
     flex: 1 1 var(--cp-panel-h);
     min-height: 0;
     overflow-y: auto; overscroll-behavior: contain;
+
+    /* A real scrollbar, not the fade mask this replaced.
+       The mask had to sit on the scroll PORT to stay at the visual bottom
+       edge, which meant it dimmed whatever happened to be there — including
+       the image drop zone's border — in the four modes that do not scroll.
+       A scrollbar appears only when there is genuinely more to see, which is
+       the conditional behaviour the mask was imitating, for free.
+       scrollbar-gutter: stable reserves the track in every mode, so the
+       content width does not shift by the scrollbar's width when you switch
+       to the one mode that scrolls. */
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cp-border) transparent;
+  }
+  .cp-panel-host::-webkit-scrollbar { width: 8px; }
+  .cp-panel-host::-webkit-scrollbar-track { background: transparent; }
+  .cp-panel-host::-webkit-scrollbar-thumb {
+    background: var(--cp-border); border-radius: 4px;
+    border: 2px solid transparent; background-clip: content-box;
   }
   /* Nothing can jump when there is nothing to switch to, so a single-mode
      panel is content-sized and wastes no space. */
@@ -690,6 +709,16 @@ export const css: string = `
   .cp-sheet { position: relative; }
   /* Inside a sheet the panel IS the surface: it must not draw its own
      rounded, shadowed card inside another one. */
+  /* Any wrapper between the sheet and the panel has to pass the height
+     constraint down instead of absorbing it. A flex item defaults to
+     min-height: auto, so one unstyled div in the middle is enough to break the
+     whole chain and push the footer into the clipped region. The universal
+     rule is deliberate belt-and-braces: it keeps a future wrapper from
+     reintroducing the same bug silently. */
+  .cp-dialog { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .cp-sheet > *, .cp-sheet .cp-dialog { min-height: 0; }
+  .cp-sheet > .cp-dialog { flex: 1 1 auto; }
+
   .cp-sheet .cp-root {
     width: 100%; max-width: none;
     border-radius: 0; box-shadow: none; background: transparent;
