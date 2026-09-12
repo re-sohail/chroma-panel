@@ -1,6 +1,4 @@
-![chroma-panel, a React color picker](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)
-
-![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)# chroma-panel
+![chroma-panel, a React color picker](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)\# chroma-panel
 
 chroma-panel is a React color picker with the look and feel of the macOS color panel.
 
@@ -85,15 +83,10 @@ chroma-panel keeps the full HSVA value and never rounds it on the way through.
 
 Measured as the increase in a real Vite production build, gzipped, with React external.
 
-<!-- board:start id="b-0y1i" field-types="Title=text,Status=status,added to your app=text,id=text" hidden-fields="id" active-view="table" -->
-<!-- board:view name="table" hidden="Status,Description" -->
-
-| Title | Status | added to your app | id |
-|---|---|---|---|
-| all five modes |  | 22.2 kB | C1 |
-| shell plus one mode |  | 14.1 kB | C2 |
-
-<!-- board:end -->
+| Title | added to your app |
+| --- | --- |
+| all five modes | 22.2 kB |
+| shell plus one mode | 14.1 kB |
 
 No runtime dependencies either way.
 
