@@ -59,6 +59,9 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
+That is 13.9 kB instead of 21.9. Each extra mode you import adds its own weight
+and nothing else.
+
 ## Theming
 
 ![Light and dark](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
@@ -81,23 +84,28 @@ trip through RGB destroys them. Drag brightness to zero and back, and the hue
 you chose comes back as red. chroma-panel keeps unrounded float HSVA and merges
 incoming values rather than replacing them.
 
-Measured as the delta a real Vite app gains by adding each one, React
-external, minified and gzipped:
+## What it costs
+
+Measured as the delta a real Vite production build gains by adding each one,
+React external and gzipped, all five built the same way on the same day:
 
 | | added to your app | deps | modes |
 | --- | --- | --- | --- |
-| [react-colorful](https://bundlephobia.com/package/react-colorful) | 4.8 kB | 0 | one |
-| [@rc-component/color-picker](https://bundlephobia.com/package/@rc-component/color-picker) | 6.6 kB | 3 | one |
-| **chroma-panel** | **13.9 kB** | **0** | **five** |
-| [@uiw/react-color](https://bundlephobia.com/package/@uiw/react-color) | 15.7 kB | 20 | several |
+| [react-colorful](https://www.npmjs.com/package/react-colorful) | 3.7 kB | 0 | one |
+| [@uiw/react-color](https://www.npmjs.com/package/@uiw/react-color) (`Sketch`) | 7.5 kB | 20 | several |
+| [@rc-component/color-picker](https://www.npmjs.com/package/@rc-component/color-picker) | 8.7 kB | 3 | one |
+| chroma-panel, shell + one mode | 13.9 kB | 0 | one |
+| **chroma-panel, everything** | **21.9 kB** | **0** | **five** |
 
-Importing only `chroma-panel/panel` plus one mode adds about 8.5 kB. The
-package's own bundle measures larger in isolation (around 21 kB) because that
-figure counts code your bundler drops.
+**chroma-panel is the largest here.** Five modes, a bottom sheet, an image
+quantiser and the stylesheet all cost something, and the table is the honest
+version of that. If you want one picker and every kilobyte counts, use
+react-colorful — it is excellent, and it is a fifth of the size.
 
-**If you only need one picker and every kilobyte counts, use react-colorful.**
-It is excellent, and smaller. Reach for this one when you want several modes,
-no dependencies, or the colour to survive the extremes.
+Reach for this one when you want several modes in one panel, no dependencies,
+or the colour to survive the extremes. And if you only need one or two modes,
+[ship only those](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
+and pay 13.9 kB instead of 21.9.
 
 ## Licence
 

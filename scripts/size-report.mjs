@@ -31,6 +31,21 @@ import { rolldown } from 'rolldown';
  * Trimming the dead -webkit-mask- prefix and backdrop-filter first recovered
  * only 0.03 KB, so the rest is genuinely new behaviour, not slack.
  *
+ * THEN EVERY NUMBER ABOVE TURNED OUT TO BE MEASURED AGAINST A BROKEN BUILD.
+ * The rows used to bundle `dist/index.js` as a barrel, retaining every export.
+ * That is not what a consumer imports, and — worse — it hid the fact that the
+ * five `registerMode()` calls were being tree-shaken out of real consumer
+ * builds, because package.json's `sideEffects` array is a whitelist that did
+ * not list the entries making them. A production build of
+ * `import { ColorInput } from "chroma-panel"` rendered a picker with no tabs
+ * and no panel.
+ *
+ * The rows below now bundle the way a consumer imports, so the numbers mean
+ * something and a mode that fails to register shows up as a size cliff.
+ * Fixing the bug moved the headline figure from a fictional 12.5 KB to a real
+ * 19 KB; the ceiling is not chasing new features, it is admitting what the
+ * working package has always cost.
+ *
  * Raising a ceiling should always be a reviewed decision with a reason
  * attached, never a reflex when a build goes red.
  *
@@ -47,7 +62,26 @@ const BUDGETS = [
   { entry: 'dist/core.js', label: 'core (colour engine, no React)', limit: 2.5 },
   { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 5.0 },
   { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 6.0 },
-  { entry: 'dist/index.js', label: 'full package, all five modes', limit: 21.5 },
+
+  // Written as source, not as a path: these bundle what a consumer's import
+  // pulls in, which is the only figure that means anything to them. The
+  // barrel-as-entry row they replaced counted every export, including ones
+  // any real build drops.
+  {
+    label: 'what you ship: ColorInput, all modes',
+    limit: 19.5,
+    source:
+      "import { ColorInput } from './dist/index.js';\n" +
+      "export { ColorInput };\n",
+  },
+  {
+    label: 'what you ship: panel + one mode',
+    limit: 13.0,
+    source:
+      "import { ChromaPanel } from './dist/panel.js';\n" +
+      "import './dist/wheel.js';\n" +
+      "export { ChromaPanel };\n",
+  },
   // Not bundled here — it is already self-contained and is loaded by URL, so
   // the point is the floor, not the ceiling.
   { entry: 'dist/image-worker.js', label: 'image worker (standalone)', limit: 6, floor: 1 },
@@ -58,13 +92,20 @@ const EXTERNAL = [/^react$/, /^react-dom$/, /^react\//, /^react-dom\//];
 let failed = false;
 const rows = [];
 
-for (const { entry, label, limit, floor } of BUDGETS) {
+const VIRTUAL = '\0chroma-size-entry';
+
+for (const { entry, label, limit, floor, source } of BUDGETS) {
   const bundle = await rolldown({
-    input: entry,
+    input: source === undefined ? entry : VIRTUAL,
     external: EXTERNAL,
     // Match what a consumer's production build does.
     treeshake: true,
     logLevel: 'silent',
+    plugins: source === undefined ? [] : [{
+      name: 'virtual-entry',
+      resolveId: (id) => (id === VIRTUAL ? id : null),
+      load: (id) => (id === VIRTUAL ? source : null),
+    }],
   });
   const { output } = await bundle.generate({ format: 'esm', minify: true });
   await bundle.close();

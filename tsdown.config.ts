@@ -65,7 +65,12 @@ const library = defineConfig({
   exports: false,
 
   treeshake: true,
-  sourcemap: true,
+  // Sourcemaps were 629 KB of a 1096 KB unpacked tarball — 57%, across 169
+  // files, with the TypeScript inlined via sourcesContent. dist is unbundled
+  // and unminified, so stepping into it in devtools still shows real code;
+  // only the original TypeScript is lost. Flip back to true if that trade
+  // stops being worth it.
+  sourcemap: false,
   clean: true,
 
   // publint and attw run from the `build` script rather than here, because
@@ -95,7 +100,7 @@ const worker = defineConfig({
   target: 'es2020',
   treeshake: false,
   dts: false,             // Nothing to type; also avoids an `export {}` stub.
-  sourcemap: true,
+  sourcemap: false,
   exports: false,
 
   // MANDATORY. The default `clean: true` would wipe dist/ and delete the

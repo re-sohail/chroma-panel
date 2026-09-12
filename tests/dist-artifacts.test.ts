@@ -78,3 +78,76 @@ describe.skipIf(!built)('the built library', () => {
     expect(empty).toEqual([]);
   });
 });
+
+/**
+ * Tree-shaking survival.
+ *
+ * A production build of the documented first example rendered a picker with no
+ * tabs and no panel — just the title bar and the footer. `src/index.ts`
+ * registers the five modes with top-level `registerMode()` calls, which are
+ * side effects, while `package.json` declared
+ *
+ *     "sideEffects": ["**\/*.css", "./dist/image-worker.js"]
+ *
+ * The ARRAY FORM IS A WHITELIST, not an addition: every other file is declared
+ * side-effect-free, so bundlers were entitled to drop those calls, and they
+ * did. Same root cause as the 0-byte worker above.
+ *
+ * Nothing caught it because the playground runs `vite dev`, which does not
+ * tree-shake, and every other test renders from `src/` rather than from a
+ * bundled build.
+ *
+ * The markers below are strings unique to each mode's JAVASCRIPT. Do NOT use
+ * `cp-` class names: the stylesheet is inlined into every build and contains
+ * every class, so a class-name probe reports all five modes present even when
+ * none of them survived. That false pass is the whole trap.
+ */
+describe.skipIf(!built)('tree-shaking survival', () => {
+  const MODES: Record<string, string> = {
+    wheel: 'Colour wheel',
+    sliders: 'HSB',
+    palettes: 'Name or hex',
+    image: 'Drop an image here',
+    pencils: 'No pencils configured',
+  };
+
+  const EXTERNAL = [/^react$/, /^react-dom$/, /^react\//, /^react-dom\//];
+
+  /** Bundles `code` as a consumer's bundler would, and reports surviving modes. */
+  async function survivingModes(code: string): Promise<string[]> {
+    const { rolldown } = await import('rolldown');
+    const ENTRY = '\0chroma-entry';
+    const bundle = await rolldown({
+      input: ENTRY,
+      external: EXTERNAL,
+      plugins: [{
+        name: 'virtual-entry',
+        resolveId: (id: string) => (id === ENTRY ? id : null),
+        load: (id: string) => (id === ENTRY ? code : null),
+      }],
+    });
+    const { output } = await bundle.generate({ format: 'esm', minify: true });
+    const js = output.map((o) => ('code' in o ? o.code : '')).join('');
+    return Object.keys(MODES).filter((id) => js.includes(MODES[id] as string));
+  }
+
+  it('keeps all five modes when importing from the package root', async () => {
+    const modes = await survivingModes(
+      `import { ColorInput } from '${dist('index.js')}'; export { ColorInput };`,
+    );
+    expect(modes.sort(), 'the picker would render with an empty toolbar')
+      .toEqual(['image', 'palettes', 'pencils', 'sliders', 'wheel']);
+  }, 60_000);
+
+  it('ships only the modes you ask for via the subpath entries', async () => {
+    // The mirror assertion. Without it, "mark everything side-effectful" would
+    // pass the test above while quietly destroying the documented way to ship
+    // a smaller bundle.
+    const modes = await survivingModes(
+      `import { ChromaPanel } from '${dist('panel.js')}';` +
+      `import '${dist('wheel.js')}';` +
+      `export { ChromaPanel };`,
+    );
+    expect(modes).toEqual(['wheel']);
+  }, 60_000);
+});

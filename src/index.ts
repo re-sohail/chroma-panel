@@ -18,6 +18,21 @@ import { palettesMode } from './modes/palettes/index';
 import { imageMode } from './modes/image/index';
 import { pencilsMode } from './modes/pencils/index';
 
+/*
+ * These five calls are SIDE EFFECTS, and they only survive a consumer's build
+ * because "./dist/index.js" and "./dist/index.cjs" are listed in the
+ * sideEffects array in package.json.
+ *
+ * That array is a WHITELIST, not an addition: anything absent from it is
+ * declared side-effect-free and may be dropped. When this entry was missing,
+ * a production build of `import { ColorInput } from "chroma-panel"` rendered a
+ * picker with no tabs and no panel, while `vite dev` — which does not
+ * tree-shake — looked perfectly fine.
+ *
+ * Each of ./wheel, ./sliders, ./palettes, ./image and ./pencils is listed for
+ * the same reason. Adding a mode entry means adding it there too.
+ * `tests/dist-artifacts.test.ts` is the gate.
+ */
 registerMode(wheelMode);
 registerMode(slidersMode);
 registerMode(palettesMode);
