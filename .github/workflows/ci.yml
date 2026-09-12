@@ -1,9 +1,11 @@
 name: CI
 
+# Pull requests only. Pushes to main are covered by release.yml, which runs
+# the same gates before it publishes — running both on main meant every merge
+# ran the full suite twice, Chromium download included.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
