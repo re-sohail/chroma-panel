@@ -332,6 +332,77 @@ describe('the image mode', () => {
     expect(input.value, 're-picking the same file would fire no change event').toBe('');
   });
 
+  it('keeps the image when the popover closes and reopens', async () => {
+    // The popover unmounts the whole panel on close, so ImagePanel's state died
+    // with it AND its unmount cleanup revoked the object URL -- meaning even a
+    // cached src would have pointed at a dead blob.
+    render(
+      <ColorInput modes={[...ALL_MODES]} palettes={defaultPalettes()} pencils={defaultPencils()} />,
+    );
+    const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
+
+    const openOnImage = async (): Promise<void> => {
+      trigger.click();
+      await waitFor('.cp-popover');
+      await settle();
+      const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-popover [role="tab"]'))
+        .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-image') === true)!;
+      tab.click();
+      await settle();
+    };
+    const loaded = async (): Promise<HTMLImageElement> => {
+      const img = (await waitFor<HTMLElement>('.cp-image-preview')).querySelector('img')!;
+      if (!img.complete) await new Promise((r) => { img.onload = r; img.onerror = r; });
+      await settle();
+      return img;
+    };
+
+    await openOnImage();
+    attach(document.querySelector<HTMLInputElement>('.cp-popover input[type="file"]')!, pngFile());
+    await loaded();
+    const before = document.querySelectorAll('.cp-popover .cp-swatch-grid .cp-swatch').length;
+    expect(before, 'nothing was extracted — test is not exercising the bug')
+      .toBeGreaterThan(0);
+
+    trigger.click();
+    await settle();
+    expect(document.querySelector('.cp-popover'), 'the popover did not close').toBeNull();
+
+    await openOnImage();
+    expect(document.querySelector('.cp-image-preview'), 'the image was discarded on close')
+      .not.toBeNull();
+    expect(document.querySelectorAll('.cp-popover .cp-swatch-grid .cp-swatch'))
+      .toHaveLength(before);
+    const img = await loaded();
+    expect(img.naturalWidth, 'the object URL was revoked, so the img is broken')
+      .toBeGreaterThan(0);
+  });
+
+  it('forgets the image once you remove it, across a close', async () => {
+    render(<ColorInput modes={['image']} />);
+    const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
+
+    const open = async (): Promise<void> => {
+      trigger.click();
+      await waitFor('.cp-popover');
+      await settle();
+    };
+
+    await open();
+    attach(document.querySelector<HTMLInputElement>('.cp-popover input[type="file"]')!, pngFile());
+    await waitFor('.cp-image-preview');
+    await settle();
+
+    document.querySelector<HTMLButtonElement>('.cp-image-remove')!.click();
+    await settle();
+    trigger.click();
+    await settle();
+
+    await open();
+    expect(document.querySelector('.cp-image-preview'), 'a removed image came back').toBeNull();
+    expect(document.querySelector('.cp-dropzone')).not.toBeNull();
+  });
+
   it('accepts a dropped file', async () => {
     render(panel());
     await waitFor('.cp-panel-host');

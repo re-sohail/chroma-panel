@@ -59,7 +59,7 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 14.1 kB instead of 22.1. Each extra mode you import adds its own weight
+That is 14.1 kB instead of 22.2. Each extra mode you import adds its own weight
 and nothing else.
 
 ## Theming
@@ -91,7 +91,7 @@ external and gzipped:
 
 | | added to your app |
 | --- | --- |
-| all five modes | **22.1 kB** |
+| all five modes | **22.2 kB** |
 | the shell plus one mode | **14.1 kB** |
 
 Zero runtime dependencies, in either case.
@@ -99,7 +99,7 @@ Zero runtime dependencies, in either case.
 Five modes, a bottom sheet, an image quantiser and the stylesheet all cost
 something. If you only need one or two modes,
 [ship only those](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
-and pay 14.1 kB instead of 22.1.
+and pay 14.1 kB instead of 22.2.
 
 ## Licence
 

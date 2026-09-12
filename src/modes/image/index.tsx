@@ -10,6 +10,16 @@ import type { PickerMode } from '../registry';
 
 type Status = 'idle' | 'working' | 'ready' | 'error';
 
+interface Kept {
+  status: Status;
+  message: string;
+  swatches: QuantizedSwatch[];
+  preview: string | null;
+}
+
+const kept = new WeakMap<object, Kept>();
+const EMPTY: Kept = { status: 'idle', message: '', swatches: [], preview: null };
+
 export interface ImagePanelProps {
   extractOptions?: ExtractOptions;
 }
@@ -19,14 +29,22 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   const { idPrefix, disabled } = usePanel();
   const inputId = `${idPrefix}-image-file`;
 
-  const [status, setStatus] = React.useState<Status>('idle');
-  const [message, setMessage] = React.useState('');
-  const [swatches, setSwatches] = React.useState<QuantizedSwatch[]>([]);
-  const [preview, setPreview] = React.useState<string | null>(null);
+  const { store } = usePanel();
+  const restored = kept.get(store) ?? EMPTY;
+
+  const [status, setStatus] = React.useState<Status>(restored.status);
+  const [message, setMessage] = React.useState(restored.message);
+  const [swatches, setSwatches] = React.useState<QuantizedSwatch[]>(restored.swatches);
+  const [preview, setPreview] = React.useState<string | null>(restored.preview);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (preview === null && status === 'idle') kept.delete(store);
+    else kept.set(store, { status, message, swatches, preview });
+  }, [store, status, message, swatches, preview]);
+
   const controller = React.useRef<AbortController | null>(null);
-  const previewUrl = React.useRef<string | null>(null);
+  const previewUrl = React.useRef<string | null>(restored.preview);
 
   const releasePreview = React.useCallback((): void => {
     if (previewUrl.current !== null) {
@@ -38,9 +56,8 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   React.useEffect(() => {
     return () => {
       controller.current?.abort();
-      releasePreview();
     };
-  }, [releasePreview]);
+  }, []);
 
   const run = React.useCallback(
     async (file: File): Promise<void> => {

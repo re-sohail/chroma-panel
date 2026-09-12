@@ -115,6 +115,11 @@ materialised, then quantized with modified median cut. Averages come from the
 true channel values rather than 5-bit bin centres, so a flat region of
 `#ff0000` extracts as `#ff0000` and not `#fc0404`.
 
+A loaded image survives closing and reopening the picker, so reaching for a
+second colour does not mean choosing the file again. It is held for the life of
+the page and released when you replace it, remove it with the control on the
+preview, or leave the page.
+
 At the default sample size the quantizer takes a few milliseconds, so it runs
 on the main thread. To raise `size` substantially, move it to a worker —
 constructed in your source, so your bundler resolves the URL:
