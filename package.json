@@ -18,6 +18,7 @@
     "zero-dependency"
   ],
   "license": "MIT",
+  "author": "Sohail Khan (https://resohail.me)",
   "type": "module",
   "sideEffects": [
     "*.css",
