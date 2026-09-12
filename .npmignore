@@ -1,0 +1,9 @@
+# package.json "files" is authoritative; this is belt-and-braces.
+src/
+tests/
+stories/
+scripts/
+.github/
+.changeset/
+*.config.ts
+*.tsbuildinfo

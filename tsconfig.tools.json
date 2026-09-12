@@ -1,0 +1,18 @@
+{
+  // Tests, scripts, stories and config files. Same strictness, but without
+  // isolatedDeclarations — that rule exists to keep the PUBLISHED .d.ts fast
+  // to emit, and none of these files ship declarations.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Tests may use newer runtime APIs than the library ships: src stays on
+    // ES2020 so the published output is readable by older bundlers.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "isolatedDeclarations": false,
+    "declaration": false,
+    "declarationMap": false,
+    // Node types are scoped to tooling ONLY. The src config must never
+    // see them, or node globals could leak into the published .d.ts files.
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["tests", "scripts", "stories", "*.config.ts"]
+}

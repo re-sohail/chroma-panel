@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    # GitHub-hosted runner required: npm's OIDC trusted publishing does not
+    # support self-hosted runners.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # changesets pushes the version PR and tags
+      pull-requests: write
+      id-token: write        # required for OIDC trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      # Trusted publishing needs npm >= 11.5.1.
+      - run: npm i -g npm@latest
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: npm run build
+      - run: npm run verify:directives
+      - run: npm run size
+
+      - uses: changesets/action@v1
+        with:
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Deliberately no NPM_TOKEN. Authentication is OIDC trusted
+          # publishing, configured on npmjs.com against this workflow file.
+          # npm revoked all classic tokens in December 2025, and granular
+          # tokens lose publish rights in January 2027.

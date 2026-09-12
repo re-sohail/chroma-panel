@@ -1,0 +1,185 @@
+{
+  "name": "chroma-panel",
+  "version": "0.1.0",
+  "description": "A macOS-inspired, zero-dependency React color picker. Wheel, sliders, palettes, image extraction and pencils in one accessible panel.",
+  "keywords": [
+    "react",
+    "color",
+    "color-picker",
+    "colorpicker",
+    "hsva",
+    "hex",
+    "rgba",
+    "eyedropper",
+    "palette",
+    "accessible",
+    "a11y",
+    "typescript",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/style.css",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      }
+    },
+    "./panel": {
+      "import": {
+        "types": "./dist/panel.d.ts",
+        "default": "./dist/panel.js"
+      },
+      "require": {
+        "types": "./dist/panel.d.cts",
+        "default": "./dist/panel.cjs"
+      }
+    },
+    "./wheel": {
+      "import": {
+        "types": "./dist/wheel.d.ts",
+        "default": "./dist/wheel.js"
+      },
+      "require": {
+        "types": "./dist/wheel.d.cts",
+        "default": "./dist/wheel.cjs"
+      }
+    },
+    "./sliders": {
+      "import": {
+        "types": "./dist/sliders.d.ts",
+        "default": "./dist/sliders.js"
+      },
+      "require": {
+        "types": "./dist/sliders.d.cts",
+        "default": "./dist/sliders.cjs"
+      }
+    },
+    "./palettes": {
+      "import": {
+        "types": "./dist/palettes.d.ts",
+        "default": "./dist/palettes.js"
+      },
+      "require": {
+        "types": "./dist/palettes.d.cts",
+        "default": "./dist/palettes.cjs"
+      }
+    },
+    "./image": {
+      "import": {
+        "types": "./dist/image.d.ts",
+        "default": "./dist/image.js"
+      },
+      "require": {
+        "types": "./dist/image.d.cts",
+        "default": "./dist/image.cjs"
+      }
+    },
+    "./pencils": {
+      "import": {
+        "types": "./dist/pencils.d.ts",
+        "default": "./dist/pencils.js"
+      },
+      "require": {
+        "types": "./dist/pencils.d.cts",
+        "default": "./dist/pencils.cjs"
+      }
+    },
+    "./named-colors": {
+      "import": {
+        "types": "./dist/named-colors.d.ts",
+        "default": "./dist/named-colors.js"
+      },
+      "require": {
+        "types": "./dist/named-colors.d.cts",
+        "default": "./dist/named-colors.cjs"
+      }
+    },
+    "./contrast": {
+      "import": {
+        "types": "./dist/contrast.d.ts",
+        "default": "./dist/contrast.js"
+      },
+      "require": {
+        "types": "./dist/contrast.d.cts",
+        "default": "./dist/contrast.cjs"
+      }
+    },
+    "./image-worker": "./dist/image-worker.js",
+    "./styles.css": "./dist/style.css",
+    "./style.css": "./dist/style.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsdown && node scripts/emit-css.mjs && npm run lint:publint && npm run lint:attw",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:watch": "vitest",
+    "lint:publint": "publint --strict",
+    "lint:attw": "attw --pack . --profile node16 --exclude-entrypoints styles.css style.css --ignore-rules cjs-resolves-to-esm",
+    "verify:directives": "node scripts/verify-directives.mjs",
+    "size": "node scripts/size-report.mjs",
+    "prepublishOnly": "npm run build && npm run verify:directives && npm run size",
+    "release": "changeset publish",
+    "build:fast": "tsdown && node scripts/emit-css.mjs"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/cli": "^3.0.2",
+    "@types/node": "^22.20.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser-playwright": "^5.0.0",
+    "playwright": "^1.63.0",
+    "publint": "0.3.24",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsdown": "0.23.0",
+    "typescript": "5.9.3",
+    "vitest": "^5.0.0",
+    "vitest-browser-react": "^2.3.0"
+  }
+}

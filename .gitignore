@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+storybook-static/
+*.tgz
+*.log
+.DS_Store
+.vscode/
+.idea/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+.vitest-cache/
+.vitest/
+playground-screenshot.png

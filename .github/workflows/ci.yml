@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (colour maths, store, quantizer, SSR)
+        run: npm run test:unit
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (pointer drag, keyboard, a11y)
+        run: npm run test:browser
+
+      # Also runs publint and are-the-types-wrong.
+      - name: Build
+        run: npm run build
+
+      # A silent directive-stripping regression is invisible until a user
+      # files a Next.js bug, so it is asserted rather than trusted.
+      - name: Verify "use client" survived the build
+        run: npm run verify:directives
+
+      - name: Bundle size budget
+        run: npm run size
+
+      - name: Show exactly what would be published
+        run: npm pack --dry-run

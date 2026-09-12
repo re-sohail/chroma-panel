@@ -1,0 +1,22 @@
+{
+  "name": "chroma-panel-playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Local test app. Installs the PACKED TARBALL, not the source, so this exercises exactly what npm users will get.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "relink": "cd .. && npm run build && npm pack && cd playground && npm install ../chroma-panel-0.1.0.tgz"
+  },
+  "dependencies": {
+    "chroma-panel": "file:../chroma-panel-0.1.0.tgz",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite": "^8.0.0"
+  }
+}
