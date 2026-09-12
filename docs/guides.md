@@ -19,7 +19,7 @@ Everything is themed with CSS custom properties:
   --cp-radius: 10px;
   --cp-width: 320px;
   --cp-disc-size: 196px;
-  --cp-panel-h: 332px;
+  --cp-panel-h: 344px;
 }
 ```
 

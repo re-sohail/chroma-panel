@@ -400,6 +400,38 @@ describe('the image mode', () => {
   });
 });
 
+describe('control heights agree', () => {
+  // The tab bar is the tab PLUS 2 x --cp-seg-pad of track padding, so equal
+  // tokens do not produce equal boxes. The coarse-pointer block set both
+  // tokens to 34px trying to fix exactly this, and still rendered 40 vs 34 —
+  // nothing asserted the rendered heights, so the mismatch survived.
+  for (const coarse of [false, true]) {
+    it(`draws the tab bar and a text input at one height (${coarse ? 'touch' : 'mouse'})`, async () => {
+      if (coarse) await page.viewport(390, 844);
+      render(panel());
+      await waitFor('.cp-panel-host');
+
+      const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+        .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-palettes') === true)!;
+      tab.click();
+      await settle();
+
+      const bar = document.querySelector<HTMLElement>('.cp-toolbar')!;
+      const input = document.querySelector<HTMLElement>('.cp-panel-host .cp-input')!;
+
+      const barH = bar.getBoundingClientRect().height;
+      const inputH = input.getBoundingClientRect().height;
+      expect(inputH, `tab bar ${barH}px vs input ${inputH}px`).toBe(barH);
+
+      // The footer pair drifted the same way: the preview was a hardcoded
+      // 30px sitting beside a 34px eyedropper on touch.
+      const preview = document.querySelector<HTMLElement>('.cp-preview')!;
+      expect(preview.getBoundingClientRect().height)
+        .toBe(preview.getBoundingClientRect().width);
+    });
+  }
+});
+
 describe('the popover never exceeds the viewport', () => {
   it('stays on screen and keeps the footer reachable in a short viewport', async () => {
     // Regression: place() flipped above only when there was room above, and

@@ -77,8 +77,15 @@ export const css: string = `
 
     --cp-thumb-size: 18px;
     --cp-track-height: 12px;
-    --cp-control-height: 30px;
-    --cp-input-height: 28px;
+    --cp-control-height: 32px;
+    /* Derived, never declared twice. The tab bar is the tab PLUS the track
+       padding on both sides, so it is always 2 x --cp-seg-pad taller than
+       --cp-control-height — which means matching the TAB height still leaves a
+       text input visibly short of the BAR the user actually sees.
+       The coarse block below used to set both tokens to 34px trying to line
+       them up, and rendered 40 against 34. Equal tokens are not equal boxes;
+       this calc is the relationship itself, so it cannot drift again. */
+    --cp-input-height: calc(var(--cp-control-height) + 2 * var(--cp-seg-pad));
     --cp-gap: 12px;
     --cp-pad: 14px;
     --cp-width: 320px;
@@ -93,7 +100,7 @@ export const css: string = `
        Sized to clear the tallest mode with headroom. A test asserts every mode
        still fits, so adding a row fails CI rather than silently reintroducing
        a scrollbar. Set to "auto" to opt out. */
-    --cp-panel-h: 332px;
+    --cp-panel-h: 344px;
 
     /* Set once per frame on colour change; CSS propagates from here. */
     --cp-h: 0;
@@ -300,7 +307,13 @@ export const css: string = `
   .cp-tab[aria-selected="true"] { color: var(--cp-text); }
   .cp-tab:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: -2px; }
   .cp-tab[disabled] { cursor: default; }
-  .cp-seg-sm .cp-tab { height: 24px; font-size: 11px; letter-spacing: 0.02em; }
+  /* The secondary switcher stays smaller than the mode bar, but by a fixed
+     step rather than a fixed number — a hardcoded 24px stayed 24px on touch
+     while every other control grew. */
+  .cp-seg-sm .cp-tab {
+    height: calc(var(--cp-control-height) - 8px);
+    font-size: 11px; letter-spacing: 0.02em;
+  }
   .cp-tab svg { width: 17px; height: 17px; display: block; }
 
   /* The tab panel host — the ONLY scroll container inside the panel.
@@ -624,7 +637,12 @@ export const css: string = `
   }
   .cp-footer-spacer { flex: 1; }
   .cp-preview {
-    position: relative; width: 30px; height: 30px; flex: none;
+    /* Tracks the eyedropper beside it. Hardcoded 30px matched the old
+       --cp-control-height only by coincidence, and on touch the footer drew a
+       30px preview next to a 34px button. */
+    position: relative;
+    width: var(--cp-control-height); height: var(--cp-control-height);
+    flex: none;
     border-radius: 50%;
     outline: 1px solid var(--cp-border-subtle); outline-offset: -1px;
   }
@@ -870,8 +888,10 @@ body:has(.cp-sheet-root[data-cp-open="true"]) { overflow: hidden; }
     /* The taller inputs below are the entire reason the wheel measures 6px
        more here than on a mouse, so the panel height moves with them. */
     .cp-root {
-      --cp-control-height: 34px; --cp-input-height: 34px; --cp-thumb-size: 22px;
-      --cp-panel-h: 340px;
+      /* --cp-input-height is deliberately absent: it derives from this, and
+         restating it here is precisely what produced the 40-vs-34 mismatch. */
+      --cp-control-height: 36px; --cp-thumb-size: 22px;
+      --cp-panel-h: 350px;
     }
     .cp-tab::after,
     .cp-icon-button::after,
