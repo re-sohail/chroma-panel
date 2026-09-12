@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { quantize } from '../src/image/mmcq';
 
-/** Build flat RGBA bytes from a list of [r,g,b,count] runs. */
 function pixels(runs: [number, number, number, number][], alpha = 255): Uint8ClampedArray {
   const total = runs.reduce((n, r) => n + r[3], 0);
   const data = new Uint8ClampedArray(total * 4);
@@ -50,7 +49,6 @@ describe('quantize', () => {
   });
 
   it('keeps a small accent alive next to a dominant flat background', () => {
-    // Plain median cut tends to spend every box on the background here.
     const result = quantize(
       pixels([[245, 245, 245, 9500], [255, 80, 0, 500]]),
       8,

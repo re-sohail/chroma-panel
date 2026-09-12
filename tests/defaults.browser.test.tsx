@@ -21,8 +21,6 @@ const openMode = async (label: string): Promise<void> => {
 };
 
 describe('a picker with no props is not half empty', () => {
-  // `modes` defaults to all five, so leaving palettes and pencils at [] meant
-  // two of the five rendered blank for anyone who just wrote <ChromaPanel />.
   it('fills the pencils mode from generated defaults', async () => {
     render(<ChromaPanel />);
     await waitFor('.cp-root');
@@ -52,14 +50,10 @@ describe('a picker with no props is not half empty', () => {
 });
 
 describe('mode options reach their mode', () => {
-  // ChromaPanel renders `<active.Panel />`, so without a pass-through the
-  // image mode's worker, sample size and colour count were unreachable.
   it('forwards imageOptions into the image mode', async () => {
     render(<ChromaPanel imageOptions={{ maxColors: 12, size: 64 }} />);
     await waitFor('.cp-root');
     await openMode('Image');
-    // The mode renders; the options are wired through context rather than
-    // being silently dropped.
     expect(await waitFor('input[type=file]')).toBeTruthy();
   });
 

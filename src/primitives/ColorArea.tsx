@@ -8,18 +8,10 @@ import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
 
 export interface ColorAreaProps {
-  /** Height in px. Default 150. */
   height?: number;
   className?: string;
 }
 
-/**
- * The rectangular saturation/value area.
- *
- * Same exactness argument as the disc: white-to-transparent left-to-right
- * over the pure hue makes x === saturation, and black-to-transparent
- * bottom-to-top makes y === value. Pure CSS, no canvas, no per-frame JS.
- */
 export function ColorArea(props: ColorAreaProps): React.ReactElement {
   const { height = 150, className } = props;
   const { store, disabled, classNames } = usePanel();
@@ -48,7 +40,6 @@ export function ColorArea(props: ColorAreaProps): React.ReactElement {
 
   const drag = usePointerDrag({
     disabled,
-    // Writes only the two axes it owns; hue and alpha are untouched.
     onMove: ({ x, y }) => store.patch({ s: x * 100, v: (1 - y) * 100 }),
     onEnd: () => store.commit(),
   });

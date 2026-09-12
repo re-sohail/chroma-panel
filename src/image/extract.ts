@@ -3,44 +3,15 @@ import { quantize, type QuantizedSwatch } from './mmcq';
 export type { QuantizedSwatch };
 
 export interface ExtractOptions {
-  /** Number of swatches to return. Default 8. */
   maxColors?: number;
-  /**
-   * Longest edge to downscale to before sampling. Default 100.
-   *
-   * 100x100 is 10,000 pixels, which is ample for 8-16 dominant colours;
-   * above ~128 the palette stops improving and only the latency grows.
-   */
   size?: number;
-  /** Pixels below this alpha are ignored. Default 128. */
   alphaThreshold?: number;
-  /**
-   * Run quantization in a worker you supply.
-   *
-   * Not the default, because at the default size the quantizer costs only a
-   * few milliseconds -- less than one frame -- while the expensive part
-   * (image decoding) is already off-thread inside createImageBitmap. A worker
-   * only pays for itself at much larger `size` values.
-   *
-   * Construct it in YOUR source, so your bundler resolves the URL:
-   *
-   *   const worker = new Worker(
-   *     new URL('chroma-panel/image-worker', import.meta.url),
-   *     { type: 'module' },
-   *   );
-   *
-   * That is deliberately not done inside this package: a `new URL(...,
-   * import.meta.url)` shipped inside library code resolves against the
-   * consumer's chunk layout and commonly 404s -- it is a known failure mode
-   * of Vite library mode in particular.
-   */
   worker?: Worker | (() => Worker);
   signal?: AbortSignal;
 }
 
 export interface ExtractResult {
   swatches: QuantizedSwatch[];
-  /** Pixels actually sampled, after downscale and the alpha filter. */
   sampled: number;
 }
 
@@ -50,8 +21,6 @@ function aborted(signal: AbortSignal | undefined): boolean {
 
 async function toBlob(source: Blob | string): Promise<Blob> {
   if (typeof source !== 'string') return source;
-  // fetch -> blob -> createImageBitmap avoids canvas tainting entirely, which
-  // an <img> with a cross-origin src would hit on getImageData.
   const response = await fetch(source, { mode: 'cors' });
   if (!response.ok) throw new Error(`chroma-panel: could not load image (${response.status}).`);
   return await response.blob();
@@ -62,16 +31,6 @@ async function decode(blob: Blob, size: number): Promise<ImageBitmap> {
     throw new Error('chroma-panel: this browser cannot decode images off-thread.');
   }
 
-  // Scale the LONGEST edge to `size` and let the decoder derive the other.
-  //
-  // Passing `size` for both dimensions — which this did previously — squashes
-  // a 4000x1000 photo into a square. That is not merely cosmetic: resampling
-  // a wide image into a square changes how many source pixels land in each
-  // sampled pixel, which skews the population weights the quantizer sorts by,
-  // so the "most common" colour can come back wrong.
-  //
-  // Supplying only ONE of resizeWidth/resizeHeight makes the decoder preserve
-  // the aspect ratio itself, so the source dimensions never need reading.
   const longest = Math.max(8, Math.round(size));
 
   try {
@@ -85,8 +44,6 @@ async function decode(blob: Blob, size: number): Promise<ImageBitmap> {
       premultiplyAlpha: 'none',
     });
   } catch {
-    // Some decoders reject the resize options entirely. A full-size bitmap is
-    // slower but correct, and readPixels still works.
     return await createImageBitmap(blob);
   }
 }
@@ -99,8 +56,6 @@ function readPixels(bitmap: ImageBitmap): Uint8ClampedArray {
       ? new OffscreenCanvas(width, height)
       : Object.assign(document.createElement('canvas'), { width, height });
 
-  // willReadFrequently keeps the surface CPU-backed and avoids a GPU readback
-  // stall on getImageData.
   const ctx = (canvas as HTMLCanvasElement).getContext('2d', {
     willReadFrequently: true,
   }) as CanvasRenderingContext2D | null;
@@ -146,19 +101,11 @@ function runInWorker(
     worker.addEventListener('error', onError);
     signal?.addEventListener('abort', onAbort);
 
-    // Transfer the buffer rather than copying it.
     const copy = new Uint8ClampedArray(data);
     worker.postMessage({ id, data: copy, maxColors, alphaThreshold }, [copy.buffer]);
   });
 }
 
-/**
- * Extract the dominant colours of an image.
- *
- * Pipeline: fetch -> createImageBitmap (decoder-side downscale, off-thread)
- * -> OffscreenCanvas -> getImageData -> alpha filter -> modified median cut.
- * The decode dominates the latency; the quantizer is a few milliseconds.
- */
 export async function extractPalette(
   source: Blob | File | string,
   options: ExtractOptions = {},
@@ -192,7 +139,6 @@ export async function extractPalette(
     if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');
     data = readPixels(bitmap);
   } finally {
-    // Not closing an ImageBitmap leaks GPU memory.
     bitmap.close();
   }
 

@@ -86,24 +86,18 @@ incoming values rather than replacing them.
 
 ## What it costs
 
-Measured as the delta a real Vite production build gains by adding each one,
-React external and gzipped, all five built the same way on the same day:
+Measured as the delta a real Vite production build gains by adding it, React
+external and gzipped:
 
-| | added to your app | deps | modes |
-| --- | --- | --- | --- |
-| [react-colorful](https://www.npmjs.com/package/react-colorful) | 3.7 kB | 0 | one |
-| [@uiw/react-color](https://www.npmjs.com/package/@uiw/react-color) (`Sketch`) | 7.5 kB | 20 | several |
-| [@rc-component/color-picker](https://www.npmjs.com/package/@rc-component/color-picker) | 8.7 kB | 3 | one |
-| chroma-panel, shell + one mode | 13.9 kB | 0 | one |
-| **chroma-panel, everything** | **21.9 kB** | **0** | **five** |
+| | added to your app |
+| --- | --- |
+| all five modes | **21.9 kB** |
+| the shell plus one mode | **13.9 kB** |
 
-**chroma-panel is the largest here.** Five modes, a bottom sheet, an image
-quantiser and the stylesheet all cost something, and the table is the honest
-version of that. If you want one picker and every kilobyte counts, use
-react-colorful — it is excellent, and it is a fifth of the size.
+Zero runtime dependencies, in either case.
 
-Reach for this one when you want several modes in one panel, no dependencies,
-or the colour to survive the extremes. And if you only need one or two modes,
+Five modes, a bottom sheet, an image quantiser and the stylesheet all cost
+something. If you only need one or two modes,
 [ship only those](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
 and pay 13.9 kB instead of 21.9.
 

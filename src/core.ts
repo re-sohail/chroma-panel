@@ -1,8 +1,3 @@
-/**
- * `chroma-panel/core` — the colour engine, with no React and no DOM.
- *
- * Safe to use on a server, in a worker, or as a standalone colour library.
- */
 export * from './color/types';
 export {
   clamp, normalizeHue,

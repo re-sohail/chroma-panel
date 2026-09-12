@@ -27,13 +27,9 @@ async function gone(selector: string, timeout = 3000): Promise<void> {
 const light = (which: 'close' | 'min' | 'max'): HTMLButtonElement =>
   document.querySelector<HTMLButtonElement>(`.cp-light[data-cp-light="${which}"]`)!;
 
-/** What the outside world can still see of the colour once the panel is shut. */
 const committedColour = (): { trigger: string; form: string | undefined } => ({
   trigger: getComputedStyle(document.querySelector('.cp-trigger')!)
     .getPropertyValue('--cp-trigger-color').trim(),
-  // Not `type=hidden` any more: the spec bars `readonly`, `required` and
-  // constraint validation on hidden inputs, so this is a visually hidden
-  // real input instead.
   form: document.querySelector<HTMLInputElement>('input[name=c]')?.value,
 });
 
@@ -58,7 +54,6 @@ describe('closing never loses the colour', () => {
     light('close').click();
     await gone('.cp-popover');
 
-    // The whole point: shutting the panel is not a cancel.
     expect(committedColour()).toEqual(before);
     expect(committedColour().form).toBe('#12ab56');
   });
@@ -81,7 +76,6 @@ describe('closing never loses the colour', () => {
     trigger.click();
     await waitFor('.cp-popover');
 
-    // Move off the default mode, then change the colour.
     const tabs = Array.from(document.querySelectorAll<HTMLElement>('.cp-popover [role="tab"]'));
     tabs[1]!.click();
     await new Promise((r) => setTimeout(r, 60));
@@ -102,7 +96,6 @@ describe('closing never loses the colour', () => {
     const reopenedHex = document.querySelector<HTMLInputElement>('.cp-popover input[type=text]')!;
     expect(reopenedHex.value.toLowerCase()).toContain('12ab56');
 
-    // Before this change the panel always snapped back to the first mode.
     const selected = document.querySelector('.cp-popover [role="tab"][aria-selected="true"]');
     expect(selected?.getAttribute('aria-label')).toBe('Sliders');
   });
@@ -118,7 +111,6 @@ describe('closing never loses the colour', () => {
     await userEvent.fill(hex, '#0a0b0c');
     await new Promise((r) => setTimeout(r, 60));
 
-    // Closed straight from the focused field, with no blur first.
     light('close').click();
     await gone('.cp-popover');
     expect(committedColour().form).toBe('#0a0b0c');
@@ -136,7 +128,6 @@ describe('collapse', () => {
     await new Promise((r) => setTimeout(r, 60));
 
     expect(getComputedStyle(body).display).toBe('none');
-    // Hidden, not unmounted — that is what keeps the state.
     expect(document.querySelector('.cp-body')).toBe(body);
     expect(light('min').getAttribute('aria-expanded')).toBe('false');
 
@@ -181,7 +172,6 @@ describe('availability and keyboard', () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     await waitFor('.cp-lights');
 
-    // Still three dots, so the row keeps its shape.
     expect(document.querySelectorAll('.cp-lights button')).toHaveLength(3);
     expect(light('close').disabled).toBe(true);
     expect(light('min').disabled).toBe(false);
@@ -235,12 +225,6 @@ describe('the sheet', () => {
 });
 
 describe('target size', () => {
-  // WCAG 2.2 SC 2.5.8 (AA). These dots are under 24x24, so they rely on the
-  // spacing exception: a 24px circle centred on each must not reach another
-  // target. Distance between centres therefore has to be >= 24px.
-  //
-  // This only became a constraint when all three dots became interactive —
-  // decorative elements are not targets, so a lone close button passed easily.
   it('spaces the window controls far enough apart to satisfy the spacing exception', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     await waitFor('.cp-lights');

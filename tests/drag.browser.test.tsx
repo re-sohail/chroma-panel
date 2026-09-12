@@ -5,14 +5,6 @@ import * as React from 'react';
 import { ChromaPanel } from '../src/index';
 import type { ColorChangeResult } from '../src/color/types';
 
-/**
- * Drive the picker with real browser input.
- *
- * Events are dispatched through the Chrome DevTools Protocol rather than
- * constructed in JavaScript, so they are *trusted*: pointer capture engages,
- * the same code path a user exercises. Synthetic PointerEvents would skip
- * capture entirely and quietly test a different program.
- */
 async function pointerDrag(
   element: Element,
   from: { x: number; y: number },
@@ -46,7 +38,6 @@ async function pointerDrag(
     );
   }
   await send('mouseReleased', end.x, end.y, 0);
-  // Let the trailing requestAnimationFrame flush.
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
@@ -61,7 +52,6 @@ describe('the drag loop', () => {
     document.body.appendChild(el);
     const box = el.getBoundingClientRect();
     el.remove();
-    // Precisely what jsdom cannot provide: real geometry and PointerEvent.
     expect(box.width).toBe(200);
     expect(box.height).toBe(100);
     expect(typeof PointerEvent).toBe('function');
@@ -82,7 +72,6 @@ describe('the drag loop', () => {
     expect(slider).not.toBeNull();
     await pointerDrag(slider as Element, { x: 0.1, y: 0.5 }, { x: 0.9, y: 0.5 }, 25);
 
-    // The entire point of the external store: 25 pointer moves, zero renders.
     expect(renders).toBe(settled);
   });
 
@@ -99,7 +88,6 @@ describe('the drag loop', () => {
     expect(onChange.mock.calls.length).toBeGreaterThan(0);
     const last = onChange.mock.calls.at(-1)?.[0] as ColorChangeResult;
     expect(last.hex).toMatch(/^#[0-9a-f]{6}$/);
-    // Dragging red down from full must actually darken the red channel.
     expect(last.rgb.r).toBeLessThan(120);
   });
 
@@ -114,13 +102,6 @@ describe('the drag loop', () => {
     const box = slider.getBoundingClientRect();
     const y = box.top + box.height / 2;
 
-    // Dispatched synchronously, within a single frame. CDP cannot show this:
-    // awaiting each round trip lets a frame elapse between moves, so there is
-    // nothing left to coalesce.
-    //
-    // setPointerCapture rejects synthetic pointer ids; the drag hook treats
-    // that as non-fatal and falls back to tracking by pointer id, which is
-    // what makes this path testable at all.
     const fire = (type: string, x: number): void => {
       slider.dispatchEvent(
         new PointerEvent(type, {
@@ -136,12 +117,10 @@ describe('the drag loop', () => {
     for (let i = 0; i < 40; i++) {
       fire('pointermove', box.left + 4 + ((box.width - 8) * i) / 39);
     }
-    // Still inside the same frame: nothing should have been delivered yet.
     expect(onChange).not.toHaveBeenCalled();
 
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    // 40 moves collapsed into exactly one update, carrying the final position.
     expect(onChange).toHaveBeenCalledTimes(1);
     const last = onChange.mock.calls.at(-1)?.[0] as ColorChangeResult;
     expect(last.rgb.r).toBeGreaterThan(240);
@@ -173,13 +152,10 @@ describe('the drag loop', () => {
     await expect.element(page.getByRole('group', { name: /colour wheel/i })).toBeInTheDocument();
 
     const disc = document.querySelector('.cp-disc') as HTMLElement;
-    // Drag from the centre far past the edge — only pointer capture keeps
-    // these moves coming to us.
     await pointerDrag(disc, { x: 0.5, y: 0.5 }, { x: 3, y: 0.5 }, 20);
 
     expect(onChange.mock.calls.length).toBeGreaterThan(0);
     const last = onChange.mock.calls.at(-1)?.[0] as ColorChangeResult;
-    // Dragging right from the centre means full saturation at ~90deg hue.
     expect(last.hsva.s).toBeGreaterThan(90);
   });
 });

@@ -1,16 +1,3 @@
-/**
- * The CSS named colours.
- *
- * Shipped as a separate entry point (`chroma-panel/named-colors`) and
- * registered explicitly, because a bundler cannot tree-shake a table that the
- * parser references directly — it has no way to prove the table is unused.
- * Requiring one call from the consumer is the only mechanism that reliably
- * keeps ~1KB out of bundles that do not need it.
- *
- *   import { namedColors } from 'chroma-panel/named-colors';
- *   import { registerNamedColors } from 'chroma-panel';
- *   registerNamedColors(namedColors);
- */
 const PACKED =
   'aliceblue f0f8ff antiquewhite faebd7 aqua 00ffff aquamarine 7fffd4 azure f0ffff ' +
   'beige f5f5dc bisque ffe4c4 black 000000 blanchedalmond ffebcd blue 0000ff ' +

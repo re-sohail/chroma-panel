@@ -10,7 +10,6 @@ import {
 } from '../src/color/convert';
 import type { Hsva } from '../src/color/types';
 
-/** Deterministic PRNG so a failure is always reproducible. */
 function mulberry32(seed: number): () => number {
   let a = seed;
   return () => {
@@ -46,7 +45,6 @@ describe('HSV <-> RGB', () => {
       const src = randomHsva(rnd);
       const back = rgbaToHsva(hsvaToRgba(src));
 
-      // Hue is meaningless when the colour is grey or black; skip it there.
       if (src.s > 0.01 && src.v > 0.01) {
         expect(Math.abs(normalizeHue(back.h) - normalizeHue(src.h))).toBeLessThan(0.001);
       }
@@ -90,7 +88,6 @@ describe('HSV <-> HSL', () => {
       const hsla = hsvaToHsla(src);
       const back = hslaToHsva(hsla);
 
-      // Closed-form conversion: hue is copied, never recomputed.
       expect(hsla.h).toBe(src.h);
       expect(back.h).toBe(src.h);
 
@@ -126,10 +123,6 @@ describe('HSV <-> HWB', () => {
 });
 
 describe('float precision at half-way channel values', () => {
-  // Normalising to 0-1 before the sector maths (v/100 * (1 - s/100)) makes
-  // 1 - 0.8 evaluate to 0.19999999999999996, which pulls an exactly-half
-  // channel below .5 and rounds it to the wrong byte. Staying in 0-100 space
-  // and scaling at the end keeps round inputs exact.
   it('lands exactly on .5 for s=80 v=50 instead of 0.4999...', () => {
     const { g } = hsvaToRgba({ h: 265, s: 80, v: 50, a: 1 });
     expect(g).toBe(25.5);

@@ -9,20 +9,10 @@ import { useTransientColor } from '../core/useColorStore';
 
 export interface ColorFieldProps {
   label?: string;
-  /** Include the alpha byte in the displayed value. */
   withAlpha?: boolean;
   className?: string;
 }
 
-/**
- * Free-text colour entry.
- *
- * The input is uncontrolled and updated imperatively, for two reasons:
- * a React-controlled value would re-render this field on every frame of a
- * drag, and it would also fight the typist — rewriting "#ff" to "#ffffff"
- * mid-keystroke, which is a perennial complaint about colour inputs. While
- * the field has focus the live colour does not touch it at all.
- */
 export function ColorField(props: ColorFieldProps): React.ReactElement {
   const { label = 'Hex', withAlpha = false, className } = props;
   const { store, disabled, classNames } = usePanel();
@@ -38,7 +28,7 @@ export function ColorField(props: ColorFieldProps): React.ReactElement {
   const render = (c: Hsva): string => (format.current ? toHexa(c) : toHex(c));
 
   useTransientColor(store, (c: Hsva) => {
-    if (focused.current) return; // never overwrite what is being typed
+    if (focused.current) return; 
     const el = inputRef.current;
     if (el !== null) {
       el.value = render(c);
@@ -69,7 +59,6 @@ export function ColorField(props: ColorFieldProps): React.ReactElement {
         onChange={handleChange}
         onBlur={(e) => {
           focused.current = false;
-          // Snap an unparseable draft back to the real colour on exit.
           e.currentTarget.value = render(store.get());
           e.currentTarget.setAttribute('aria-invalid', 'false');
           store.commit();

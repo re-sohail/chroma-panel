@@ -4,19 +4,6 @@ import { render } from 'vitest-browser-react';
 import * as React from 'react';
 import { ChromaPanel, ColorInput, defaultPalettes, defaultPencils } from '../src/index';
 
-/**
- * Layout stability.
- *
- * Every assertion here corresponds to a defect found in a real browser before
- * the first publish, and the suite had no layout coverage at all at the time —
- * which is how a 352px height swing and an unscrollable sheet both shipped
- * past 150 green tests.
- *
- * These must run in browser mode. jsdom returns zeros from
- * getBoundingClientRect() and applies no stylesheet, so every one of them
- * would pass vacuously there.
- */
-
 const DESKTOP = { width: 1280, height: 900 };
 const ALL_MODES = ['wheel', 'sliders', 'palettes', 'image', 'pencils'] as const;
 
@@ -44,7 +31,6 @@ function panel(extra: Record<string, unknown> = {}): React.ReactElement {
   );
 }
 
-/** Clicks each mode tab in turn and reports what `measure` returns each time. */
 async function acrossModes<T>(
   scope: string,
   measure: () => T,
@@ -67,7 +53,6 @@ afterEach(async () => {
 });
 
 describe('the panel is the same size in every mode', () => {
-  // Left to themselves the modes range from 147px (image) to 325px (wheel).
   for (const [w, h] of [[1280, 900], [390, 844], [360, 640]] as const) {
     it(`holds one panel height across all five modes at ${w}x${h}`, async () => {
       await page.viewport(w, h);
@@ -99,9 +84,6 @@ describe('the panel is the same size in every mode', () => {
   });
 
   it('every mode fits the reserved height without a scrollbar', async () => {
-    // The exception is palettes, which is a deliberately long list and is
-    // meant to scroll. Everything else overflowing means --cp-panel-h has
-    // fallen behind the content, which is a regression, not a design choice.
     render(panel());
     const host = await waitFor<HTMLElement>('.cp-panel-host');
 
@@ -114,7 +96,6 @@ describe('the panel is the same size in every mode', () => {
   });
 
   it('does not reserve a fixed height when there is only one mode', async () => {
-    // Nothing can jump with nothing to switch to, so the space would be wasted.
     render(<ChromaPanel defaultValue="#3366cc" modes={['sliders']} showTitleBar={false} />);
     const host = await waitFor<HTMLElement>('.cp-panel-host');
     await settle();
@@ -126,9 +107,6 @@ describe('the panel is the same size in every mode', () => {
 
 describe('the bottom sheet stays put', () => {
   it('does not move its top edge when the mode changes', async () => {
-    // A sheet is anchored to the bottom edge, so any height change moves the
-    // TOP edge under the user's finger — the most disorienting form this bug
-    // took, at 352px per tab switch.
     await page.viewport(390, 844);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
       palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -146,11 +124,6 @@ describe('the bottom sheet stays put', () => {
 
 describe('scrolling', () => {
   it('scrolls the palette list on a phone', async () => {
-    // Regression: below 640px the inner wrapper was given "max-height: none",
-    // which left it an overflow:auto element that could not scroll. Sitting
-    // permanently at its own scroll boundary, its overscroll-behavior:contain
-    // swallowed every gesture instead of chaining to the sheet, so the list
-    // was simply immovable.
     await page.viewport(360, 640);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
       palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -174,7 +147,6 @@ describe('scrolling', () => {
   });
 
   it('has exactly one scroll container inside the panel', async () => {
-    // Two nested scroll ports is what made the bug above possible at all.
     await page.viewport(360, 640);
     render(panel());
     await waitFor('.cp-panel-host');
@@ -196,11 +168,6 @@ describe('scrolling', () => {
 });
 
 describe('the sheet passes its height constraint all the way down', () => {
-  // Regression: ColorInput wraps the panel in a role="dialog" div. Unstyled,
-  // it was a flex item with the default min-height: auto, so it refused to
-  // shrink and the panel overflowed the sheet — which clips. At 320x568 the
-  // footer ended up 10px inside the clipped region, reachable by nothing.
-  // One unstyled element in the middle is enough to break the whole chain.
   for (const [w, h] of [[320, 568], [320, 480], [360, 640]] as const) {
     it(`keeps the footer inside the sheet at ${w}x${h}`, async () => {
       await page.viewport(w, h);
@@ -226,8 +193,6 @@ describe('the sheet passes its height constraint all the way down', () => {
   }
 });
 
-/* An 8x4 PNG, half red and half blue — enough for the quantizer to find two
-   colours without carrying a binary fixture around. */
 const PNG_8x4 =
   'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAECAIAAAA8r+mnAAAAFElEQVR4nGP4z8AARwwN/xGIeh' +
   'IAmo0n4TFWVi0AAAAASUVORK5CYII=';
@@ -239,7 +204,6 @@ function pngFile(name = 'fixture.png'): File {
   return new File([bytes], name, { type: 'image/png' });
 }
 
-/** Puts a file on an <input type="file"> the way a real picker would. */
 function attach(input: HTMLInputElement, file: File): void {
   const transfer = new DataTransfer();
   transfer.items.add(file);
@@ -248,10 +212,6 @@ function attach(input: HTMLInputElement, file: File): void {
 }
 
 describe('slider thumbs are not clipped by the scroll port', () => {
-  // Regression: a thumb is centred on its value, so at either extreme it hangs
-  // half its width past the track. "overflow-y: auto" computes overflow-x to
-  // auto as well, and a scroll container clips BOTH axes — so the thumb came
-  // out sliced in half at maximum.
   it('keeps every thumb inside the port at both extremes', async () => {
     render(panel({ defaultValue: '#ff0000' }));
     const host = await waitFor<HTMLElement>('.cp-panel-host');
@@ -261,8 +221,6 @@ describe('slider thumbs are not clipped by the scroll port', () => {
     tab.click();
     await settle();
 
-    // #ff0000 puts red at its maximum and green and blue at their minimum, so
-    // both ends are exercised in one render.
     const port = host.getBoundingClientRect();
     const thumbs = Array.from(host.querySelectorAll<HTMLElement>('.cp-thumb'));
     expect(thumbs.length, 'no thumbs found — test is not exercising anything')
@@ -276,7 +234,6 @@ describe('slider thumbs are not clipped by the scroll port', () => {
         .toBeGreaterThanOrEqual(Math.round(port.left));
     }
 
-    // A thumb hanging past the port would also make the port scroll sideways.
     expect(host.scrollWidth, 'the panel scrolls horizontally').toBe(host.clientWidth);
   });
 });
@@ -309,8 +266,6 @@ describe('scroll fades', () => {
   });
 
   it('applies no mask at all in a mode that fits', async () => {
-    // The attribute is removed rather than set to zero, so a mode with nothing
-    // to scroll carries no mask, no stacking context, and no dimmed edges.
     render(panel());
     const host = await waitFor<HTMLElement>('.cp-panel-host');
     await settle();
@@ -342,7 +297,6 @@ describe('the image mode', () => {
 
     expect(zone, 'no drop zone rendered').not.toBeNull();
     expect(zone.htmlFor, 'the label does not drive the input').toBe(input.id);
-    // Visually hidden, but still a real focusable control.
     expect(Math.round(input.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
     expect(getComputedStyle(input).display, 'display:none breaks Safari autofill')
       .not.toBe('none');
@@ -361,13 +315,9 @@ describe('the image mode', () => {
 
     const preview = await waitFor<HTMLElement>('.cp-image-preview');
     const img = preview.querySelector<HTMLImageElement>('img')!;
-    // The box shrink-wraps the image, so it has no final height until the
-    // image has decoded; measuring before that reads the min-height floor.
     if (!img.complete) await new Promise((r) => { img.onload = r; img.onerror = r; });
     await settle();
 
-    // The fixture is 8x4, so at the panel's content width this lands around
-    // 146px. The old preview was a fixed 90px cover strip.
     expect(Math.round(preview.getBoundingClientRect().height)).toBeGreaterThan(90);
     expect(getComputedStyle(img).objectFit).toBe('contain');
 
@@ -401,10 +351,6 @@ describe('the image mode', () => {
 });
 
 describe('control heights agree', () => {
-  // The tab bar is the tab PLUS 2 x --cp-seg-pad of track padding, so equal
-  // tokens do not produce equal boxes. The coarse-pointer block set both
-  // tokens to 34px trying to fix exactly this, and still rendered 40 vs 34 —
-  // nothing asserted the rendered heights, so the mismatch survived.
   for (const coarse of [false, true]) {
     it(`draws the tab bar and a text input at one height (${coarse ? 'touch' : 'mouse'})`, async () => {
       if (coarse) await page.viewport(390, 844);
@@ -423,8 +369,6 @@ describe('control heights agree', () => {
       const inputH = input.getBoundingClientRect().height;
       expect(inputH, `tab bar ${barH}px vs input ${inputH}px`).toBe(barH);
 
-      // The footer pair drifted the same way: the preview was a hardcoded
-      // 30px sitting beside a 34px eyedropper on touch.
       const preview = document.querySelector<HTMLElement>('.cp-preview')!;
       expect(preview.getBoundingClientRect().height)
         .toBe(preview.getBoundingClientRect().width);
@@ -434,9 +378,6 @@ describe('control heights agree', () => {
 
 describe('the popover never exceeds the viewport', () => {
   it('stays on screen and keeps the footer reachable in a short viewport', async () => {
-    // Regression: place() flipped above only when there was room above, and
-    // never clamped. At 900x420 the panel ran 313px past the bottom edge with
-    // overflow:visible, putting the footer and its OK button out of reach.
     await page.viewport(900, 420);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
       palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -464,8 +405,6 @@ describe('the popover never exceeds the viewport', () => {
 
 describe('the footer', () => {
   it('shows the current colour once, not twice', async () => {
-    // The preview already IS the current colour, so repeating it as the newest
-    // recent drew the same circle twice after every pick.
     render(panel());
     await waitFor('.cp-panel-host');
 
@@ -487,8 +426,6 @@ describe('the footer', () => {
     expect(rendered, 'the current colour is repeated in the history')
       .not.toContain('#002875');
 
-    // Picking a second colour must bring the first one back into the history —
-    // it is filtered from the view, never dropped from the data.
     swatches[40]!.click();
     await settle();
     const after = Array.from(document.querySelectorAll<HTMLElement>('.cp-recents .cp-swatch'))
@@ -497,8 +434,6 @@ describe('the footer', () => {
   });
 
   it('lets every recent colour be reached rather than clipping them', async () => {
-    // Ten were stored and "overflow: hidden" cut the row off at seven, leaving
-    // three unreachable with nothing to suggest they existed.
     const recents = [
       '#111111', '#222222', '#333333', '#444444', '#555555',
       '#666666', '#777777', '#888888', '#999999', '#aaaaaa',

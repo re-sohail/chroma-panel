@@ -1,19 +1,6 @@
-/**
- * Modified median-cut colour quantization (Leptonica / Rabinowitz).
- *
- * Chosen over plain median cut, octree and bare k-means because at roughly
- * the same code size it keeps small but visually important clusters alive:
- * the cut is placed at the centre of the larger sub-block rather than at the
- * median, and boxes are prioritised first by population and then by
- * population x volume. Plain median cut collapses a photo's few saturated
- * accents into whichever flat background dominates the pixel count.
- *
- * Reference: http://leptonica.org/papers/mediancut.pdf
- */
-
 const SIGBITS = 5;
 const RSHIFT = 8 - SIGBITS;
-const HIST_SIZE = 1 << (3 * SIGBITS); // 32768 bins
+const HIST_SIZE = 1 << (3 * SIGBITS); 
 const MAX_ITERATIONS = 1000;
 const FRACT_BY_POPULATIONS = 0.75;
 
@@ -21,7 +8,6 @@ function histIndex(r: number, g: number, b: number): number {
   return (r << (2 * SIGBITS)) + (g << SIGBITS) + b;
 }
 
-/** Bin counts plus true channel sums, so averages are not bin-centred. */
 interface Histogram {
   counts: Int32Array;
   rSum: Int32Array;
@@ -38,10 +24,8 @@ interface VBox {
 }
 
 export interface QuantizedSwatch {
-  /** `#rrggbb` */
   hex: string;
   rgb: [number, number, number];
-  /** Number of source pixels this swatch represents. */
   population: number;
 }
 
@@ -72,15 +56,6 @@ function count(v: VBox, histo: Int32Array): number {
   return total;
 }
 
-/**
- * Mean colour of a box, computed from the ACTUAL channel values that landed
- * in it rather than from the centres of its 5-bit bins.
- *
- * The textbook implementation (and both color-thief and node-vibrant) averages
- * bin centres, which quantises every result to a multiple of 8 and offsets it
- * by 4: pure #ff0000 comes back as #fc0404. Carrying real per-bin sums costs
- * three extra typed arrays and makes a flat region extract exactly.
- */
 function average(v: VBox, h: Histogram): [number, number, number] {
   const mult = 1 << RSHIFT;
   let total = 0;
@@ -103,7 +78,6 @@ function average(v: VBox, h: Histogram): [number, number, number] {
   }
 
   if (total === 0) {
-    // Empty box: fall back to its geometric centre.
     return [
       Math.min(255, Math.round((mult * (v.r1 + v.r2 + 1)) / 2)),
       Math.min(255, Math.round((mult * (v.g1 + v.g2 + 1)) / 2)),
@@ -118,7 +92,6 @@ function average(v: VBox, h: Histogram): [number, number, number] {
   ];
 }
 
-/** Split a box along its longest axis. Returns 1 box if it cannot be split. */
 function medianCut(histo: Int32Array, vbox: VBox): VBox[] {
   if (count(vbox, histo) === 0) return [];
   if (count(vbox, histo) === 1) return [copyVBox(vbox)];
@@ -168,9 +141,6 @@ function medianCut(histo: Int32Array, vbox: VBox): VBox[] {
     const left = i - lo;
     const right = hi - i;
 
-    // The "modified" part of modified median cut: bias the cut toward the
-    // centre of the LARGER sub-block instead of splitting at the median, so a
-    // small cluster next to a huge flat region is not swallowed by it.
     let d2 = left <= right
       ? Math.min(hi - 1, Math.trunc(i + right / 2))
       : Math.max(lo, Math.trunc(i - 1 - left / 2));
@@ -193,13 +163,6 @@ function medianCut(histo: Int32Array, vbox: VBox): VBox[] {
   return [copyVBox(vbox)];
 }
 
-/**
- * Reduce RGBA pixel data to at most `maxColors` representative swatches.
- *
- * @param data  Flat RGBA bytes, as returned by `getImageData`.
- * @param maxColors  Target palette size, 2-256.
- * @param alphaThreshold  Pixels below this alpha are ignored entirely.
- */
 export function quantize(
   data: Uint8ClampedArray,
   maxColors: number,
@@ -243,9 +206,6 @@ export function quantize(
 
   let boxes: VBox[] = [makeVBox(rMin, rMax, gMin, gMax, bMin, bMax)];
 
-  // Two passes, as in the reference: first grow the palette by population so
-  // the dominant colours are represented, then by population x volume so wide
-  // sparse regions get their own entry too.
   const split = (limit: number, byVolume: boolean): void => {
     let iterations = 0;
     while (iterations++ < MAX_ITERATIONS) {
@@ -267,7 +227,7 @@ export function quantize(
       const parts = medianCut(histo, biggest);
       if (parts.length === 0) return;
       boxes.push(...parts);
-      if (parts.length === 1) return; // cannot split further
+      if (parts.length === 1) return; 
     }
   };
 

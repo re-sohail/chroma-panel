@@ -1,4 +1,3 @@
-/** `chroma-panel/contrast` — WCAG 2.1 and APCA contrast maths. */
 export {
   relativeLuminance, contrastRatio, apcaContrast, readableTextColor,
   meetsContrast, meetsNonTextContrast, contrastReport, wcagLevel,

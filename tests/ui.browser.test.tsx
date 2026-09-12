@@ -64,8 +64,6 @@ describe('segmented control', () => {
 
     const nested = document.querySelector<HTMLElement>('.cp-seg-sm')!;
     const nestedTab = nested.querySelector<HTMLElement>('.cp-tab')!;
-    // Only one mode is shown, so the mode toolbar is absent; the nested
-    // control must still be visibly smaller than a standard tab.
     expect(nestedTab.getBoundingClientRect().height).toBeLessThan(30);
   });
 });
@@ -80,7 +78,6 @@ describe('swatch grids', () => {
 
     expect(getComputedStyle(grid).gap).toBe('0px');
     expect(grid.style.getPropertyValue('--cp-columns')).toBe(String(PENCIL_COLUMNS));
-    // Apple's grid is 12 x 10.
     expect(grid.querySelectorAll('.cp-swatch')).toHaveLength(120);
   });
 
@@ -97,7 +94,6 @@ describe('swatch grids', () => {
 
       const frame = document.querySelector('.cp-mosaic')!.getBoundingClientRect();
       const grid = document.querySelector('.cp-swatch-grid')!.getBoundingClientRect();
-      // The right column being clipped was a real bug; assert it stays fixed.
       expect(Math.round(grid.right), `overflow at ${width}px`)
         .toBeLessThanOrEqual(Math.round(frame.right));
       expect(grid.width, `zero width at ${width}px`).toBeGreaterThan(0);
@@ -117,7 +113,6 @@ describe('swatch grids', () => {
     const style = getComputedStyle(target);
     expect(style.outlineStyle).toBe('solid');
     expect(parseFloat(style.outlineWidth)).toBeGreaterThan(0);
-    // Negative offset is what makes the ring straddle the cell edge.
     expect(parseFloat(style.outlineOffset)).toBeLessThan(0);
   });
 
@@ -164,7 +159,6 @@ describe('responsive presentation', () => {
     expect(Math.round(box.width)).toBe(390);
     expect(Math.round(box.bottom)).toBe(844);
     expect(box.height).toBeLessThanOrEqual(844 * 0.88 + 1);
-    // A scrim and a grab handle are what make it read as a sheet.
     expect(document.querySelector('.cp-scrim')).not.toBeNull();
     expect(document.querySelector('.cp-grabber')).not.toBeNull();
   });

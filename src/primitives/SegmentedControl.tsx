@@ -5,9 +5,7 @@ import { cx } from '../core/context';
 
 export interface SegmentedItem {
   id: string;
-  /** Accessible name. Required — icon-only segments have no visible text. */
   label: string;
-  /** What is drawn: an icon, or a short string. */
   content: React.ReactNode;
 }
 
@@ -15,35 +13,15 @@ export interface SegmentedControlProps {
   items: SegmentedItem[];
   value: string;
   onChange: (id: string) => void;
-  /** `md` for the mode switcher, `sm` for the nested colour-model switcher. */
   size?: 'md' | 'sm';
   ariaLabel: string;
-  /** Builds the `aria-controls` id for each segment, when it drives a tabpanel. */
   controls?: (id: string) => string;
-  /** Builds each segment's own id, so a tabpanel can point back at it. */
   segmentId?: (id: string) => string;
   disabled?: boolean;
   className?: string;
   tabClassName?: string;
 }
 
-/**
- * A segmented control with a sliding indicator and no JavaScript measurement.
- *
- * The indicator is a single pseudo-element positioned by two custom
- * properties: `--cp-seg-count` (how many segments) and `--cp-seg-active`
- * (which one). Because the track is `grid-auto-columns: 1fr`, every segment is
- * the same width, so the indicator's width is `100% / count` and its offset is
- * `active * 100%` — pure arithmetic the browser already knows how to do.
- *
- * The alternative — measuring each tab with getBoundingClientRect and a
- * ResizeObserver — is what most implementations do, and it is where their
- * bugs live: stale positions inside scrollable lists, wrong offsets before
- * fonts load, and a resize observer running for the life of the component.
- *
- * Keyboard follows the WAI-ARIA tabs pattern: one tab stop for the whole
- * control, arrows move between segments.
- */
 export function SegmentedControl(props: SegmentedControlProps): React.ReactElement {
   const {
     items, value, onChange, size = 'md', ariaLabel,

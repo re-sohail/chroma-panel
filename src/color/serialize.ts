@@ -6,20 +6,11 @@ function hex2(channel: number): string {
   return v < 16 ? '0' + v.toString(16) : v.toString(16);
 }
 
-/** `#rrggbb` — alpha discarded. */
 export function toHex(hsva: Hsva): string {
   const { r, g, b } = hsvaToRgba(hsva);
   return '#' + hex2(r) + hex2(g) + hex2(b);
 }
 
-/**
- * `#rrggbbaa`.
- *
- * Alpha is quantised straight to a byte (`round(a * 255)`). Rounding alpha to
- * two decimals first — which several popular pickers do — makes
- * hex -> parse -> hex a non-fixed-point for roughly half of the 256 alpha
- * values, so a colour drifts every time it round-trips.
- */
 export function toHexa(hsva: Hsva): string {
   const { r, g, b, a } = hsvaToRgba(hsva);
   return '#' + hex2(r) + hex2(g) + hex2(b) + hex2(clamp(a, 0, 1) * 255);
@@ -50,7 +41,6 @@ function round(value: number, places: number): number {
   return Math.round(value * f) / f;
 }
 
-/** Serialize per the picker's `format` prop. */
 export function toFormat(hsva: Hsva, format: ColorFormat): string {
   switch (format) {
     case 'hexa': return toHexa(hsva);
@@ -62,12 +52,6 @@ export function toFormat(hsva: Hsva, format: ColorFormat): string {
   }
 }
 
-/**
- * Build the object handed to `onChange`.
- *
- * `hsva` is passed through unrounded; everything else is a display-ready
- * projection. Consumers who need precision read `hsva`.
- */
 export function toResult(hsva: Hsva, format: ColorFormat): ColorChangeResult {
   const rgba = roundRgba(hsvaToRgba(hsva));
   const hsla = hsvaToHsla(hsva);

@@ -1,32 +1,15 @@
 import { clamp, hslaToHsva, hwbaToHsva, rgbaToHsva } from './convert';
 import type { Hsva } from './types';
 
-/* ------------------------------------------------------------------ *
- * Optional named-colour table
- *
- * The 148 CSS named colours are ~1.1KB gzip. A bundler cannot tree-shake a
- * table this module references directly, so it is NOT imported here — the
- * consumer registers it explicitly:
- *
- *   import { namedColors } from 'chroma-panel/named-colors';
- *   registerNamedColors(namedColors);
- * ------------------------------------------------------------------ */
-
 let namedTable: Record<string, string> | null = null;
 
-/** Teach the parser the CSS named colours (or any custom name -> hex map). */
 export function registerNamedColors(table: Record<string, string>): void {
   namedTable = namedTable ? { ...namedTable, ...table } : { ...table };
 }
 
-/** Test/reset hook. */
 export function clearNamedColors(): void {
   namedTable = null;
 }
-
-/* ------------------------------------------------------------------ *
- * Token parsers
- * ------------------------------------------------------------------ */
 
 const NUM = /^([+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?)(%?)$/i;
 const ANGLE = /^([+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?)(deg|grad|rad|turn)?$/i;
@@ -44,7 +27,6 @@ function parseHue(token: string): number | null {
   }
 }
 
-/** rgb() channel: bare number is 0-255, percentage maps 0-100% -> 0-255. */
 function parseChannel(token: string): number | null {
   const m = NUM.exec(token);
   if (!m) return null;
@@ -53,7 +35,6 @@ function parseChannel(token: string): number | null {
   return m[2] ? (n / 100) * 255 : n;
 }
 
-/** s/l/w/b: 0-100, percent sign optional (lenient by design). */
 function parsePercent(token: string): number | null {
   const m = NUM.exec(token);
   if (!m) return null;
@@ -61,7 +42,6 @@ function parsePercent(token: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Alpha: bare number is 0-1, percentage is 0-100%. Absent means opaque. */
 function parseAlpha(token: string | null): number | null {
   if (token === null) return 1;
   if (token.toLowerCase() === 'none') return 1;
@@ -72,12 +52,6 @@ function parseAlpha(token: string | null): number | null {
   return clamp(m[2] ? n / 100 : n, 0, 1);
 }
 
-/**
- * Split a function body into positional parts plus alpha, covering both
- * CSS syntaxes in one pass:
- *   legacy  rgba(255, 0, 0, 0.5)
- *   modern  rgb(255 0 0 / 50%)
- */
 function splitArgs(body: string): { parts: string[]; alpha: string | null } {
   const slash = body.indexOf('/');
   let head = body;
@@ -90,17 +64,12 @@ function splitArgs(body: string): { parts: string[]; alpha: string | null } {
 
   const parts = head.split(/[\s,]+/).filter(Boolean);
 
-  // Legacy 4-argument form has no slash; the 4th positional IS the alpha.
   if (alpha === null && parts.length === 4) {
     alpha = parts.pop() as string;
   }
 
   return { parts, alpha };
 }
-
-/* ------------------------------------------------------------------ *
- * Hex
- * ------------------------------------------------------------------ */
 
 const HEX = /^#?([0-9a-f]{3,8})$/i;
 
@@ -129,19 +98,8 @@ function parseHex(input: string): Hsva | null {
   });
 }
 
-/* ------------------------------------------------------------------ *
- * Public entry point
- * ------------------------------------------------------------------ */
-
 const FUNC = /^([a-z]+)\(\s*([^)]*)\)$/i;
 
-/**
- * Parse any supported CSS colour string into canonical float HSVA.
- * Returns `null` for anything unrecognised — never throws.
- *
- * Supported: #rgb/#rgba/#rrggbb/#rrggbbaa, rgb()/rgba(), hsl()/hsla(),
- * hwb(), `transparent`, and any registered named colours.
- */
 export function parse(input: string): Hsva | null {
   const raw = input.trim();
   if (raw === '') return null;
@@ -157,11 +115,10 @@ export function parse(input: string): Hsva | null {
     if (named !== undefined) return parseHex(named);
   }
 
-  if (raw.charCodeAt(0) === 35 /* # */) return parseHex(raw);
+  if (raw.charCodeAt(0) === 35 ) return parseHex(raw);
 
   const fn = FUNC.exec(raw);
   if (fn === null) {
-    // Bare hex without '#' is accepted so typing in the hex field works.
     return parseHex(raw);
   }
 
@@ -204,7 +161,6 @@ export function parse(input: string): Hsva | null {
   return null;
 }
 
-/** `true` when `parse` would succeed. */
 export function isValidColor(input: string): boolean {
   return parse(input) !== null;
 }

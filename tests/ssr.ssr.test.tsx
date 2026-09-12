@@ -1,10 +1,3 @@
-/**
- * Server rendering.
- *
- * Run in a plain Node environment with no DOM at all — not jsdom — so that any
- * stray `window`, `document` or `matchMedia` access throws here instead of in
- * a user's Next.js build.
- */
 import { describe, expect, it } from 'vitest';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import * as React from 'react';
@@ -25,7 +18,6 @@ describe('server rendering', () => {
   it('renders the trigger without throwing', () => {
     const html = renderToString(<ColorInput defaultValue="#3366cc" name="brand" />);
     expect(html).toContain('cp-trigger');
-    // The popover is portalled and must not appear until the client opens it.
     expect(html).not.toContain('cp-popover');
   });
 

@@ -1,9 +1,3 @@
-/**
- * Write dist/style.css from the same string the runtime injects.
- *
- * Keeping one source of truth means the stylesheet a consumer imports and the
- * one we inject can never disagree.
- */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { minifyCss } from './minify-css.mjs';

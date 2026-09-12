@@ -9,26 +9,15 @@ import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
 
 export interface ChannelSliderProps {
-  /** Accessible name, e.g. "Hue". */
   label: string;
-  /** Short visible label, e.g. "H". Omit to hide. */
   shortLabel?: string;
   min: number;
   max: number;
   step?: number;
-  /** Read this channel out of the current colour. */
   read: (color: Hsva) => number;
-  /** Produce the next colour for a slider value. */
   write: (value: number, current: Hsva) => Hsva;
-  /**
-   * Track background for the current colour. Channel tracks should react to
-   * the other channels — the red track runs from rgb(0,g,b) to rgb(255,g,b),
-   * not from black to red.
-   */
   gradient?: (color: Hsva) => string;
-  /** Drives the hue/alpha styling hooks in CSS. */
   channel?: string;
-  /** Formats the screen-reader announcement. */
   formatValue?: (value: number) => string;
   className?: string;
 }
@@ -44,7 +33,6 @@ export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
   const fillRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Keep the latest callbacks without re-subscribing every render.
   const fns = React.useRef({ read, gradient, formatValue });
   React.useEffect(() => {
     fns.current = { read, gradient, formatValue };

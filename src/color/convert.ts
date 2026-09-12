@@ -1,33 +1,14 @@
 import type { Hsl, Hsla, Hsva, Hwba, Rgb, Rgba } from './types';
 
-/* ------------------------------------------------------------------ *
- * Numeric helpers
- * ------------------------------------------------------------------ */
-
 export function clamp(value: number, min: number, max: number): number {
   return value < min ? min : value > max ? max : value;
 }
 
-/**
- * Fold any hue — including negatives produced by `hsl(-30deg ...)` — into
- * 0-360. Must run BEFORE hsvaToRgba, whose sector index assumes 0-360.
- */
 export function normalizeHue(h: number): number {
   const r = h % 360;
   return r < 0 ? r + 360 : r;
 }
 
-/* ------------------------------------------------------------------ *
- * RGB <-> HSV
- * ------------------------------------------------------------------ */
-
-/**
- * Note the two "powerless" outputs this produces:
- *   - h is 0 whenever max === min (achromatic)
- *   - s is 0 whenever max === 0   (black)
- * Those zeroes are information loss, which is why the store never round-trips
- * through RGB. See `sticky.ts`.
- */
 export function rgbaToHsva(rgba: Rgba): Hsva {
   const { r, g, b, a } = rgba;
   const max = Math.max(r, g, b);
@@ -48,23 +29,14 @@ export function rgbaToHsva(rgba: Rgba): Hsva {
   };
 }
 
-/**
- * Sector-table form. The `% 6` is load-bearing: h === 360 yields i === 6,
- * which must wrap to sector 0 rather than reading past the table.
- */
 export function hsvaToRgba(hsva: Hsva): Rgba {
   const hh = (normalizeHue(hsva.h) / 360) * 6;
   const i = Math.floor(hh);
   const f = hh - i;
 
-  const s = hsva.s; // 0-100
-  const v = hsva.v; // 0-100
+  const s = hsva.s; 
+  const v = hsva.v; 
 
-  // Stay in 0-100 space and scale by 255/100 only at the end.
-  // Normalising first (`v/100 * (1 - s/100)`) costs accuracy: 1 - 0.8 is
-  // 0.19999999999999996, which drags a half-way channel such as s=80 v=50
-  // down to 25.4999... and rounds it to the wrong byte. Deferring the
-  // division keeps round inputs exact.
   const p = (v * (100 - s)) / 100;
   const q = (v * (100 - f * s)) / 100;
   const t = (v * (100 - (1 - f) * s)) / 100;
@@ -84,10 +56,6 @@ export function hsvaToRgba(hsva: Hsva): Rgba {
 
   return { r: (r * 255) / 100, g: (g * 255) / 100, b: (b * 255) / 100, a: hsva.a };
 }
-
-/* ------------------------------------------------------------------ *
- * HSV <-> HSL  (closed form — no RGB detour, hue passes through exactly)
- * ------------------------------------------------------------------ */
 
 export function hsvaToHsla(hsva: Hsva): Hsla {
   const { h, s, v, a } = hsva;
@@ -115,15 +83,10 @@ export function hslaToHsva(hsla: Hsla & { a: number }): Hsva {
   };
 }
 
-/* ------------------------------------------------------------------ *
- * HWB <-> HSV  (CSS Color 4; ~10 lines, worth having in core)
- * ------------------------------------------------------------------ */
-
 export function hwbaToHsva(hwba: Hwba): Hsva {
   const { h, a } = hwba;
   let { w, b } = hwba;
 
-  // w + b >= 100 collapses to a grey; the ratio decides which grey.
   const sum = w + b;
   if (sum >= 100) {
     const grey = (w / sum) * 100;
@@ -141,10 +104,6 @@ export function hsvaToHwba(hsva: Hsva): Hwba {
   return { h, w: ((100 - s) * v) / 100, b: 100 - v, a };
 }
 
-/* ------------------------------------------------------------------ *
- * Convenience projections
- * ------------------------------------------------------------------ */
-
 export function hsvaToRgb(hsva: Hsva): Rgb {
   const { r, g, b } = hsvaToRgba(hsva);
   return { r, g, b };
@@ -155,7 +114,6 @@ export function hsvaToHsl(hsva: Hsva): Hsl {
   return { h, s, l };
 }
 
-/** Round an Rgb/Rgba to integer channels. Serialization only — never in the store. */
 export function roundRgba(rgba: Rgba): Rgba {
   return {
     r: Math.round(clamp(rgba.r, 0, 255)),

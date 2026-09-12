@@ -20,8 +20,6 @@ export function PalettesPanel(): React.ReactElement {
 
   const groups = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
-    // Falling back here rather than in the shell keeps this data out of every
-    // bundle that does not include the palettes mode.
     return (options.palettes ?? defaultPalettes())
       .map((palette) => ({
         name: palette.name,
@@ -56,8 +54,6 @@ export function PalettesPanel(): React.ReactElement {
           groups.map((group) => (
             <section key={group.name} className="cp-group">
               <h3 className="cp-group-title">{group.name}</h3>
-              {/* Spaced swatches: these are discrete, nameable colours, so
-                  each one gets its own outline and gutter. */}
               <SwatchGrid
                 swatches={group.swatches}
                 label={group.name}

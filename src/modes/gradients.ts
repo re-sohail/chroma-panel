@@ -2,15 +2,6 @@ import { hsvaToRgba, roundRgba } from '../color/convert';
 import { toRgbString } from '../color/serialize';
 import type { Hsva } from '../color/types';
 
-/**
- * Track backgrounds.
- *
- * Each channel track shows what the colour would become across that channel's
- * range, holding the others fixed — so the red track runs from rgb(0,g,b) to
- * rgb(255,g,b), not from black to red. A static track is the giveaway that a
- * picker is not recomputing these.
- */
-
 export function redTrack(c: Hsva): string {
   const { g, b } = roundRgba(hsvaToRgba(c));
   return `linear-gradient(to right, rgb(0, ${g}, ${b}), rgb(255, ${g}, ${b}))`;
@@ -44,6 +35,5 @@ export function lightnessTrack(c: Hsva): string {
 
 export function alphaTrack(c: Hsva): string {
   const solid = toRgbString(c);
-  // Sits on the checkerboard painted by the track itself.
   return `linear-gradient(to right, transparent, ${solid})`;
 }

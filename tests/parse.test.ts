@@ -30,8 +30,6 @@ describe('hex parsing', () => {
 });
 
 describe('alpha is a byte-exact fixed point', () => {
-  // Rounding alpha to 2 decimals before scaling to a byte — which several
-  // popular pickers do — breaks this for roughly half of the 256 values.
   it('survives hex -> parse -> hex for all 256 alpha bytes', () => {
     for (let byte = 0; byte < 256; byte++) {
       const hex = '#3366cc' + byte.toString(16).padStart(2, '0');

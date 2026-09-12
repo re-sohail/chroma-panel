@@ -16,7 +16,6 @@ export interface NumberFieldProps {
   className?: string;
 }
 
-/** A numeric channel entry box. Uncontrolled for the same reasons as ColorField. */
 export function NumberField(props: NumberFieldProps): React.ReactElement {
   const { label, min, max, step, read, write, className } = props;
   const { store, disabled, classNames } = usePanel();
@@ -52,7 +51,7 @@ export function NumberField(props: NumberFieldProps): React.ReactElement {
         onFocus={() => { focused.current = true; }}
         onChange={(e) => {
           const raw = e.currentTarget.valueAsNumber;
-          if (Number.isNaN(raw)) return; // mid-edit empty box: leave it alone
+          if (Number.isNaN(raw)) return; 
           store.set(fns.current.write(clamp(raw, min, max), store.get()));
         }}
         onBlur={(e) => {

@@ -1,14 +1,5 @@
-/**
- * Assert that "use client" survived the build, in BOTH module formats.
- *
- * Rollup-family bundlers strip module-level directives when they concatenate
- * modules, and directive preservation has regressed more than once upstream.
- * A silent regression here is invisible until a user files a Next.js bug, so
- * it is checked on every build rather than trusted.
- */
 import { readFileSync, existsSync } from 'node:fs';
 
-// Files that must carry the directive: anything using hooks, refs or the DOM.
 const REQUIRED = [
   'index',
   'components/ChromaPanel',

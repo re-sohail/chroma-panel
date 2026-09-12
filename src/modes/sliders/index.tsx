@@ -24,14 +24,6 @@ const MODELS = [
   { id: 'hsb', label: 'HSB', content: 'HSB' },
 ];
 
-/**
- * Every write below routes through `ingest`.
- *
- * Setting an RGB channel means converting RGB -> HSV, and that conversion
- * reports hue 0 for any grey and saturation 0 for black. Assigning the result
- * straight into the store would throw away the hue the user had chosen the
- * instant they dragged red to match green and blue.
- */
 function writeRgb(key: 'r' | 'g' | 'b') {
   return (value: number, current: Hsva): Hsva => {
     const rgba = hsvaToRgba(current);
@@ -59,8 +51,6 @@ export function SlidersPanel(): React.ReactElement {
 
   return (
     <div className="cp-panel">
-      {/* Same component as the mode switcher, one size down. Two identically
-          weighted rows of buttons read as a hierarchy failure. */}
       <SegmentedControl
         size="sm"
         ariaLabel="Colour model"

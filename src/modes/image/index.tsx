@@ -11,7 +11,6 @@ import type { PickerMode } from '../registry';
 type Status = 'idle' | 'working' | 'ready' | 'error';
 
 export interface ImagePanelProps {
-  /** Forwarded to extractPalette — e.g. `{ worker }` or `{ maxColors: 12 }`. */
   extractOptions?: ExtractOptions;
 }
 
@@ -26,7 +25,6 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   const [preview, setPreview] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // One controller per run, so picking a second image cancels the first.
   const controller = React.useRef<AbortController | null>(null);
   const previewUrl = React.useRef<string | null>(null);
 
@@ -84,13 +82,9 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
     setSwatches([]);
     setMessage('');
     setStatus('idle');
-    // The input keeps the old filename otherwise, so re-picking the SAME file
-    // fires no change event and nothing happens.
     if (inputRef.current !== null) inputRef.current.value = '';
   };
 
-  // A counter, not a boolean: dragleave fires every time the pointer crosses
-  // onto a child element, so a boolean flickers the highlight off mid-drag.
   const dragDepth = React.useRef(0);
   const [dragging, setDragging] = React.useState(false);
   const endDrag = (): void => {
@@ -99,8 +93,6 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   };
 
   return (
-    // Drop is bound to the panel, not just the drop zone, so dragging a
-    // replacement over the preview works too.
     <div
       className="cp-panel"
       onDragEnter={(e) => {
@@ -120,7 +112,6 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
         if (!disabled) onFiles(e.dataTransfer.files);
       }}
     >
-      {/* Announced politely so a screen-reader user learns the result. */}
       <div role="status" aria-live="polite" className="cp-visually-hidden">
         {status === 'working' ? 'Extracting colours' : ''}
         {status === 'ready' ? `${swatches.length} colours extracted` : ''}
@@ -128,8 +119,6 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
       </div>
 
       {preview === null ? (
-        // The label IS the control: clicking or pressing it activates the
-        // hidden input, with no click handler of our own to keep in sync.
         <label
           className="cp-dropzone"
           htmlFor={inputId}

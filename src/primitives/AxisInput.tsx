@@ -9,24 +9,11 @@ export interface AxisInputProps {
   step?: number;
   defaultValue: number;
   disabled?: boolean;
-  /** Human-readable announcement, e.g. "Hue 210 degrees". */
   valueText?: string;
   onInput: (value: number) => void;
   onCommit?: () => void;
 }
 
-/**
- * One accessible axis, as a visually-hidden native range input.
- *
- * Using a real <input type="range"> rather than a div with role="slider"
- * buys correct keyboard handling, aria-valuenow/min/max, and screen-reader
- * support from the platform instead of from our own approximation of it —
- * and missing keyboard support on exactly these controls is an open bug in
- * more than one popular picker.
- *
- * The input is uncontrolled: its value is written imperatively during a drag
- * so that pointer movement never triggers a React render.
- */
 export const AxisInput: React.ForwardRefExoticComponent<
   AxisInputProps & React.RefAttributes<HTMLInputElement>
 > = React.forwardRef<HTMLInputElement, AxisInputProps>(

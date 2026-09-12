@@ -7,12 +7,6 @@ import { cx, usePanel } from '../core/context';
 import { EyedropperIcon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
 
-/**
- * Current colour, recently used swatches, and the eyedropper.
- *
- * The preview is painted from a CSS custom property written by the panel, so
- * it tracks a drag without this component rendering.
- */
 export function PanelFooter(): React.ReactElement | null {
   const { store, classNames, options, disabled } = usePanel();
   const { supported, pick } = useEyedropper();
@@ -26,23 +20,12 @@ export function PanelFooter(): React.ReactElement | null {
     store.commit();
   };
 
-  // The preview beside this row already shows the current colour, so repeating
-  // it as the newest "recent" drew the same colour twice, side by side, after
-  // every single pick — which reads as a duplicate, not as history.
-  //
-  // subscribeCommit, NOT subscribe: commits fire on pointerup rather than once
-  // per frame, and this component already re-renders on commit because
-  // recentColors changes. So the filter costs zero extra renders and the
-  // zero-render drag guarantee is untouched.
   const [current, setCurrent] = React.useState<string | null>(null);
   React.useEffect(
     () => store.subscribeCommit((c) => setCurrent(toHex(c).toLowerCase())),
     [store],
   );
 
-  // Only the rendered list is filtered. options.recentColors is the consumer's
-  // own state and stays exactly as they gave it, so the colour reappears in the
-  // row the moment the selection moves on.
   const recents = options.showRecentColors
     ? options.recentColors
         .filter((color) => {
@@ -80,12 +63,9 @@ export function PanelFooter(): React.ReactElement | null {
           ))}
         </ul>
       ) : (
-        // Keeps the eyedropper pinned right without an empty list taking up
-        // the space and reading as a gap in the layout.
         <div className="cp-footer-spacer" />
       )}
 
-      {/* Chromium-only API: the control is absent, not dead, elsewhere. */}
       {showEyedropper && (
         <button
           type="button"
@@ -102,7 +82,6 @@ export function PanelFooter(): React.ReactElement | null {
   );
 }
 
-/** Prepend `hex` to `list`, de-duplicated, capped at `limit`. */
 export function pushRecent(list: string[], hex: string, limit: number = 10): string[] {
   const key = hex.toLowerCase();
   const next = [hex, ...list.filter((c) => {

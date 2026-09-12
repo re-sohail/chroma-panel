@@ -5,13 +5,6 @@ import * as React from 'react';
 import { ChromaPanel, ColorInput, defaultPalettes, defaultPencils } from '../src/index';
 import type { ColorChangeResult } from '../src/color/types';
 
-/**
- * Wait for a selector to appear, then return it.
- *
- * render() is a thenable and React commits asynchronously, so querying the
- * document on the next line finds nothing. Every raw DOM query below goes
- * through this.
- */
 async function waitFor<T extends Element>(selector: string, timeout = 2000): Promise<T> {
   const deadline = Date.now() + timeout;
   for (;;) {
@@ -87,7 +80,6 @@ describe('keyboard operation', () => {
 
     const tabs = await waitForAll<HTMLElement>('[role="tablist"][aria-label="Picker mode"] [role="tab"]', 3);
     expect(tabs).toHaveLength(3);
-    // Exactly one tab stop for the whole toolbar.
     expect(tabs.filter((t) => t.tabIndex === 0)).toHaveLength(1);
 
     tabs[0]!.focus();
@@ -126,8 +118,6 @@ describe('labelling', () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     const lights = await waitFor<HTMLElement>('.cp-lights');
 
-    // They used to be decorative spans hidden from assistive technology.
-    // Now they do something, so they must be reachable and named.
     expect(lights.getAttribute('aria-hidden')).toBeNull();
     const buttons = Array.from(lights.querySelectorAll('button'));
     expect(buttons).toHaveLength(3);
@@ -145,7 +135,6 @@ describe('regressions from other pickers', () => {
     );
     await expect.element(page.getByRole('slider', { name: /red/i })).toBeInTheDocument();
 
-    // Switch to HSB so brightness is directly addressable.
     const hsb = (await waitForAll<HTMLElement>('[role="tab"]', 3))
       .find((t) => t.textContent === 'HSB');
     hsb?.click();
@@ -160,7 +149,6 @@ describe('regressions from other pickers', () => {
     expect(Number(brightness.value)).toBe(0);
     await userEvent.keyboard('{End}');  // back up
 
-    // A picker that stores RGB would have come back red here.
     expect(hue.value).toBe(originalHue);
   });
 
@@ -185,8 +173,6 @@ describe('regressions from other pickers', () => {
     for (let i = 0; i < 5; i++) await userEvent.keyboard('{ArrowRight}');
     await new Promise((r) => setTimeout(r, 40));
 
-    // Each keystroke round-trips through the parent; the value must advance,
-    // not snap back to where it started.
     expect(Number(green.value)).toBeGreaterThan(102);
   });
 

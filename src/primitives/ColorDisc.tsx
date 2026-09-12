@@ -9,25 +9,10 @@ import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
 
 export interface ColorDiscProps {
-  /** Diameter in px. Default 200. */
   size?: number;
   className?: string;
 }
 
-/**
- * The circular hue/saturation disc.
- *
- * Rendering is pure CSS — a conic hue ramp with a white radial gradient over
- * it, plus a black veil for brightness. That composite is not an
- * approximation of HSV, it is exactly HSV:
- *
- *   white over hue at opacity (1 - s):  c1 = Hc*s + (1 - s)
- *   HSV at v=1 is                       rgb = (1 - s) + s*Hc
- *   ...so radial distance IS saturation, exactly.
- *
- * which is why no canvas is needed and the disc costs zero JavaScript per
- * frame: only a CSS custom property changes.
- */
 export function ColorDisc(props: ColorDiscProps): React.ReactElement {
   const { size = 200, className } = props;
   const { store, disabled, classNames } = usePanel();
@@ -40,14 +25,11 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
     const el = discRef.current;
     if (el === null) return;
 
-    // Hue 0 sits at 12 o'clock and increases clockwise, matching the
-    // conic-gradient's own origin and direction.
     const radians = (normalizeHue(c.h) * Math.PI) / 180;
-    const radiusPct = c.s / 2; // saturation 0-100 -> 0-50% of the diameter
+    const radiusPct = c.s / 2; 
     el.style.setProperty('--cp-thumb-x', `${50 + Math.sin(radians) * radiusPct}%`);
     el.style.setProperty('--cp-thumb-y', `${50 - Math.cos(radians) * radiusPct}%`);
 
-    // Keep the accessible values current without rendering.
     const hue = hueRef.current;
     if (hue !== null) {
       hue.value = String(Math.round(normalizeHue(c.h)));
@@ -68,9 +50,6 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
       const distance = Math.min(Math.hypot(dx, dy), 0.5);
 
       const patch: Partial<Hsva> = { s: (distance / 0.5) * 100 };
-      // At the exact centre the angle is meaningless — atan2(0,0) is 0, which
-      // would silently snap the hue to red. Leave hue alone instead; this is
-      // the same powerless-component rule the store applies on ingest.
       if (distance > 1e-6) {
         patch.h = normalizeHue((Math.atan2(dx, -dy) * 180) / Math.PI);
       }

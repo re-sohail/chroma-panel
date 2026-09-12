@@ -55,8 +55,6 @@ describe('createColorStore', () => {
 });
 
 describe('getSnapshot identity', () => {
-  // useSyncExternalStore throws "getSnapshot should be cached" and loops
-  // forever if this returns a fresh object each call.
   it('is stable between changes', () => {
     const store = createColorStore(RED);
     expect(store.getSnapshot()).toBe(store.getSnapshot());
