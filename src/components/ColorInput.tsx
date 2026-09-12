@@ -38,6 +38,8 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     name, id, 'aria-label': ariaLabel = 'Choose a colour', triggerClassName,
     disabled = false, className, classNames = {}, format = 'hex',
     value, defaultValue = '#ffffff', store: externalStore,
+    // Pulled out of panelProps so this component can own the active mode.
+    mode, defaultMode, onModeChange,
     ...panelProps
   } = props;
 
@@ -63,6 +65,41 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     [],
   );
   const store = externalStore ?? ownStore;
+
+  /**
+   * The active mode lives here, not in ChromaPanel.
+   *
+   * The popover unmounts its children on close, so a mode held inside the
+   * panel is discarded every time it shuts — close on Sliders, reopen on the
+   * colour wheel. This component stays mounted, so holding it here is what
+   * makes the picker reopen where you left it.
+   *
+   * No new public API: `mode` / `defaultMode` / `onModeChange` already exist
+   * on ChromaPanelProps, and a consumer passing their own still wins.
+   */
+  const [internalMode, setInternalMode] = React.useState<string | undefined>(defaultMode);
+  const activeMode = mode ?? internalMode;
+
+  const handleModeChange = React.useCallback(
+    (next: string): void => {
+      if (mode === undefined) setInternalMode(next);
+      onModeChange?.(next);
+    },
+    [mode, onModeChange],
+  );
+
+  /**
+   * Closing from a control inside the panel.
+   *
+   * Deliberately separate from the Popover's own dismissal: a click somewhere
+   * else on the page should NOT pull focus back to the trigger, but pressing
+   * an explicit close control should — the user acted on the picker, so focus
+   * belongs on the thing that opened it.
+   */
+  const closeFromPanel = React.useCallback((): void => {
+    setOpen(false);
+    trigger?.focus({ preventScroll: true });
+  }, [setOpen, trigger]);
 
   const hiddenRef = React.useRef<HTMLInputElement>(null);
   const formatRef = React.useRef(format);
@@ -112,6 +149,11 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
             format={format}
             disabled={disabled}
             classNames={classNames}
+            mode={activeMode}
+            onModeChange={handleModeChange}
+            // Closing keeps the colour: the store lives in this component and
+            // outlives the popover, so nothing is reverted or discarded.
+            onClose={closeFromPanel}
           />
         </div>
       </Popover>

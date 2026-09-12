@@ -114,9 +114,14 @@ export const css: string = `
 
   .cp-root {
     box-sizing: border-box;
-    /* Never wider than its container, never wider than the design width. A
-       fixed width is what makes a panel overflow a narrow phone. */
-    width: min(100%, var(--cp-width));
+    /* Take the design width, but never overflow the container.
+       NOT min(100%, var(--cp-width)): inside a shrink-to-fit parent — which
+       is exactly what an absolutely positioned popover is — the percentage
+       resolves against a container whose own width depends on its contents,
+       and the panel collapses to well under its design width.
+       width + max-width has no such circularity. */
+    width: var(--cp-width);
+    max-width: 100%;
     padding: var(--cp-pad);
     display: flex;
     flex-direction: column;
@@ -148,17 +153,78 @@ export const css: string = `
    * Title bar — decorative only
    * ---------------------------------------------------------------- */
 
-  .cp-titlebar { display: flex; align-items: center; gap: 8px; min-height: 13px; }
-  .cp-lights { display: flex; gap: 6px; }
-  /* Ornamental. A close button that does not close is worse than no button,
-     so these carry no handlers and are hidden from assistive technology. */
-  .cp-light { width: 11px; height: 11px; border-radius: 50%; }
+  .cp-titlebar {
+    display: flex; align-items: center; gap: 8px; min-height: 13px;
+    /* Declared here, not on .cp-lights: the spacer that balances them is a
+       SIBLING of .cp-lights, and a custom property declared on an element is
+       invisible to its siblings. Getting this wrong silently falls back and
+       knocks the title off centre. */
+    --cp-light-size: 14px;
+    --cp-light-gap: 10px;
+  }
+
+  /* The dots are slightly larger and further apart than the window chrome
+     they imitate, deliberately.
+     WCAG 2.5.8 (AA) wants a 24px target; these are smaller, so they rely on
+     the spacing exception, which requires a 24px circle centred on each
+     target not to reach another target. That makes the PITCH the number that
+     matters: size + gap must be at least 24px. At authentic 12px/6px the
+     pitch is 18px and three interactive dots fail — they only passed while
+     two of them were decorative, and therefore not targets at all. */
+  .cp-lights {
+    display: flex;
+    gap: var(--cp-light-gap);
+  }
+  .cp-light {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: var(--cp-light-size); height: var(--cp-light-size);
+    padding: 0; border: 0; border-radius: 50%;
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer;
+    /* The glyph, not the dot. Dark enough to read on all three fills. */
+    color: rgb(0 0 0 / 62%);
+  }
   .cp-light[data-cp-light="close"] { background: #ff5f57; }
   .cp-light[data-cp-light="min"] { background: #febc2e; }
   .cp-light[data-cp-light="max"] { background: #28c840; }
+  /* Shown dimmed rather than removed when unavailable, so the row keeps its
+     shape and position. */
+  .cp-light[disabled] { opacity: 0.42; cursor: default; }
+  .cp-light:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: 2px; }
+
+  .cp-light-glyph {
+    width: 8px; height: 8px; display: block;
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+  /* Revealed by hovering the title bar, not the individual dot — which is how
+     the window controls this borrows from behave. Focus reveals them too, so
+     keyboard users are not left guessing. */
+  .cp-titlebar:hover .cp-light:not([disabled]) .cp-light-glyph,
+  .cp-light:focus-visible .cp-light-glyph { opacity: 1; }
+
+  /* Balances the lights so the title stays optically centred. */
+  .cp-titlebar-spacer {
+    flex: none;
+    width: calc(3 * var(--cp-light-size) + 2 * var(--cp-light-gap));
+  }
   .cp-title {
     flex: 1; text-align: center; font-size: 12px; font-weight: 600;
     color: var(--cp-text-muted);
+  }
+
+  /* Everything below the title bar. Kept mounted when collapsed so no state
+     is discarded. */
+  .cp-body {
+    display: flex; flex-direction: column; gap: var(--cp-gap); min-width: 0;
+  }
+  .cp-root[data-cp-collapsed="true"] .cp-body { display: none; }
+
+  /* Zoom. No layout code and no measurement — two tokens change. */
+  .cp-root[data-cp-size="expanded"] {
+    --cp-width: 420px;
+    --cp-disc-size: 260px;
   }
 
   /* ---------------------------------------------------------------- *
@@ -545,8 +611,18 @@ export const css: string = `
   }
   .cp-grabber {
     width: 36px; height: 5px; flex: none; margin: 8px auto 0;
-    border-radius: 3px; background: var(--cp-border);
+    padding: 0; border: 0; border-radius: 3px;
+    appearance: none; -webkit-appearance: none;
+    background: var(--cp-border);
+    cursor: pointer;
   }
+  .cp-grabber:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: 4px; }
+  /* The handle is only 5px tall; the hit area is not. */
+  .cp-grabber::after {
+    content: ""; position: absolute; left: 50%; translate: -50% 0;
+    margin-top: -14px; width: 88px; height: 32px;
+  }
+  .cp-sheet { position: relative; }
   /* Inside a sheet the panel IS the surface: it must not draw its own
      rounded, shadowed card inside another one. */
   .cp-sheet .cp-root {
@@ -595,6 +671,12 @@ body:has(.cp-sheet-root[data-cp-open="true"]) { overflow: hidden; }
     }
     .cp-icon-button, .cp-trigger { position: relative; }
     .cp-recents .cp-swatch { width: 28px; height: 28px; }
+    /* Overlapping hit areas are worse than small ones, so the dots and the
+       gap both grow. At a 30px pitch the 24px target circles no longer
+       intersect, which is what WCAG's spacing exception asks for. */
+    .cp-titlebar { --cp-light-size: 20px; --cp-light-gap: 10px; }
+    .cp-light-glyph { width: 11px; height: 11px; }
+    /* 20 + 10 = 30px pitch, comfortably clear of the 24px requirement. */
   }
 
   /* ---------------------------------------------------------------- *

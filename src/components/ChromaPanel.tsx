@@ -15,10 +15,13 @@ import { useTransientColor } from '../core/useColorStore';
 import { injectStyles } from '../core/styleInjector';
 import { css, STYLE_ID } from '../styles/css';
 import { resolveModes, type ModeId, type PickerMode } from '../modes/registry';
+import { WindowGlyph } from '../primitives/icons';
 import { ModeToolbar } from './ModeToolbar';
 import { PanelFooter, pushRecent } from './PanelFooter';
 
 const FALLBACK: Hsva = { h: 0, s: 0, v: 100, a: 1 };
+
+export type PanelSize = 'default' | 'expanded';
 
 export interface ChromaPanelProps {
   /** Controlled colour, as any CSS colour string. */
@@ -48,9 +51,30 @@ export interface ChromaPanelProps {
 
   disabled?: boolean;
   theme?: 'dark' | 'light';
-  /** Show the decorative macOS-style title bar. Default true. */
+  /** Show the macOS-style title bar and its window controls. Default true. */
   showTitleBar?: boolean;
   title?: string;
+
+  /**
+   * Called when the close (red) control is used.
+   *
+   * Without it there is nothing for close to do — an inline panel is not in
+   * anything — so the control renders disabled rather than disappearing,
+   * keeping the row's geometry stable.
+   *
+   * Closing never reverts the colour. There is no cancel semantic here.
+   */
+  onClose?: () => void;
+
+  /** Collapsed to just the title bar. The body stays mounted. */
+  collapsed?: boolean;
+  defaultCollapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
+
+  /** `expanded` widens the panel and the colour disc. */
+  size?: PanelSize;
+  defaultSize?: PanelSize;
+  onSizeChange?: (size: PanelSize) => void;
 
   /**
    * Inject the stylesheet automatically. Default true.
@@ -82,6 +106,9 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     recentColors, onRecentColorsChange,
     palettes, pencils,
     disabled = false, theme, showTitleBar = true, title = 'Colours',
+    onClose,
+    collapsed, defaultCollapsed = false, onCollapsedChange,
+    size, defaultSize = 'default', onSizeChange,
     injectStyles: shouldInject = true,
     className, classNames = {}, style, store: externalStore,
   } = props;
@@ -169,6 +196,26 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     onModeChange?.(id);
   };
 
+  // ---- window controls -----------------------------------------------
+  // Same controlled/uncontrolled shape as `mode` and `open`.
+  const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed);
+  const isCollapsed = collapsed ?? internalCollapsed;
+  const toggleCollapsed = (): void => {
+    const next = !isCollapsed;
+    if (collapsed === undefined) setInternalCollapsed(next);
+    onCollapsedChange?.(next);
+  };
+
+  const [internalSize, setInternalSize] = React.useState<PanelSize>(defaultSize);
+  const activeSize = size ?? internalSize;
+  const toggleSize = (): void => {
+    const next: PanelSize = activeSize === 'expanded' ? 'default' : 'expanded';
+    if (size === undefined) setInternalSize(next);
+    onSizeChange?.(next);
+  };
+
+  const bodyId = `${idPrefix}-body`;
+
   // ---- context -----------------------------------------------------------
   const options = React.useMemo<PanelOptions>(
     () => ({
@@ -195,6 +242,8 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
         className={cx('cp-root', classNames.root, className)}
         data-cp-theme={theme}
         data-cp-disabled={disabled ? 'true' : undefined}
+        data-cp-collapsed={isCollapsed ? 'true' : undefined}
+        data-cp-size={activeSize === 'expanded' ? 'expanded' : undefined}
         style={{
           ['--cp-h' as string]: String(seed.h),
           ['--cp-s' as string]: `${seed.s}%`,
@@ -206,36 +255,72 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       >
         {showTitleBar && (
           <div className={cx('cp-titlebar', classNames.titlebar)}>
-            {/* Ornamental only. A close button that does not close would be
-                worse than no button, so these carry no handlers and are
-                hidden from assistive technology. */}
-            <div className="cp-lights" aria-hidden="true">
-              <span className="cp-light" data-cp-light="close" />
-              <span className="cp-light" data-cp-light="min" />
-              <span className="cp-light" data-cp-light="max" />
+            <div className="cp-lights">
+              {/* Close is disabled rather than removed when there is nothing
+                  to close, so the row keeps its shape. */}
+              <button
+                type="button"
+                className="cp-light"
+                data-cp-light="close"
+                aria-label="Close"
+                disabled={disabled || onClose === undefined}
+                onClick={() => onClose?.()}
+              >
+                <WindowGlyph name="close" />
+              </button>
+              <button
+                type="button"
+                className="cp-light"
+                data-cp-light="min"
+                aria-label={isCollapsed ? 'Expand panel' : 'Collapse panel'}
+                aria-expanded={!isCollapsed}
+                aria-controls={bodyId}
+                disabled={disabled}
+                onClick={toggleCollapsed}
+              >
+                <WindowGlyph name="collapse" />
+              </button>
+              <button
+                type="button"
+                className="cp-light"
+                data-cp-light="max"
+                aria-label={activeSize === 'expanded' ? 'Restore panel width' : 'Widen panel'}
+                aria-pressed={activeSize === 'expanded'}
+                disabled={disabled}
+                onClick={toggleSize}
+              >
+                <WindowGlyph name="expand" />
+              </button>
             </div>
             <span className="cp-title">{title}</span>
-            <div style={{ width: 40 }} aria-hidden="true" />
+            {/* Balances the lights so the title stays optically centred. */}
+            <div className="cp-titlebar-spacer" aria-hidden="true" />
           </div>
         )}
 
-        {resolved.length > 1 && (
-          <ModeToolbar modes={resolved} activeId={activeId} onSelect={selectMode} />
-        )}
+        {/* Kept mounted and hidden with CSS when collapsed. Unmounting would
+            discard the very state collapsing is meant to preserve, and the
+            transient store subscriptions keep every thumb in position so
+            expanding is instant and correct. */}
+        <div className="cp-body" id={bodyId}>
+          {resolved.length > 1 && (
+            <ModeToolbar modes={resolved} activeId={activeId} onSelect={selectMode} />
+          )}
 
-        {active !== undefined && (
-          <div
-            role="tabpanel"
-            id={`${idPrefix}-panel-${active.id}`}
-            aria-labelledby={`${idPrefix}-tab-${active.id}`}
-            tabIndex={-1}
-            className={cx(classNames.panel)}
-          >
-            <active.Panel />
-          </div>
-        )}
+          {active !== undefined && (
+            <div
+              role="tabpanel"
+              id={`${idPrefix}-panel-${active.id}`}
+              aria-labelledby={`${idPrefix}-tab-${active.id}`}
+              tabIndex={-1}
+              className={cx(classNames.panel)}
+            >
+              <active.Panel />
+            </div>
+          )}
 
-        <PanelFooter />
+          <PanelFooter />
+        </div>
       </div>
     </PanelProvider>
   );

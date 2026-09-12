@@ -168,7 +168,16 @@ export function Popover(props: PopoverProps): React.ReactElement | null {
             listener above, so this stays presentational. */}
         <div className="cp-scrim" aria-hidden="true" />
         <div ref={panelRef} className={cx('cp-sheet', className)} tabIndex={-1}>
-          <div className="cp-grabber" aria-hidden="true" />
+          {/* A real control, not decoration. Tapping the scrim and swiping
+              are both pointer gestures, which would leave a screen-reader or
+              switch user with no way out of the sheet. It looks exactly like
+              the handle it already was. */}
+          <button
+            type="button"
+            className="cp-grabber"
+            aria-label="Close"
+            onClick={onClose}
+          />
           {children}
         </div>
       </div>,

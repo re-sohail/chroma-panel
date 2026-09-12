@@ -122,13 +122,18 @@ describe('labelling', () => {
     }
   });
 
-  it('hides the decorative window dots from assistive technology', async () => {
+  it('exposes the window dots as real, labelled buttons', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
-    const lights = await waitFor('.cp-lights');
-    expect(lights?.getAttribute('aria-hidden')).toBe('true');
-    // They are ornamental: a close button that does not close would be worse
-    // than no button at all, so they are not buttons.
-    expect(lights?.querySelectorAll('button')).toHaveLength(0);
+    const lights = await waitFor<HTMLElement>('.cp-lights');
+
+    // They used to be decorative spans hidden from assistive technology.
+    // Now they do something, so they must be reachable and named.
+    expect(lights.getAttribute('aria-hidden')).toBeNull();
+    const buttons = Array.from(lights.querySelectorAll('button'));
+    expect(buttons).toHaveLength(3);
+    for (const b of buttons) {
+      expect(b.getAttribute('aria-label')).toBeTruthy();
+    }
   });
 });
 

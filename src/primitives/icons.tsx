@@ -135,6 +135,45 @@ const make = (name: IconName): (() => React.ReactElement) => {
   return Component;
 };
 
+/* ------------------------------------------------------------------ *
+ * Window-chrome glyphs
+ *
+ * These are deliberately NOT from the Lucide set, and that is not an
+ * oversight. They render inside an 11px traffic-light dot, so the glyph is
+ * about 7px across; a 24-grid icon with a 2px stroke scales to a 0.58px
+ * stroke at that size and blurs into nothing. They are drawn on their own
+ * 8x8 grid with a stroke chosen for this size.
+ *
+ * Do not "fix" the inconsistency by swapping in Lucide icons here.
+ * ------------------------------------------------------------------ */
+
+const GLYPHS = {
+  close: 'M2.4 2.4 5.6 5.6M5.6 2.4 2.4 5.6',
+  collapse: 'M2.1 4h3.8',
+  // macOS zoom shows two opposed arrows, not a plus.
+  expand: 'M2.2 4.6v1.2h1.2M5.8 3.4V2.2H4.6',
+} as const;
+
+export type WindowGlyphName = keyof typeof GLYPHS;
+
+export function WindowGlyph(props: { name: WindowGlyphName }): React.ReactElement {
+  return (
+    <svg
+      className="cp-light-glyph"
+      viewBox="0 0 8 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={GLYPHS[props.name]} />
+    </svg>
+  );
+}
+
 export const WheelIcon: () => React.ReactElement = make('palette');
 export const SlidersIcon: () => React.ReactElement = make('sliders');
 export const PalettesIcon: () => React.ReactElement = make('swatches');
