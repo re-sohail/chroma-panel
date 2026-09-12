@@ -6,6 +6,7 @@ import { toHex } from '../color/serialize';
 import { cx, usePanel } from '../core/context';
 import { EyedropperIcon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
+import { useScrollFade } from '../core/useScrollFade';
 
 export function PanelFooter(): React.ReactElement | null {
   const { store, classNames, options, disabled } = usePanel();
@@ -20,6 +21,7 @@ export function PanelFooter(): React.ReactElement | null {
     store.commit();
   };
 
+  const recentsRef = React.useRef<HTMLUListElement>(null);
   const [current, setCurrent] = React.useState<string | null>(null);
   React.useEffect(
     () => store.subscribeCommit((c) => setCurrent(toHex(c).toLowerCase())),
@@ -38,12 +40,15 @@ export function PanelFooter(): React.ReactElement | null {
     : [];
   const showEyedropper = options.showEyedropper && supported;
 
+  useScrollFade(recentsRef, recents.length, 'x');
+
+
   return (
     <div className={cx('cp-footer', classNames.footer)}>
       <div className="cp-preview" aria-hidden="true" />
 
       {recents.length > 0 ? (
-        <ul className="cp-recents" aria-label="Recent colours">
+        <ul ref={recentsRef} className="cp-recents" aria-label="Recent colours">
           {recents.map((color, index) => (
             <li key={`${color}-${index}`}>
               <button

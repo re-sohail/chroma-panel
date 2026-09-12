@@ -214,9 +214,9 @@ export const css: string = `
       transparent 0, #000 var(--cp-fade-t),
       #000 calc(100% - var(--cp-fade-b)), transparent 100%);
   }
-  .cp-panel-host[data-cp-fade="top"],
+  .cp-panel-host[data-cp-fade="start"],
   .cp-panel-host[data-cp-fade="both"] { --cp-fade-t: 18px; }
-  .cp-panel-host[data-cp-fade="bottom"],
+  .cp-panel-host[data-cp-fade="end"],
   .cp-panel-host[data-cp-fade="both"] { --cp-fade-b: 18px; }
   .cp-panel-host::-webkit-scrollbar { width: 8px; }
   .cp-panel-host::-webkit-scrollbar-track { background: transparent; }
@@ -425,6 +425,17 @@ export const css: string = `
     scrollbar-width: none;
   }
   .cp-recents::-webkit-scrollbar { display: none; }
+  .cp-recents[data-cp-fade] {
+    --cp-fade-s: 0px;
+    --cp-fade-e: 0px;
+    mask-image: linear-gradient(to right,
+      transparent 0, #000 var(--cp-fade-s),
+      #000 calc(100% - var(--cp-fade-e)), transparent 100%);
+  }
+  .cp-recents[data-cp-fade="start"],
+  .cp-recents[data-cp-fade="both"] { --cp-fade-s: 14px; }
+  .cp-recents[data-cp-fade="end"],
+  .cp-recents[data-cp-fade="both"] { --cp-fade-e: 14px; }
   .cp-recents > li { flex: none; }
   .cp-recents .cp-swatch { width: 22px; height: 22px; }
 

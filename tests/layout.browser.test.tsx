@@ -250,7 +250,7 @@ describe('scroll fades', () => {
     expect(host.scrollHeight, 'nothing to scroll — test is not exercising the fade')
       .toBeGreaterThan(host.clientHeight + 1);
 
-    expect(host.getAttribute('data-cp-fade'), 'at the top').toBe('bottom');
+    expect(host.getAttribute('data-cp-fade'), 'at the top').toBe('end');
 
     host.scrollTop = Math.round((host.scrollHeight - host.clientHeight) / 2);
     await settle();
@@ -258,11 +258,11 @@ describe('scroll fades', () => {
 
     host.scrollTop = host.scrollHeight;
     await settle();
-    expect(host.getAttribute('data-cp-fade'), 'at the bottom').toBe('top');
+    expect(host.getAttribute('data-cp-fade'), 'at the bottom').toBe('start');
 
     host.scrollTop = 0;
     await settle();
-    expect(host.getAttribute('data-cp-fade'), 'back at the top').toBe('bottom');
+    expect(host.getAttribute('data-cp-fade'), 'back at the top').toBe('end');
   });
 
   it('applies no mask at all in a mode that fits', async () => {
@@ -475,6 +475,38 @@ describe('the footer', () => {
     const after = Array.from(document.querySelectorAll<HTMLElement>('.cp-recents .cp-swatch'))
       .map((el) => el.style.getPropertyValue('--cp-swatch-color').trim().toLowerCase());
     expect(after).toContain('#002875');
+  });
+
+  it('fades the history row on the side that has more swatches', async () => {
+    const recents = [
+      '#111111', '#222222', '#333333', '#444444', '#555555',
+      '#666666', '#777777', '#888888', '#999999', '#aaaaaa',
+    ];
+    render(panel({ recentColors: recents, onRecentColorsChange: () => {} }));
+    const row = await waitFor<HTMLElement>('.cp-recents');
+    await settle();
+
+    expect(row.scrollWidth, 'nothing overflows — test is not exercising the fade')
+      .toBeGreaterThan(row.clientWidth);
+
+    expect(row.getAttribute('data-cp-fade'), 'at the left end').toBe('end');
+
+    row.scrollLeft = Math.round((row.scrollWidth - row.clientWidth) / 2);
+    await settle();
+    expect(row.getAttribute('data-cp-fade'), 'mid-scroll').toBe('both');
+
+    row.scrollLeft = row.scrollWidth;
+    await settle();
+    expect(row.getAttribute('data-cp-fade'), 'at the right end').toBe('start');
+  });
+
+  it('applies no mask to a history row that fits', async () => {
+    render(panel({ recentColors: ['#111111', '#222222'], onRecentColorsChange: () => {} }));
+    const row = await waitFor<HTMLElement>('.cp-recents');
+    await settle();
+
+    expect(row.scrollWidth).toBeLessThanOrEqual(row.clientWidth + 1);
+    expect(row.getAttribute('data-cp-fade'), 'a row that fits should carry no fade').toBeNull();
   });
 
   it('lets every recent colour be reached rather than clipping them', async () => {

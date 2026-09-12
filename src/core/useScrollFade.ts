@@ -5,19 +5,24 @@ import * as React from 'react';
 export function useScrollFade(
   ref: React.RefObject<HTMLElement | null>,
   key?: unknown,
+  axis: 'x' | 'y' = 'y',
 ): void {
   React.useEffect(() => {
     const el = ref.current;
     if (el === null || typeof ResizeObserver === 'undefined') return;
 
+    const horizontal = axis === 'x';
     let frame = 0;
 
     const apply = (): void => {
       frame = 0;
-      const above = el.scrollTop > 1;
-      const below = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+      const offset = horizontal ? el.scrollLeft : el.scrollTop;
+      const view = horizontal ? el.clientWidth : el.clientHeight;
+      const total = horizontal ? el.scrollWidth : el.scrollHeight;
+      const before = offset > 1;
+      const after = offset + view < total - 1;
 
-      const next = above && below ? 'both' : above ? 'top' : below ? 'bottom' : null;
+      const next = before && after ? 'both' : before ? 'start' : after ? 'end' : null;
       if (next === null) el.removeAttribute('data-cp-fade');
       else if (el.getAttribute('data-cp-fade') !== next) el.setAttribute('data-cp-fade', next);
     };
@@ -39,5 +44,5 @@ export function useScrollFade(
       if (frame !== 0) cancelAnimationFrame(frame);
       el.removeAttribute('data-cp-fade');
     };
-  }, [ref, key]);
+  }, [ref, key, axis]);
 }
