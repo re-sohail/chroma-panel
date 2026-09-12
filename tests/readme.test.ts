@@ -6,7 +6,16 @@ import * as panel from '../src/panel';
 import * as contrast from '../src/contrast';
 import * as named from '../src/named-colors';
 
-const README = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+/**
+ * Every piece of prose that documents the API — the README plus the guides it
+ * links to. When reference content moved out of the README into docs/, this
+ * had to follow it, or the check would silently stop covering the very tables
+ * most likely to drift.
+ */
+const DOC_FILES = ['../README.md', '../docs/api.md', '../docs/guides.md'];
+const README = DOC_FILES.map((f) =>
+  readFileSync(new URL(f, import.meta.url), 'utf8'),
+).join('\n\n');
 
 const MODULES: Record<string, Record<string, unknown>> = {
   'chroma-panel': main,
@@ -56,12 +65,27 @@ describe('the README does not document things that do not exist', () => {
     }
   });
 
-  it('documents every prop table entry as a real prop', () => {
-    // Spot-check that headline props are honoured by the component types at
-    // runtime: they must at least be accepted without throwing.
+  it('documents every headline prop somewhere in the docs', () => {
     for (const prop of ['value', 'defaultValue', 'onChange', 'onChangeComplete', 'modes', 'format']) {
-      expect(README).toContain(`\`${prop}\``);
+      expect(README, `${prop} is undocumented`).toContain(`\`${prop}\``);
     }
+  });
+
+  it('keeps the README itself short enough to read', () => {
+    // The README is the npm package page and the first thing anyone sees.
+    // Deep reference belongs in docs/; this guards against it creeping back.
+    const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+    expect(readme.length, 'README has grown past the point of being scannable')
+      .toBeLessThan(6000);
+  });
+
+  it('points at images with absolute URLs', () => {
+    const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+    const images = [...readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((m) => m[1] as string);
+    const local = images.filter((u) => !u.startsWith('http'));
+    // Relative paths depend on npm rewriting them via the repository field,
+    // which has a history of failing. Absolute raw URLs always work.
+    expect(local, `relative image paths: ${local.join(', ')}`).toHaveLength(0);
   });
 
   it('lists every published entry point in package.json exports', () => {
