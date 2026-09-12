@@ -1,4 +1,11 @@
-![chroma-panel, a React color picker](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)\# chroma-panel
+![chroma-panel, a React color picker](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)
+
+[![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
+[![gzipped](https://img.shields.io/bundlephobia/minzip/chroma-panel?color=2d7ff9&label=gzipped)](https://bundlephobia.com/package/chroma-panel)
+[![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
+[![licence](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)](./LICENSE)
+
+# chroma-panel
 
 chroma-panel is a React color picker with the look and feel of the macOS color panel.
 
@@ -63,7 +70,9 @@ That is 14.1 kB instead of 22.2 kB. Each mode you add costs only itself.
 
 ## Theming
 
-![The chroma-panel color picker in light and dark themes](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)The panel follows the system color scheme. Override the CSS variables, or pass your own class per slot:
+![The chroma-panel color picker in light and dark themes](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
+
+The panel follows the system color scheme. Override the CSS variables, or pass your own class per slot:
 
 ```tsx
 <ColorInput classNames={{ root: 'shadow-2xl', trigger: 'h-8 w-12' }} />
