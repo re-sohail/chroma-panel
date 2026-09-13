@@ -9,12 +9,14 @@
 
 chroma-panel is a React color picker with the look and feel of the macOS color panel.
 
-- Five modes: wheel, sliders, palettes, image, and a 120-color pencil grid
-- No dependencies. Types included. ESM and CommonJS
-- React does not re-render while you drag, so it stays smooth
-- React 16.14 and newer. Works with SSR. Full keyboard support
+Pick a color from a wheel, from sliders, from a palette, or straight out of an image. It keeps the exact color you chose instead of rounding it away, and it does not re-render React while you drag.
 
-[**API**](https://github.com/re-sohail/chroma-panel/blob/main/docs/api.md) · [**Guides**](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md)
+- Five modes: wheel, sliders, palettes, image, and a 120-color pencil grid
+- Pull a palette out of any image, or sample the screen with the eyedropper
+- No runtime dependencies. TypeScript types included. ESM and CommonJS
+- Works as a form input, server-renders safely, keyboard operable throughout
+
+**[API reference](docs/api.md)** · **[Guide](docs/guides.md)**
 
 ## Install
 
@@ -78,7 +80,9 @@ The panel follows the system color scheme. Override the CSS variables, or pass y
 <ColorInput classNames={{ root: 'shadow-2xl', trigger: 'h-8 w-12' }} />
 ```
 
-See the [Guides](https://github.com/re-sohail/chroma-panel/blob/main/docs/guides.md) for theming, image sampling, mobile and accessibility.
+Styles are injected for you. To load the CSS yourself, import `chroma-panel/styles.css` and pass `injectStyles={false}`.
+
+See the [guide](docs/guides.md) for theming, image sampling, mobile and accessibility, and the [API reference](docs/api.md) for every export.
 
 ## Your hue survives
 
@@ -92,12 +96,29 @@ chroma-panel keeps the full HSVA value and never rounds it on the way through.
 
 Measured as the increase in a real Vite production build, gzipped, with React external.
 
-| Title | added to your app |
+| What you import | Added to your app |
 | --- | --- |
 | all five modes | 22.2 kB |
 | shell plus one mode | 14.1 kB |
 
-No runtime dependencies either way.
+`dependencies` is empty. `react` and `react-dom` are peer dependencies, so you use the copy already in your app.
+
+## Compatibility
+
+| | |
+| --- | --- |
+| React | 16.14 and newer, including 19 |
+| React DOM | Required. The popover uses `createPortal` |
+| Browsers | Chrome 123, Firefox 120, Safari 17.5 |
+| TypeScript | Types included, no `@types` package needed |
+| Modules | ESM and CommonJS |
+| Server rendering | Safe. Browser-dependent files are marked `'use client'` |
+
+The browser floor comes from the `light-dark()` CSS function the stylesheet uses. The eyedropper needs the browser's `EyeDropper` API, which today means Chromium, so that one button is hidden where it is unavailable. Details in the [guide](docs/guides.md#browser-support).
+
+## Help
+
+Found a bug, or something unclear? [Open an issue](https://github.com/re-sohail/chroma-panel/issues).
 
 ## Licence
 

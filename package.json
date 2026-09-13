@@ -1,7 +1,7 @@
 {
   "name": "chroma-panel",
   "version": "0.1.0",
-  "description": "A macOS-inspired, zero-dependency React color picker. Wheel, sliders, palettes, image extraction and pencils in one accessible panel.",
+  "description": "React color picker with wheel, sliders, palettes, image sampling and an eyedropper. Zero dependencies, accessible, TypeScript types included.",
   "keywords": [
     "react",
     "color",
