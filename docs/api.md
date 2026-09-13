@@ -1,120 +1,150 @@
 # API
 
-[← back to the README](https://github.com/re-sohail/chroma-panel#readme)
+[← back to the README](../README.md)
 
-## Two components
+## Components
 
 ```tsx
 import { ColorInput, ChromaPanel } from 'chroma-panel';
 ```
 
-`ColorInput` is a swatch button that opens the panel in a popover.
-`ChromaPanel` is the panel on its own, for inline use.
+`ColorInput` is a swatch button that opens the panel in a popover. Reach for it when the picker should sit inline in a form or toolbar.
 
-Both take every prop in the next section. `ColorInput` takes a few more.
+`ChromaPanel` is the panel by itself, always visible. Reach for it when you are placing the picker in a sidebar, a modal you control, or a page of your own.
+
+Every prop below works on both. `ColorInput` adds a few of its own further down.
 
 ## Props
 
 ### The color
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `value` | `string \| Hsva` | — |
-| `defaultValue` | `string \| Hsva` | `'#3366cc'` |
-| `onChange` | `(c: ColorChangeResult) => void` | — |
-| `onChangeComplete` | `(c: ColorChangeResult) => void` | — |
-| `format` | `'hex' \| 'hexa' \| 'rgb' \| 'rgba' \| 'hsl' \| 'hsla'` | `'hex'` |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `value` | `string \| Hsva` | — | You keep the color in your own state |
+| `defaultValue` | `string \| Hsva` | `'#3366cc'` | You want the panel to keep it |
+| `onChange` | `(c: ColorChangeResult) => void` | — | Live preview while dragging |
+| `onChangeComplete` | `(c: ColorChangeResult) => void` | — | Saving, undo entries, network calls |
+| `format` | `'hex' \| 'hexa' \| 'rgb' \| 'rgba' \| 'hsl' \| 'hsla'` | `'hex'` | You need a particular string format |
 
-Pass `value` to control the color yourself. Pass `defaultValue` to let the
-panel own it.
+Pass `value` and you must handle `onChange`, or the panel will not move. Pass `defaultValue` instead and it manages itself.
 
-`format` sets two things: the `css` string in the result, and the value
-`ColorInput` submits with a form. The other fields are always there.
+`format` changes two things: the `css` string inside `ColorChangeResult`, and the value `ColorInput` submits with a form. Every other field on the result is always present, so you can read `hex` and `rgba` whatever you set here.
 
-### Modes
+### Which modes appear
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `modes` | `(ModeId \| PickerMode)[]` | all five |
-| `mode` | `string` | — |
-| `defaultMode` | `string` | first mode |
-| `onModeChange` | `(id: string) => void` | — |
-| `palettes` | `ColorPalette[]` | built-in set |
-| `pencils` | `string[]` | built-in 120-color grid |
-| `modeProps` | `Record<string, Record<string, unknown>>` | — |
-| `imageOptions` | `ExtractOptions` | — |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `modes` | `(ModeId \| PickerMode)[]` | all five | Show fewer tabs, or change their order |
+| `mode` | `string` | — | You control which tab is open |
+| `defaultMode` | `string` | first mode | Open on a tab other than the first |
+| `onModeChange` | `(id: string) => void` | — | Remember the tab a user last used |
+| `palettes` | `ColorPalette[]` | built-in set | Show your brand colors instead |
+| `pencils` | `string[]` | built-in 120-color grid | Replace the pencil grid |
+| `modeProps` | `Record<string, Record<string, unknown>>` | — | Pass props into one mode's panel |
+| `imageOptions` | `ExtractOptions` | — | Tune image sampling |
 
-Mode ids are `'wheel'`, `'sliders'`, `'palettes'`, `'image'` and `'pencils'`.
+Mode ids are `'wheel'`, `'sliders'`, `'palettes'`, `'image'` and `'pencils'`. The order you list them is the order of the tabs.
 
-### What is shown
+`modeProps` is keyed by mode id, and each entry is spread onto that mode's panel component. It exists so a custom mode can take props without the panel needing to know about it:
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `showAlpha` | `boolean` | `true` |
-| `showEyedropper` | `boolean` | `true` |
-| `showRecentColors` | `boolean` | `true` |
-| `showTitleBar` | `boolean` | `true` |
-| `title` | `string` | `'Colours'` |
-| `theme` | `'dark' \| 'light'` | system |
-| `disabled` | `boolean` | `false` |
+```tsx
+<ChromaPanel modeProps={{ brand: { team: 'design' } }} />
+```
+
+`imageOptions` is shorthand for the image mode specifically. These two are the same:
+
+```tsx
+<ChromaPanel imageOptions={{ maxColors: 12 }} />
+<ChromaPanel modeProps={{ image: { extractOptions: { maxColors: 12 } } }} />
+```
+
+### What the panel shows
+
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `showAlpha` | `boolean` | `true` | Turn off when opacity is not allowed |
+| `showEyedropper` | `boolean` | `true` | Turn off to hide it even where supported |
+| `showRecentColors` | `boolean` | `true` | Turn off in a one-shot picker |
+| `showTitleBar` | `boolean` | `true` | Turn off for an inline panel with no chrome |
+| `title` | `string` | `'Colours'` | Rename the title bar |
+| `theme` | `'dark' \| 'light'` | system | Force one theme instead of following the OS |
+| `disabled` | `boolean` | `false` | Read-only screens, or while a form is saving |
+
+Turning `showAlpha` off hides the alpha slider, but does not change the stored value. If the color already had alpha it keeps it.
+
+The eyedropper only renders where the browser has the `EyeDropper` API. `showEyedropper={false}` hides it everywhere; leaving it `true` shows it where it works.
 
 ### Recent colors
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `recentColors` | `string[]` | uncontrolled |
-| `defaultRecentColors` | `string[]` | `[]` |
-| `onRecentColorsChange` | `(colors: string[]) => void` | — |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `recentColors` | `string[]` | uncontrolled | Store recents yourself, e.g. in localStorage |
+| `defaultRecentColors` | `string[]` | `[]` | Seed the list, then let the panel manage it |
+| `onRecentColorsChange` | `(colors: string[]) => void` | — | Watch the list, controlled or not |
 
-The panel tracks recent colors on its own. Pass `recentColors` only if you
-want to store them yourself.
+The panel tracks recent colors on its own, so most people need none of these. Pass `recentColors` only if the list has to survive a reload or be shared between pickers.
 
 ### Window controls
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `onClose` | `() => void` | — |
-| `collapsed` | `boolean` | `false` |
-| `defaultCollapsed` | `boolean` | `false` |
-| `onCollapsedChange` | `(collapsed: boolean) => void` | — |
-| `size` | `'default' \| 'expanded'` | `'default'` |
-| `defaultSize` | `'default' \| 'expanded'` | `'default'` |
-| `onSizeChange` | `(size) => void` | — |
+The title bar carries three macOS-style controls. These props drive them.
+
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `onClose` | `() => void` | — | Make the red control live on an inline panel |
+| `collapsed` | `boolean` | `false` | You control the collapsed state |
+| `defaultCollapsed` | `boolean` | `false` | Start collapsed |
+| `onCollapsedChange` | `(collapsed: boolean) => void` | — | Persist whether it was collapsed |
+| `size` | `'default' \| 'expanded'` | `'default'` | You control the size |
+| `defaultSize` | `'default' \| 'expanded'` | `'default'` | Start expanded |
+| `onSizeChange` | `(size) => void` | — | Persist the size |
+
+Collapsing hides the body and leaves the title bar. Nothing is unmounted, so state survives.
+
+Expanded widens the panel from 320px to 420px and the wheel from 196px to 260px. Useful on a large screen or when the panel is the main thing on the page.
+
+`ColorInput` closes its own popover, so `onClose` is only needed for an inline `ChromaPanel`.
 
 ### Styling
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `className` | `string` | — |
-| `classNames` | `Partial<Record<Slot, string>>` | — |
-| `style` | `CSSProperties` | — |
-| `injectStyles` | `boolean` | `true` |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `className` | `string` | — | One class on the root |
+| `classNames` | `Partial<Record<Slot, string>>` | — | A class on individual parts |
+| `style` | `CSSProperties` | — | Inline styles, including CSS variables |
+| `injectStyles` | `boolean` | `true` | Load the CSS yourself instead |
 
-Slots: `root`, `titlebar`, `toolbar`, `tab`, `panel`, `footer`, `swatch`,
-`slider`, `thumb`, `field`, `trigger`, `popover`.
+Slots for `classNames`: `root`, `titlebar`, `toolbar`, `tab`, `panel`, `footer`, `swatch`, `slider`, `thumb`, `field`, `trigger`, `popover`.
+
+`injectStyles={false}` stops the panel adding a `<style>` tag, for a strict `style-src` policy or critical-CSS extraction. Import `chroma-panel/styles.css` yourself when you use it. It does not make your bundle smaller — the CSS is imported by the module either way.
 
 ## ColorInput only
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `open` | `boolean` | — |
-| `defaultOpen` | `boolean` | `false` |
-| `onOpenChange` | `(open: boolean) => void` | — |
-| `sheetOnMobile` | `boolean` | `true` |
-| `aria-label` | `string` | `'Choose a colour'` |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `open` | `boolean` | — | You control when the popover is open |
+| `defaultOpen` | `boolean` | `false` | Open on mount |
+| `onOpenChange` | `(open: boolean) => void` | — | React to opening and closing |
+| `sheetOnMobile` | `boolean` | `true` | Keep the popover on small screens |
+| `aria-label` | `string` | `'Choose a colour'` | Name the trigger for screen readers |
+
+Below 640px the popover becomes a bottom sheet, which is easier to reach with a thumb. Set `sheetOnMobile={false}` if your layout needs an anchored popover at every width.
 
 ### In a form
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `name` | `string` | — |
-| `form` | `string` | — |
-| `required` | `boolean` | `false` |
-| `readOnly` | `boolean` | `false` |
-| `autoComplete` | `string` | — |
-| `validationBehavior` | `'native' \| 'aria'` | `'native'` |
+| Prop | Type | Default | When you'd use it |
+| --- | --- | --- | --- |
+| `name` | `string` | — | Submit the color with the form |
+| `form` | `string` | — | Attach to a form it is not nested inside |
+| `required` | `boolean` | `false` | Block submission until a color is chosen |
+| `readOnly` | `boolean` | `false` | Show a value that cannot be edited but still submits |
+| `autoComplete` | `string` | — | Pass through to the underlying input |
+| `validationBehavior` | `'native' \| 'aria'` | `'native'` | Choose who reports validation errors |
 
-It behaves like a native input:
+Give it a `name` and it submits like any other input, in whatever `format` you set.
+
+`validationBehavior` matters when a form library is involved. `'native'` lets the browser show its own message and block submission. Switch to `'aria'` when something like react-hook-form owns validation, so the two do not fight over it.
+
+It behaves like a native input in the ways that usually catch people out:
 
 - Disabled inputs do not submit. Read-only ones do.
 - The `form` attribute and `<fieldset disabled>` both work.
@@ -122,17 +152,18 @@ It behaves like a native input:
 
 ## onChange vs onChangeComplete
 
-`onChange` fires while you drag, once per animation frame. That is about 60
-times a second.
+Use `onChange` to show the color. Use `onChangeComplete` to record it.
 
-`onChangeComplete` fires once: on pointer release, key release, or blur.
+`onChange` fires while you drag, batched to once per animation frame — roughly 60 times a second. `onChangeComplete` fires once, when a gesture ends: pointer release, key release, or blur.
 
-Use `onChange` for live preview. Use `onChangeComplete` for a network request,
-an undo entry, or a database write.
+```tsx
+<ColorInput
+  onChange={(c) => setPreview(c.hex)}     // cheap, local
+  onChangeComplete={(c) => saveToApi(c.hex)}  // once
+/>
+```
 
-Putting `onChange` straight into state at the top of a large tree will re-render
-that tree 60 times a second. Keep the state local, or update from
-`onChangeComplete`.
+The mistake to avoid is putting `onChange` into state at the top of a large tree. That re-renders everything 60 times a second while the user drags. Keep the state local to the preview, or only update from `onChangeComplete`.
 
 ## Types
 
@@ -292,14 +323,16 @@ components from one value.
 import { useColorValue, useTransientColor, usePanel } from 'chroma-panel';
 ```
 
-| Hook | Signature | Use it for |
+Most people need only the first two. The rest exist for building a custom mode.
+
+| Hook | Signature | When you'd use it |
 | --- | --- | --- |
-| `useColorValue` | `(store) => Hsva` | Re-render on every change. Simple, not cheap |
-| `useTransientColor` | `(store, effect) => void` | Run an effect per change with **no** re-render |
-| `usePanel` | `() => PanelContextValue` | Inside a custom mode: reach the store, ids and options |
-| `usePointerDrag` | `(options) => PointerDragProps` | Pointer capture and drag maths for a custom surface |
-| `useAxisKeyboard` | `(options) => AxisKeyboardProps` | Arrow, Page and Home/End handling for one axis |
-| `useEyedropper` | `() => { supported, pick }` | The browser eyedropper, where it exists |
+| `useColorValue` | `(store) => Hsva` | You want the color as ordinary state and a re-render is fine |
+| `useTransientColor` | `(store, effect) => void` | You are updating the DOM every frame and cannot afford a re-render |
+| `usePanel` | `() => PanelContextValue` | Inside a custom mode, to reach the store, ids and options |
+| `usePointerDrag` | `(options) => PointerDragProps` | Building a drag surface of your own |
+| `useAxisKeyboard` | `(options) => AxisKeyboardProps` | Adding arrow, Page and Home/End keys to one axis |
+| `useEyedropper` | `() => { supported, pick }` | Putting an eyedropper button in your own UI |
 
 `useTransientColor` is how the panel stays smooth. It writes to the DOM directly
 instead of setting state:
@@ -445,10 +478,14 @@ before the first panel renders. It takes a string or a function returning one.
 
 ## Building your own UI
 
-These are the parts the built-in modes are made of. They read the color from
+These are the parts the built-in modes are made of. They read the color through
 `usePanel()`, so they only work inside a `ChromaPanel`.
 
-| Component | Is |
+Use them when you are writing a custom mode and want the panel's own controls rather
+than your own. For a picker that lives outside the panel, use `createColorStore` and
+the hooks above instead.
+
+| Component | What it is |
 | --- | --- |
 | `ColorDisc` | The hue and saturation wheel |
 | `ColorArea` | A 2D saturation and value square |

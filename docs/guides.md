@@ -1,10 +1,23 @@
 # Guides
 
-[← back to the README](https://github.com/re-sohail/chroma-panel#readme)
+[← back to the README](../README.md)
 
 ## Theming
 
-Every color and size is a CSS variable:
+Set CSS variables on `.cp-root` to change how the panel looks:
+
+```css
+.cp-root {
+  --cp-accent: #e5484d;
+  --cp-radius-lg: 4px;
+  --cp-width: 280px;
+}
+```
+
+Anything you do not set keeps its default. The panel follows the system color scheme
+unless you pass `theme`.
+
+Here is the full set, with the defaults:
 
 ```css
 .cp-root {
@@ -24,20 +37,19 @@ Every color and size is a CSS variable:
 }
 ```
 
-Two of these do more than they look:
+Two are worth knowing about before you change them.
 
-**`--cp-control-height`** sizes the tab bar, the text inputs, the eyedropper and
-the footer swatch together. Change this one value to scale every control.
+`--cp-control-height` sizes the tab bar, the text inputs, the eyedropper and the
+footer swatch together, so one value scales every control at once.
 
-**`--cp-panel-h`** is the height reserved for the mode content. It is the same
-in every mode, so the panel does not resize when you switch tabs. Content taller
-than this scrolls. Set it to `auto` if you would rather each mode sized itself.
-
-The panel follows the system color scheme unless you pass `theme`.
+`--cp-panel-h` is the height set aside for the mode content. It is the same in every
+mode, which is what stops the panel resizing when you switch tabs. Content taller than
+it scrolls. Set it to `auto` if you would rather each mode sized itself, and accept
+that the panel will jump.
 
 ### With Tailwind
 
-Pass your own classes per slot:
+Pass your classes per slot instead of writing CSS:
 
 ```tsx
 <ColorInput
@@ -137,14 +149,14 @@ Now `parse('rebeccapurple')` works.
 
 ## On a phone
 
-Below 640px the popover becomes a bottom sheet. Full width, rounded top, grab
-handle, and a scrim with the page locked behind it.
+Phones are handled for you, but there is one line to add to your page.
 
-Controls stay compact for a mouse and grow to a 44px hit area for touch.
+Below 640px the popover becomes a bottom sheet: full width, rounded top, grab handle,
+and a scrim with the page locked behind it. Controls stay compact for a mouse and grow
+to a 44px hit area for touch. Pass `sheetOnMobile={false}` if you want an anchored
+popover at every width instead.
 
-Pass `sheetOnMobile={false}` to keep an anchored popover at every size.
-
-Add this to your page, because a library cannot:
+The line a library cannot add for you:
 
 ```html
 <meta name="viewport"
@@ -180,9 +192,10 @@ browser that clears the table above.
 
 ## Server rendering
 
-The panel works with Next.js App Router, Remix and any other SSR setup.
+Import it and use it. Next.js App Router, Remix and other SSR setups need no special
+handling.
 
-Every file that needs the browser carries `'use client'`, so you can import it from a
+Every file that needs the browser carries `'use client'`, so you can import from a
 server component without marking your own file. The first render emits the color as
 CSS custom properties, so there is no flash before hydration.
 
@@ -213,26 +226,33 @@ prop to control it, leave it out to let the panel manage it.
 ## Common mistakes
 
 **Putting `onChange` into global state.** It fires about 60 times a second while you
-drag. Feeding that into a store at the top of your tree re-renders everything, 60
-times a second. Keep the state local, or save from `onChangeComplete`.
+drag. Keep that state local, or save from `onChangeComplete` instead —
+[why](api.md#onchange-vs-onchangecomplete).
 
-**Expecting `injectStyles={false}` to shrink your bundle.** It stops the panel writing
-a `<style>` tag. The CSS is still imported by the module, so it is still in your
-build. Use it for CSP or critical CSS, not for size.
+**Expecting `injectStyles={false}` to shrink your bundle.** It only stops the panel
+writing a `<style>` tag. The CSS is imported by the module either way, so your build
+is the same size. Use it for CSP or critical CSS.
 
-**An unlayered `button` rule.** See the cascade note above. This is the most common
-cause of a panel that looks almost right.
+**An unlayered `button` rule in your own CSS.** It will restyle the panel's swatches
+and tabs. This is the most common cause of a panel that looks almost right — see
+[If the panel looks wrong](#if-the-panel-looks-wrong).
 
-**Assuming the eyedropper renders everywhere.** It does not, and that is deliberate.
+**Expecting the eyedropper everywhere.** It renders only where the browser has the
+`EyeDropper` API. If you need one in every browser, build your own UI and check
+`useEyedropper().supported` first.
 
-**Reading `hex` when you need precision.** `hex` is rounded. Round-trip through `hsva`
-if you are storing and restoring a color.
+**Reading `hex` when you need precision.** `hex` is rounded to 8 bits per channel.
+Store `hsva` and pass it back to `value` if a color has to survive a round trip
+unchanged.
 
 ## Accessibility
 
-Every color axis is a real `<input type="range">`, hidden visually. Keyboard
-handling and screen-reader support come from the browser, not from our own
-version of it.
+The picker is keyboard and screen-reader operable out of the box. You do not need to
+add anything.
+
+Every color axis is a real `<input type="range">`, hidden visually, so keyboard
+handling and screen-reader support come from the browser rather than a reimplementation
+of it.
 
 - Arrows step. Shift+arrow and Page Up/Down step by ten. Home and End jump.
 - The mode switcher is a tablist with a roving tab stop.

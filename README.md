@@ -7,14 +7,12 @@
 
 # chroma-panel
 
-chroma-panel is a React color picker with the look and feel of the macOS color panel.
+A React color picker with the look and feel of the macOS color panel.
 
-Pick a color from a wheel, from sliders, from a palette, or straight out of an image. It keeps the exact color you chose instead of rounding it away, and it does not re-render React while you drag.
-
-- Five modes: wheel, sliders, palettes, image, and a 120-color pencil grid
-- Pull a palette out of any image, or sample the screen with the eyedropper
-- No runtime dependencies. TypeScript types included. ESM and CommonJS
-- Works as a form input, server-renders safely, keyboard operable throughout
+- Five ways to pick: wheel, sliders, palettes, a 120-color pencil grid, and sampling from an image
+- An eyedropper for grabbing a color from anywhere on screen, where the browser supports it
+- Drops into a form like an `<input>`, with `name`, `required` and `form.reset()`
+- No runtime dependencies, TypeScript types included, ESM and CommonJS
 
 **[API reference](docs/api.md)** · **[Guide](docs/guides.md)**
 
@@ -43,13 +41,13 @@ export function Example() {
 }
 ```
 
-That is the whole setup. No CSS import, no provider.
+No CSS import and no provider. `ColorInput` renders a swatch button that opens the panel in a popover.
 
-`onChange` fires while you drag. `onChangeComplete` fires once, when you let go. Use the first for live preview, the second for anything you save.
+`onChange` fires continuously while you drag, `onChangeComplete` once when you let go. [Which to use](docs/api.md#onchange-vs-onchangecomplete).
 
 ## Inline panel
 
-Skip the popover and render the panel on the page:
+`ChromaPanel` is the same panel without the popover, for when you want it on the page:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel';
@@ -59,7 +57,7 @@ import { ChromaPanel } from 'chroma-panel';
 
 ## Smaller bundle
 
-The main entry loads all five modes. Import the shell and pick your own instead:
+Importing `chroma-panel` registers all five modes. If you only need one or two, import the shell and add them yourself:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel/panel';
@@ -68,29 +66,25 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 14.1 kB instead of 22.2 kB. Each mode you add costs only itself.
+That is 14.1 kB instead of 22.2 kB. Every mode has its own entry point — see [entry points](docs/api.md#entry-points).
 
 ## Theming
 
 ![The chroma-panel color picker in light and dark themes](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
 
-The panel follows the system color scheme. Override the CSS variables, or pass your own class per slot:
+The panel follows the system color scheme. To change how it looks, override the CSS variables or pass your own class per part:
 
 ```tsx
 <ColorInput classNames={{ root: 'shadow-2xl', trigger: 'h-8 w-12' }} />
 ```
 
-Styles are injected for you. To load the CSS yourself, import `chroma-panel/styles.css` and pass `injectStyles={false}`.
+Full details in the [theming guide](docs/guides.md#theming).
 
-See the [guide](docs/guides.md) for theming, image sampling, mobile and accessibility, and the [API reference](docs/api.md) for every export.
+## Why the color survives a round trip
 
-## Your hue survives
+HSV has two places where information disappears. At zero saturation there is no hue to speak of, and at zero brightness there is neither. Pickers that keep their state as RGB or hex hit this constantly: drag brightness to black and back up, and the hue you picked comes back as red.
 
-Most React color pickers store the color as RGB or hex. That throws information away.
-
-Drag brightness down to black, then back up. In those pickers the hue returns as red. Here it comes back as the hue you picked.
-
-chroma-panel keeps the full HSVA value and never rounds it on the way through.
+This one keeps the full HSVA value and merges changes into it instead of replacing it, so dragging to an extreme and back returns the color you started with.
 
 ## Size
 
@@ -101,24 +95,24 @@ Measured as the increase in a real Vite production build, gzipped, with React ex
 | all five modes | 22.2 kB |
 | shell plus one mode | 14.1 kB |
 
-`dependencies` is empty. `react` and `react-dom` are peer dependencies, so you use the copy already in your app.
+`dependencies` is empty. `react` and `react-dom` are peer dependencies, so the copy already in your app is the one that gets used.
 
 ## Compatibility
 
 | | |
 | --- | --- |
 | React | 16.14 and newer, including 19 |
-| React DOM | Required. The popover uses `createPortal` |
+| React DOM | Required. The popover renders through `createPortal` |
 | Browsers | Chrome 123, Firefox 120, Safari 17.5 |
 | TypeScript | Types included, no `@types` package needed |
 | Modules | ESM and CommonJS |
 | Server rendering | Safe. Browser-dependent files are marked `'use client'` |
 
-The browser floor comes from the `light-dark()` CSS function the stylesheet uses. The eyedropper needs the browser's `EyeDropper` API, which today means Chromium, so that one button is hidden where it is unavailable. Details in the [guide](docs/guides.md#browser-support).
+The browser versions come from `light-dark()`, a CSS function the stylesheet relies on. [What happens on older browsers](docs/guides.md#browser-support).
 
 ## Help
 
-Found a bug, or something unclear? [Open an issue](https://github.com/re-sohail/chroma-panel/issues).
+Questions and bug reports: [github.com/re-sohail/chroma-panel/issues](https://github.com/re-sohail/chroma-panel/issues)
 
 ## Licence
 
