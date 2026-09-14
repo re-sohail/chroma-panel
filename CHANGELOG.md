@@ -1,5 +1,14 @@
 # chroma-panel
 
+## 0.1.1
+
+### Patch Changes
+
+- 0912a45: Replace the package-size badge in the README. The bundlephobia badge shields.io
+  serves is rate limited across the whole registry, so it rendered as an error
+  rather than a number. It now reports unpacked install size, read straight from
+  the npm registry.
+
 ## 0.1.0
 
 First release.
