@@ -41,27 +41,7 @@ jobs:
       - run: npm run verify:directives
       - run: npm run size
 
-      # Trusted publishing cannot create a package that does not exist yet:
-      # the trusted publisher is configured on the package's own settings page,
-      # so the package has to be published once by hand first. Until then OIDC
-      # has no permission for the name and npm answers PUT with a 404.
-      # See https://github.com/npm/cli/issues/8544
-      #
-      # This check skips the release step until that first manual publish has
-      # happened, so pushes to main stop failing for a reason nobody can fix
-      # from CI. It starts working on its own afterwards.
-      - name: Has the package been published yet?
-        id: exists
-        run: |
-          if npm view chroma-panel version > /dev/null 2>&1; then
-            echo "published=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::chroma-panel is not on the registry yet. Publish 0.1.0 manually once, then configure the trusted publisher; this job will take over from the next release."
-          fi
-
       - uses: changesets/action@v1
-        if: steps.exists.outputs.published == 'true'
         with:
           publish: npm run release
         env:
