@@ -65,7 +65,10 @@ describe('the README does not document things that do not exist', () => {
 
   it('keeps the README itself short enough to read', () => {
     const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
-    expect(readme.length, 'README has grown past the point of being scannable')
+    // Measured as read: link targets are not on screen, and the README links
+    // most things to the docs site with full URLs.
+    const visible = readme.replace(/\]\([^)]*\)/g, ']');
+    expect(visible.length, 'README has grown past the point of being scannable')
       .toBeLessThan(6000);
   });
 

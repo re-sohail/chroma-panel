@@ -8,15 +8,16 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "relink": "cd .. && npm run build && npm pack && cd playground && npm install ../chroma-panel-0.1.0.tgz"
+    "relink": "cd .. && npm run build && mv \"$(npm pack --silent)\" chroma-panel.tgz && cd playground && npm install ../chroma-panel.tgz"
   },
   "dependencies": {
-    "chroma-panel": "file:../chroma-panel-0.1.0.tgz",
+    "chroma-panel": "file:../chroma-panel.tgz",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.0",
+    "sharp": "^0.35.4",
     "vite": "^8.0.0"
   }
 }

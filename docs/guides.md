@@ -1,6 +1,6 @@
 # Guides
 
-[← back to the README](../README.md)
+[← back to the README](../README.md) · These guides, with live demos, are on the [docs site](https://chroma-panel.jscrate.dev/react/handbook/theming).
 
 ## Theming
 

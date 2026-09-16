@@ -1,6 +1,6 @@
 # API
 
-[← back to the README](../README.md)
+[← back to the README](../README.md) · The same reference, with live demos, is on the [docs site](https://chroma-panel.jscrate.dev/react/components/chroma-panel).
 
 ## Components
 

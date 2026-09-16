@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8" /><title>social preview</title>
+<style>
+  html,body{margin:0;background:#0b0b0e;
+    font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+  /* GitHub's social preview: 1280x640, shown cropped to 2:1 or smaller. */
+  #stage{position:relative;width:1280px;height:640px;overflow:hidden;
+    display:flex;align-items:center;gap:48px;padding:0 0 0 72px;box-sizing:border-box}
+  .copy{flex:0 0 380px;color:#f5f5f7}
+  .mark{display:flex;align-items:center;gap:14px;font-size:44px;font-weight:700;letter-spacing:-0.02em}
+  .dot{width:22px;height:22px;border-radius:50%;background:#fff}
+  .tagline{margin:20px 0 0;font-size:26px;line-height:1.3;color:#c7c7cc;font-weight:500}
+  .install{margin-top:32px;display:inline-block;padding:10px 16px;border-radius:10px;
+    background:#1c1c1f;border:1px solid #2c2c30;color:#f5f5f7;
+    font:500 20px ui-monospace,SFMono-Regular,Menlo,monospace}
+  .bar{position:absolute;left:0;right:0;bottom:0;height:8px;
+    background:linear-gradient(90deg,#f43f5e 0%,#fbbf24 50%,#0ea5e9 100%)}
+  .panels{display:flex;gap:22px;align-items:center}
+  .hero-image .cp-image-preview img{object-fit:cover}
+</style></head>
+<body>
+  <div id="stage">
+    <div class="copy">
+      <div class="mark"><span class="dot"></span>chroma-panel</div>
+      <p class="tagline">The React color picker with a wheel, sliders, palettes, image sampling and an eyedropper.</p>
+      <div class="install">npm i chroma-panel</div>
+    </div>
+    <div class="panels" id="panels"></div>
+    <div class="bar"></div>
+  </div>
+  <script type="module" src="/social.jsx"></script>
+</body></html>

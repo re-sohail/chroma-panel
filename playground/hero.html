@@ -3,6 +3,8 @@
 <style>
   html,body{margin:0;background:#0b0b0e;min-height:100vh;
     font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
-  #stage{display:flex;gap:26px;align-items:flex-start;padding:44px;width:max-content}
+  #stage{display:flex;gap:26px;align-items:center;padding:44px;width:max-content}
+  /* The preview letterboxes by default; a fixed sample reads better filled. */
+  .hero-image .cp-image-preview img{object-fit:cover}
 </style></head>
 <body><div id="stage"></div><script type="module" src="/hero.jsx"></script></body></html>
