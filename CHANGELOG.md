@@ -1,5 +1,23 @@
 # chroma-panel
 
+## 0.1.3
+
+### Patch Changes
+
+- 422ac8c: The npm page's Homepage link now opens the documentation site,
+  [chroma-panel.jscrate.dev](https://chroma-panel.jscrate.dev).
+
+  - The README links each mode, guide and FAQ to its page on the docs site
+  - New README screenshots show the "Colors" title and the image mode with a
+    palette extracted from a photo
+  - The package description matches the docs site, and the author link is now
+    https://me.jscrate.dev
+- 88ed032: The image mode's file input keeps an accessible name after an image is loaded.
+  The drop zone's label names it until then; once the preview replaces the drop
+  zone, the input is named "Choose a different image" and leaves the tab order,
+  since nothing on screen would show it had focus. Accessibility checkers no
+  longer report "Form elements must have labels" for a loaded image.
+
 ## 0.1.2
 
 ### Patch Changes
