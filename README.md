@@ -1,7 +1,7 @@
 [![chroma-panel, a React color picker: a color wheel, a photo with the palette extracted from it, and a 120-color pencil grid](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)](https://chroma-panel.jscrate.dev)
 
 [![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
-[![install size](https://img.shields.io/npm/unpacked-size/chroma-panel?color=2d7ff9&label=install%20size)](https://www.npmjs.com/package/chroma-panel)
+<!-- [![install size](https://img.shields.io/npm/unpacked-size/chroma-panel?color=2d7ff9&label=install%20size)](https://www.npmjs.com/package/chroma-panel) -->
 [![downloads](https://img.shields.io/npm/dw/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
 [![docs](https://img.shields.io/badge/docs-chroma--panel.jscrate.dev-2d7ff9)](https://chroma-panel.jscrate.dev)
 [![license](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)](./LICENSE)
