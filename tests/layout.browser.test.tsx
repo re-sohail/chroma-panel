@@ -321,6 +321,12 @@ describe('the image mode', () => {
     expect(Math.round(preview.getBoundingClientRect().height)).toBeGreaterThan(90);
     expect(getComputedStyle(img).objectFit).toBe('contain');
 
+    // The preview replaces the drop zone, which was the input's <label>.
+    expect(document.querySelector(`label[for="${input.id}"]`)).toBeNull();
+    expect(input.getAttribute('aria-label'), 'file input lost its accessible name')
+      .toBe('Choose a different image');
+    expect(input.tabIndex, 'an invisible input stayed in the tab order').toBe(-1);
+
     const remove = document.querySelector<HTMLButtonElement>('.cp-image-remove')!;
     expect(remove, 'no remove control').not.toBeNull();
     expect(remove.getAttribute('aria-label')).toBe('Remove image');
@@ -330,6 +336,10 @@ describe('the image mode', () => {
     expect(document.querySelector('.cp-image-preview'), 'preview survived remove').toBeNull();
     expect(document.querySelector('.cp-dropzone'), 'drop zone did not come back').not.toBeNull();
     expect(input.value, 're-picking the same file would fire no change event').toBe('');
+    // Back to the visible label, which names the input by the text on screen.
+    expect(document.querySelector(`label[for="${input.id}"]`)).not.toBeNull();
+    expect(input.hasAttribute('aria-label')).toBe(false);
+    expect(input.tabIndex).toBe(0);
   });
 
   it('keeps the image when the popover closes and reopens', async () => {

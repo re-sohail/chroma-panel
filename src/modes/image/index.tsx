@@ -165,6 +165,10 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
         </div>
       )}
 
+      {/* Stays mounted so its value can be reset and Safari autofill keeps
+          working. The drop zone's <label> names it; once the preview replaces
+          that label it needs a name of its own, and it leaves the tab order
+          because nothing on screen would show that it had focus. */}
       <input
         ref={inputRef}
         id={inputId}
@@ -172,6 +176,8 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
         type="file"
         accept="image/*"
         disabled={disabled}
+        aria-label={preview === null ? undefined : 'Choose a different image'}
+        tabIndex={preview === null ? undefined : -1}
         onChange={(e) => onFiles(e.currentTarget.files)}
       />
 
