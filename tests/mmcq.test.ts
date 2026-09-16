@@ -19,14 +19,14 @@ describe('quantize', () => {
     expect(quantize(pixels([[255, 0, 0, 50]], 0), 8)).toEqual([]);
   });
 
-  it('finds a single flat colour', () => {
+  it('finds a single flat color', () => {
     const result = quantize(pixels([[255, 0, 0, 100]]), 8);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result[0]!.hex).toBe('#ff0000');
     expect(result[0]!.population).toBe(100);
   });
 
-  it('separates three distinct colours', () => {
+  it('separates three distinct colors', () => {
     const result = quantize(
       pixels([[255, 0, 0, 300], [0, 255, 0, 200], [0, 0, 255, 100]]),
       8,

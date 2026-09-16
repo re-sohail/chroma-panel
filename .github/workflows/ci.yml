@@ -26,7 +26,7 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests (colour maths, store, quantizer, SSR)
+      - name: Unit tests (color math, store, quantizer, SSR)
         run: npm run test:unit
 
       - name: Install Chromium

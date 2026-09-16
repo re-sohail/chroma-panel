@@ -95,12 +95,12 @@ describe('hsl() and hwb()', () => {
   });
 });
 
-describe('keywords and named colours', () => {
+describe('keywords and named colors', () => {
   it('knows `transparent` without the named table', () => {
     expect(toHexa(parse('transparent')!)).toBe('#00000000');
   });
 
-  it('does not know named colours until they are registered', () => {
+  it('does not know named colors until they are registered', () => {
     expect(parse('rebeccapurple')).toBeNull();
     registerNamedColors({ rebeccapurple: '663399' });
     expect(toHex(parse('rebeccapurple')!)).toBe('#663399');

@@ -1,5 +1,15 @@
 # chroma-panel
 
+## 0.1.2
+
+### Patch Changes
+
+- Use the American spelling "color" throughout. The default `title` is now
+  `'Colors'`, the default `ColorInput` `aria-label` is `'Choose a color'`, and the
+  accessible names (Color wheel, Color model, Recent colors, Pick a color from the
+  screen, Extracted colors) and the native validation message follow suit. If your
+  tests query these by accessible name, update them to the new spelling.
+
 ## 0.1.1
 
 ### Patch Changes

@@ -37,7 +37,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     open, defaultOpen = false, onOpenChange,
     name, form, required = false, readOnly = false, autoComplete,
     validationBehavior = 'native',
-    id, 'aria-label': ariaLabel = 'Choose a colour', triggerClassName,
+    id, 'aria-label': ariaLabel = 'Choose a color', triggerClassName,
     disabled: disabledProp = false, className, classNames = {}, format = 'hex',
     value, defaultValue = DEFAULT_COLOR, store: externalStore,
     mode, defaultMode, onModeChange,
@@ -111,7 +111,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
   useConstraintValidation(hiddenRef, {
     behavior: validationBehavior,
     required,
-    isEmpty: false, // A colour picker always holds a colour.
+    isEmpty: false, // A color picker always holds a color.
     focusTrigger: () => trigger?.focus(),
   });
 

@@ -9,7 +9,7 @@ import {
 } from 'chroma-panel';
 import { namedColors } from 'chroma-panel/named-colors';
 
-// Opt in to the 148 CSS colour names, so named input is exercised too.
+// Opt in to the 148 CSS color names, so named input is exercised too.
 registerNamedColors(namedColors);
 
 const PALETTES = defaultPalettes();

@@ -49,7 +49,7 @@ export function PalettesPanel(): React.ReactElement {
 
       <div className="cp-scroll">
         {groups.length === 0 ? (
-          <p className="cp-empty">No colours match &ldquo;{query}&rdquo;.</p>
+          <p className="cp-empty">No colors match &ldquo;{query}&rdquo;.</p>
         ) : (
           groups.map((group) => (
             <section key={group.name} className="cp-group">

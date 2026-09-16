@@ -2,7 +2,7 @@ import { gzipSync } from 'node:zlib';
 import { rolldown } from 'rolldown';
 
 const BUDGETS = [
-  { entry: 'dist/core.js', label: 'core (colour engine, no React)', limit: 2.5 },
+  { entry: 'dist/core.js', label: 'core (color engine, no React)', limit: 2.5 },
   { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 5.0 },
   { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 6.0 },
 

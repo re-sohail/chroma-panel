@@ -39,7 +39,7 @@ describe('normalizeHue', () => {
 });
 
 describe('HSV <-> RGB', () => {
-  it('round-trips 10k random colours within float tolerance', () => {
+  it('round-trips 10k random colors within float tolerance', () => {
     const rnd = mulberry32(0xc0ffee);
     for (let i = 0; i < 10_000; i++) {
       const src = randomHsva(rnd);
@@ -81,7 +81,7 @@ describe('HSV <-> RGB', () => {
 });
 
 describe('HSV <-> HSL', () => {
-  it('round-trips 10k random colours and passes hue through untouched', () => {
+  it('round-trips 10k random colors and passes hue through untouched', () => {
     const rnd = mulberry32(0xbadc0de);
     for (let i = 0; i < 10_000; i++) {
       const src = randomHsva(rnd);
@@ -104,7 +104,7 @@ describe('HSV <-> HSL', () => {
 });
 
 describe('HSV <-> HWB', () => {
-  it('round-trips 10k random colours', () => {
+  it('round-trips 10k random colors', () => {
     const rnd = mulberry32(0x5eed);
     for (let i = 0; i < 10_000; i++) {
       const src = randomHsva(rnd);

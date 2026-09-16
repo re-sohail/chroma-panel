@@ -26,7 +26,7 @@ async function waitForAll<T extends Element>(selector: string, count: number, ti
 }
 
 describe('keyboard operation', () => {
-  it('exposes every colour axis as a real, labelled slider', async () => {
+  it('exposes every color axis as a real, labelled slider', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false} />);
     await expect.element(page.getByRole('slider', { name: 'Hue' })).toBeInTheDocument();
     await expect.element(page.getByRole('slider', { name: 'Saturation' })).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('keyboard operation', () => {
     await expect.element(page.getByRole('slider', { name: 'Opacity' })).toBeInTheDocument();
   });
 
-  it('moves the colour with arrow keys', async () => {
+  it('moves the color with arrow keys', async () => {
     const onChange = vi.fn();
     render(
       <ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false} onChange={onChange} />,
@@ -152,7 +152,7 @@ describe('regressions from other pickers', () => {
     expect(hue.value).toBe(originalHue);
   });
 
-  it('does not stomp the colour when a parent echoes onChange into value', async () => {
+  it('does not stomp the color when a parent echoes onChange into value', async () => {
     function Echoing(): React.ReactElement {
       const [color, setColor] = React.useState('#3366cc');
       return (
@@ -179,7 +179,7 @@ describe('regressions from other pickers', () => {
   it('leaves the page globals untouched (react-colorful #179)', async () => {
     const before = new Set(Object.keys(window));
     render(<ChromaPanel defaultValue="#3366cc" />);
-    await expect.element(page.getByRole('group', { name: /colour wheel/i })).toBeInTheDocument();
+    await expect.element(page.getByRole('group', { name: /color wheel/i })).toBeInTheDocument();
     const added = Object.keys(window).filter((k) => !before.has(k));
     expect(added).toEqual([]);
   });
@@ -230,7 +230,7 @@ describe('swatch grids', () => {
     }
   });
 
-  it('selects a colour on click and marks it pressed', async () => {
+  it('selects a color on click and marks it pressed', async () => {
     const onChangeComplete = vi.fn();
     render(
       <ChromaPanel

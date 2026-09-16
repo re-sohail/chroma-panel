@@ -25,7 +25,7 @@ const submitted = (form: HTMLFormElement): Record<string, string> =>
   Object.fromEntries(new FormData(form) as unknown as Iterable<[string, string]>);
 
 describe('native form semantics', () => {
-  it('submits the colour under its name', async () => {
+  it('submits the color under its name', async () => {
     render(
       <form data-testid="f">
         <ColorInput defaultValue="#3366cc" name="brand" />
@@ -80,7 +80,7 @@ describe('native form semantics', () => {
     expect(submitted(form)).toEqual({});
   });
 
-  it('restores the default colour when the form is reset', async () => {
+  it('restores the default color when the form is reset', async () => {
     render(
       <form>
         <ColorInput defaultValue="#3366cc" name="brand" modes={['sliders']} />
@@ -113,7 +113,7 @@ describe('native form semantics', () => {
     expect(submitted(form)).toEqual({ brand: '#3366cc' });
   });
 
-  it('notifies the surrounding form when the colour changes', async () => {
+  it('notifies the surrounding form when the color changes', async () => {
     const onChange = vi.fn();
     render(
       <form onChange={onChange}>

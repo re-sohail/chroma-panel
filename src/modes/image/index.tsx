@@ -130,8 +130,8 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
       }}
     >
       <div role="status" aria-live="polite" className="cp-visually-hidden">
-        {status === 'working' ? 'Extracting colours' : ''}
-        {status === 'ready' ? `${swatches.length} colours extracted` : ''}
+        {status === 'working' ? 'Extracting colors' : ''}
+        {status === 'ready' ? `${swatches.length} colors extracted` : ''}
         {status === 'error' ? message : ''}
       </div>
 
@@ -180,7 +180,7 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
       {status === 'ready' && (
         <SwatchGrid
           swatches={swatches.map((s) => ({ color: s.hex, name: s.hex }))}
-          label="Extracted colours"
+          label="Extracted colors"
           columns={5}
         />
       )}

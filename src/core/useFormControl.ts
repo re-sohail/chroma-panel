@@ -77,7 +77,7 @@ export function useConstraintValidation(
 
     const { behavior, required, isEmpty } = latest.current;
     const message =
-      behavior === 'native' && required && isEmpty ? 'Please choose a colour.' : '';
+      behavior === 'native' && required && isEmpty ? 'Please choose a color.' : '';
     input.setCustomValidity(message);
 
     if (!input.hasAttribute('title')) input.title = '';

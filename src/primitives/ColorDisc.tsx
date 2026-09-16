@@ -71,7 +71,7 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
         onPointerUp={drag.onPointerUp}
         onLostPointerCapture={drag.onLostPointerCapture}
         role="group"
-        aria-label="Colour wheel"
+        aria-label="Color wheel"
         aria-disabled={disabled || undefined}
       >
         <AxisInput

@@ -96,7 +96,7 @@ describe('ingest keeps powerless components alive', () => {
     expect(toHex(store.get())).toBe('#441a80');
   });
 
-  it('accepts a genuine external colour wholesale', () => {
+  it('accepts a genuine external color wholesale', () => {
     const store = createColorStore(RED);
     store.ingest(parse('#00ff00')!);
     expect(toHex(store.get())).toBe('#00ff00');
@@ -104,7 +104,7 @@ describe('ingest keeps powerless components alive', () => {
 });
 
 describe('commit', () => {
-  it('notifies commit listeners with the current colour', () => {
+  it('notifies commit listeners with the current color', () => {
     const store = createColorStore(RED);
     const onCommit = vi.fn();
     store.subscribeCommit(onCommit);

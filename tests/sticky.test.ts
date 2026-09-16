@@ -40,7 +40,7 @@ describe('hue survives a trip to the achromatic poles', () => {
     expect(toHex(restored)).toBe(toHex(start));
   });
 
-  it('survives a full round trip: colour -> black -> colour', () => {
+  it('survives a full round trip: color -> black -> color', () => {
     const start: Hsva = { h: 285, s: 55, v: 40, a: 0.75 };
     let state = start;
 
@@ -56,7 +56,7 @@ describe('hue survives a trip to the achromatic poles', () => {
     expect(toHexa(state)).toBe(toHexa(start));
   });
 
-  it('still moves every axis after a grayscale colour is set', () => {
+  it('still moves every axis after a grayscale color is set', () => {
     const grey = parse('#808080')!;
     expect(grey.s).toBe(0);
 
@@ -93,8 +93,8 @@ describe('controlled-value sync gate', () => {
   });
 });
 
-describe('ingest is a no-op for well-defined colours', () => {
-  it('passes a fully saturated, bright colour straight through', () => {
+describe('ingest is a no-op for well-defined colors', () => {
+  it('passes a fully saturated, bright color straight through', () => {
     const prev: Hsva = { h: 10, s: 10, v: 10, a: 1 };
     const next: Hsva = { h: 200, s: 90, v: 90, a: 0.5 };
     expect(ingest(next, prev)).toEqual(next);

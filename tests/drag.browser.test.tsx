@@ -75,7 +75,7 @@ describe('the drag loop', () => {
     expect(renders).toBe(settled);
   });
 
-  it('actually changes the colour while dragging', async () => {
+  it('actually changes the color while dragging', async () => {
     const onChange = vi.fn();
     render(
       <ChromaPanel defaultValue="#ff0000" modes={['sliders']} showTitleBar={false} onChange={onChange} />,
@@ -149,7 +149,7 @@ describe('the drag loop', () => {
     render(
       <ChromaPanel defaultValue="#00ff00" modes={['wheel']} showTitleBar={false} onChange={onChange} />,
     );
-    await expect.element(page.getByRole('group', { name: /colour wheel/i })).toBeInTheDocument();
+    await expect.element(page.getByRole('group', { name: /color wheel/i })).toBeInTheDocument();
 
     const disc = document.querySelector('.cp-disc') as HTMLElement;
     await pointerDrag(disc, { x: 0.5, y: 0.5 }, { x: 3, y: 0.5 }, 20);

@@ -66,7 +66,7 @@ Mode ids are `'wheel'`, `'sliders'`, `'palettes'`, `'image'` and `'pencils'`. Th
 | `showEyedropper` | `boolean` | `true` | Turn off to hide it even where supported |
 | `showRecentColors` | `boolean` | `true` | Turn off in a one-shot picker |
 | `showTitleBar` | `boolean` | `true` | Turn off for an inline panel with no chrome |
-| `title` | `string` | `'Colours'` | Rename the title bar |
+| `title` | `string` | `'Colors'` | Rename the title bar |
 | `theme` | `'dark' \| 'light'` | system | Force one theme instead of following the OS |
 | `disabled` | `boolean` | `false` | Read-only screens, or while a form is saving |
 
@@ -125,7 +125,7 @@ Slots for `classNames`: `root`, `titlebar`, `toolbar`, `tab`, `panel`, `footer`,
 | `defaultOpen` | `boolean` | `false` | Open on mount |
 | `onOpenChange` | `(open: boolean) => void` | — | React to opening and closing |
 | `sheetOnMobile` | `boolean` | `true` | Keep the popover on small screens |
-| `aria-label` | `string` | `'Choose a colour'` | Name the trigger for screen readers |
+| `aria-label` | `string` | `'Choose a color'` | Name the trigger for screen readers |
 
 Below 640px the popover becomes a bottom sheet, which is easier to reach with a thumb. Set `sheetOnMobile={false}` if your layout needs an anchored popover at every width.
 

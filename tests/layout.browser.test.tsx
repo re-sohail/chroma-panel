@@ -519,7 +519,7 @@ describe('the selection ring', () => {
 });
 
 describe('the footer', () => {
-  it('shows the current colour once, not twice', async () => {
+  it('shows the current color once, not twice', async () => {
     render(panel());
     await waitFor('.cp-panel-host');
 
@@ -538,7 +538,7 @@ describe('the footer', () => {
       .map((el) => el.style.getPropertyValue('--cp-swatch-color').trim().toLowerCase());
 
     expect(preview, 'the preview is not painted').not.toBe('');
-    expect(rendered, 'the current colour is repeated in the history')
+    expect(rendered, 'the current color is repeated in the history')
       .not.toContain('#002875');
 
     swatches[40]!.click();
@@ -580,7 +580,7 @@ describe('the footer', () => {
     expect(row.getAttribute('data-cp-fade'), 'a row that fits should carry no fade').toBeNull();
   });
 
-  it('lets every recent colour be reached rather than clipping them', async () => {
+  it('lets every recent color be reached rather than clipping them', async () => {
     const recents = [
       '#111111', '#222222', '#333333', '#444444', '#555555',
       '#666666', '#777777', '#888888', '#999999', '#aaaaaa',

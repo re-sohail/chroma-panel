@@ -82,7 +82,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     showAlpha = true, showEyedropper = true, showRecentColors = true,
     recentColors, defaultRecentColors, onRecentColorsChange,
     palettes, pencils, modeProps, imageOptions,
-    disabled = false, theme, showTitleBar = true, title = 'Colours',
+    disabled = false, theme, showTitleBar = true, title = 'Colors',
     onClose,
     collapsed, defaultCollapsed = false, onCollapsedChange,
     size, defaultSize = 'default', onSizeChange,

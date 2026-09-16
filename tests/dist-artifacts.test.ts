@@ -60,7 +60,7 @@ describe.skipIf(!built)('the built library', () => {
 
 describe.skipIf(!built)('tree-shaking survival', () => {
   const MODES: Record<string, string> = {
-    wheel: 'Colour wheel',
+    wheel: 'Color wheel',
     sliders: 'HSB',
     palettes: 'Name or hex',
     image: 'Drop an image here',

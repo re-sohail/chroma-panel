@@ -27,7 +27,7 @@ async function gone(selector: string, timeout = 3000): Promise<void> {
 const light = (which: 'close' | 'min' | 'max'): HTMLButtonElement =>
   document.querySelector<HTMLButtonElement>(`.cp-light[data-cp-light="${which}"]`)!;
 
-const committedColour = (): { trigger: string; form: string | undefined } => ({
+const committedColor = (): { trigger: string; form: string | undefined } => ({
   trigger: getComputedStyle(document.querySelector('.cp-trigger')!)
     .getPropertyValue('--cp-trigger-color').trim(),
   form: document.querySelector<HTMLInputElement>('input[name=c]')?.value,
@@ -37,8 +37,8 @@ afterEach(async () => {
   await page.viewport(DESKTOP.width, DESKTOP.height);
 });
 
-describe('closing never loses the colour', () => {
-  it('keeps the colour when closed with the red control', async () => {
+describe('closing never loses the color', () => {
+  it('keeps the color when closed with the red control', async () => {
     render(<ColorInput defaultValue="#3366cc" name="c" modes={['sliders']} />);
     const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
     trigger.click();
@@ -49,13 +49,13 @@ describe('closing never loses the colour', () => {
     await userEvent.fill(hex, '#12ab56');
     await userEvent.keyboard('{Enter}');
     await new Promise((r) => setTimeout(r, 60));
-    const before = committedColour();
+    const before = committedColor();
 
     light('close').click();
     await gone('.cp-popover');
 
-    expect(committedColour()).toEqual(before);
-    expect(committedColour().form).toBe('#12ab56');
+    expect(committedColor()).toEqual(before);
+    expect(committedColor().form).toBe('#12ab56');
   });
 
   it('returns focus to the trigger after closing', async () => {
@@ -70,7 +70,7 @@ describe('closing never loses the colour', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it('reopens with the same colour AND the same mode', async () => {
+  it('reopens with the same color AND the same mode', async () => {
     render(<ColorInput defaultValue="#3366cc" name="c" modes={['wheel', 'sliders', 'palettes']} />);
     const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
     trigger.click();
@@ -113,12 +113,12 @@ describe('closing never loses the colour', () => {
 
     light('close').click();
     await gone('.cp-popover');
-    expect(committedColour().form).toBe('#0a0b0c');
+    expect(committedColor().form).toBe('#0a0b0c');
   });
 });
 
 describe('collapse', () => {
-  it('hides the body, keeps the colour, and restores everything', async () => {
+  it('hides the body, keeps the color, and restores everything', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     const body = await waitFor<HTMLElement>('.cp-body');
     const hexBefore = (await waitFor<HTMLInputElement>('input[type=text]')).value;
@@ -147,7 +147,7 @@ describe('collapse', () => {
 });
 
 describe('zoom', () => {
-  it('widens the panel without disturbing the colour', async () => {
+  it('widens the panel without disturbing the color', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     const root = await waitFor<HTMLElement>('.cp-root');
     const hexBefore = (await waitFor<HTMLInputElement>('input[type=text]')).value;
@@ -220,7 +220,7 @@ describe('the sheet', () => {
 
     grabber.click();
     await gone('.cp-sheet');
-    expect(committedColour().form).toBe('#3366cc');
+    expect(committedColor().form).toBe('#3366cc');
   });
 });
 

@@ -49,7 +49,7 @@ export function WheelPanel(): React.ReactElement {
 
 export const wheelMode: PickerMode = {
   id: 'wheel',
-  label: 'Colour wheel',
+  label: 'Color wheel',
   icon: WheelIcon,
   Panel: WheelPanel,
 };

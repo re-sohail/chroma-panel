@@ -53,7 +53,7 @@ export function SlidersPanel(): React.ReactElement {
     <div className="cp-panel">
       <SegmentedControl
         size="sm"
-        ariaLabel="Colour model"
+        ariaLabel="Color model"
         items={MODELS}
         value={model}
         onChange={(id) => setModel(id as Model)}

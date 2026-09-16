@@ -1,6 +1,6 @@
 {
   "name": "chroma-panel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React color picker with wheel, sliders, palettes, image sampling and an eyedropper. Zero dependencies, accessible, TypeScript types included.",
   "keywords": [
     "react",

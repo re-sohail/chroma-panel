@@ -48,14 +48,14 @@ export function PanelFooter(): React.ReactElement | null {
       <div className="cp-preview" aria-hidden="true" />
 
       {recents.length > 0 ? (
-        <ul ref={recentsRef} className="cp-recents" aria-label="Recent colours">
+        <ul ref={recentsRef} className="cp-recents" aria-label="Recent colors">
           {recents.map((color, index) => (
             <li key={`${color}-${index}`}>
               <button
                 type="button"
                 className={cx('cp-swatch', 'cp-swatch-round', classNames.swatch)}
                 style={{ ['--cp-swatch-color' as string]: color } as React.CSSProperties}
-                aria-label={`Recent colour ${color}`}
+                aria-label={`Recent color ${color}`}
                 disabled={disabled}
                 onClick={() => {
                   const parsed = parse(color);
@@ -75,8 +75,8 @@ export function PanelFooter(): React.ReactElement | null {
         <button
           type="button"
           className="cp-icon-button"
-          aria-label="Pick a colour from the screen"
-          title="Pick a colour from the screen"
+          aria-label="Pick a color from the screen"
+          title="Pick a color from the screen"
           disabled={disabled}
           onClick={() => { void handlePick(); }}
         >

@@ -36,7 +36,7 @@ describe('server rendering', () => {
     }
   });
 
-  it('emits the colour as CSS custom properties, so the first paint is correct', () => {
+  it('emits the color as CSS custom properties, so the first paint is correct', () => {
     const html = renderToStaticMarkup(<ChromaPanel defaultValue="#ff0000" showTitleBar={false} />);
     expect(html).toContain('--cp-h:0');
     expect(html).toContain('--cp-s:100%');
@@ -55,7 +55,7 @@ describe('server rendering', () => {
   });
 
   it('falls back to white for an unparseable value instead of crashing', () => {
-    const html = renderToStaticMarkup(<ChromaPanel defaultValue="not-a-colour" />);
+    const html = renderToStaticMarkup(<ChromaPanel defaultValue="not-a-color" />);
     expect(html).toContain('cp-root');
   });
 });

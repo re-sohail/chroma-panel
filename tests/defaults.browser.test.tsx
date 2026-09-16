@@ -67,8 +67,8 @@ describe('mode options reach their mode', () => {
   });
 });
 
-describe('the colour a picker starts on', () => {
-  it('keeps FALLBACK and DEFAULT_COLOR the same colour', () => {
+describe('the color a picker starts on', () => {
+  it('keeps FALLBACK and DEFAULT_COLOR the same color', () => {
     expect(toHex(FALLBACK)).toBe(DEFAULT_COLOR);
   });
 
@@ -82,8 +82,8 @@ describe('the colour a picker starts on', () => {
     expect(painted).not.toMatch(/255,\s*255,\s*255/);
   });
 
-  it('falls back to the same colour when the value cannot be parsed', async () => {
-    render(<ChromaPanel value="definitely-not-a-colour" showTitleBar={false} modes={['sliders']} />);
+  it('falls back to the same color when the value cannot be parsed', async () => {
+    render(<ChromaPanel value="definitely-not-a-color" showTitleBar={false} modes={['sliders']} />);
     await waitFor('.cp-panel-host');
     await new Promise((r) => setTimeout(r, 80));
 
