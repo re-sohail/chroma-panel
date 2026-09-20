@@ -203,7 +203,7 @@ interface ColorChangeResult {
 To keep full precision across a round trip, store `hsva` and pass it back. `value`
 accepts the object as well as a string.
 
-## Color engine
+## Hex, RGB, HSL and HSV color engine
 
 Available from the main entry and from `chroma-panel/core`, which pulls in no React
 and touches no DOM.
@@ -317,7 +317,7 @@ gesture ends. That split is what `onChange` and `onChangeComplete` are built on.
 Pass a store to `ColorInput` or `ChromaPanel` with the `store` prop to drive several
 components from one value.
 
-## Hooks
+## React color picker hooks
 
 ```ts
 import { useColorValue, useTransientColor, usePanel } from 'chroma-panel';

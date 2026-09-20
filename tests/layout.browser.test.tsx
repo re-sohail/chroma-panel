@@ -123,6 +123,24 @@ describe('the bottom sheet stays put', () => {
 });
 
 describe('scrolling', () => {
+  it('keeps filtered palette results directly below the search field', async () => {
+    render(<ChromaPanel
+      defaultValue="#3366cc"
+      modes={['palettes']}
+      palettes={defaultPalettes()}
+      showTitleBar={false}
+      style={{ height: '580px', ['--cp-panel-h' as string]: 'auto' }}
+    />);
+    const search = await waitFor<HTMLInputElement>('.cp-panel input[type="search"]');
+    search.value = 'red';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    await settle();
+
+    const results = await waitFor<HTMLElement>('.cp-scroll');
+    const gap = results.getBoundingClientRect().top - search.getBoundingClientRect().bottom;
+    expect(gap, 'filtered results drifted away from the search field').toBeLessThanOrEqual(12);
+  });
+
   it('scrolls the palette list on a phone', async () => {
     await page.viewport(360, 640);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}

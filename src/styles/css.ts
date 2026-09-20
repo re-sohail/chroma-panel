@@ -321,6 +321,10 @@ export const css: string = `
 
   .cp-fields { display: flex; gap: 8px; align-items: flex-end; }
   .cp-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+  /* .cp-field normally shares a row with sibling fields. Palette search is a
+     direct child of a vertical panel, so it must not consume the panel's spare
+     height and push a short result list to the bottom. */
+  .cp-palette-search { flex: none; }
   .cp-field-label {
     color: var(--cp-text-muted); font-size: 11px; font-weight: 500;
   }

@@ -35,7 +35,7 @@ export function PalettesPanel(): React.ReactElement {
 
   return (
     <div className="cp-panel">
-      <div className="cp-field">
+      <div className="cp-field cp-palette-search">
         <label className="cp-field-label" htmlFor={searchId}>Search</label>
         <input
           id={searchId}

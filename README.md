@@ -6,13 +6,14 @@
 [![docs](https://img.shields.io/badge/docs-chroma--panel.jscrate.dev-2d7ff9)](https://chroma-panel.jscrate.dev)
 [![license](https://img.shields.io/npm/l/chroma-panel?color=2d7ff9)](./LICENSE)
 
-# chroma-panel
+# chroma-panel — React color picker
 
-A React color picker component with the look and feel of the macOS color panel: a color wheel, sliders, palettes, color sampling from an image, and an eyedropper.
+A lightweight, accessible React color picker component with the look and feel of the macOS color panel. It includes a color wheel, precise RGB, HSL and HSV sliders, searchable swatches, image color sampling, opacity and an eyedropper—with zero runtime dependencies and TypeScript types included.
 
 **[Documentation and live demo](https://chroma-panel.jscrate.dev)** · [Quick start](https://chroma-panel.jscrate.dev/react/overview/quick-start) · [Comparison](https://chroma-panel.jscrate.dev/react/overview/comparison) · [FAQ](https://chroma-panel.jscrate.dev/react/overview/faq) · [Releases](https://chroma-panel.jscrate.dev/react/overview/releases)
 
 - Five ways to pick a color: a [wheel](https://chroma-panel.jscrate.dev/react/modes/wheel), [RGB, HSL and HSB sliders](https://chroma-panel.jscrate.dev/react/modes/sliders), [palettes](https://chroma-panel.jscrate.dev/react/modes/palettes), a [120-color pencil grid](https://chroma-panel.jscrate.dev/react/modes/pencils), and [sampling from an image](https://chroma-panel.jscrate.dev/react/modes/image)
+- Hex, RGB(A), HSL(A), HSB/HSV and opacity controls for exact color values
 - An [eyedropper](https://chroma-panel.jscrate.dev/react/utils/use-eyedropper) for grabbing a color from anywhere on screen, where the browser supports it
 - Drops into a [form](https://chroma-panel.jscrate.dev/react/handbook/forms) like an `<input>`, with `name`, `required` and `form.reset()`
 - [Accessible](https://chroma-panel.jscrate.dev/react/overview/accessibility): every color channel is a real range input, so keyboards and screen readers work
@@ -24,7 +25,7 @@ A React color picker component with the look and feel of the macOS color panel: 
 npm install chroma-panel
 ```
 
-## Use it
+## React color picker example
 
 ```tsx
 import { useState } from 'react';
@@ -81,7 +82,7 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 14.1 kB instead of 22.2 kB. Every mode has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
+That is 12.5 kB instead of 19.3 kB. Every mode has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
 
 ## Theming
 
@@ -107,8 +108,8 @@ Measured as the increase in a real Vite production build, gzipped, with React ex
 
 | What you import | Added to your app |
 | --- | --- |
-| all five modes | 22.2 kB |
-| shell plus one mode | 14.1 kB |
+| all five modes | 19.3 kB |
+| shell plus one mode | 12.5 kB |
 
 `dependencies` is empty. `react` and `react-dom` are peer dependencies, so the copy already in your app is the one that gets used.
 

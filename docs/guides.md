@@ -2,7 +2,7 @@
 
 [← back to the README](../README.md) · These guides, with live demos, are on the [docs site](https://chroma-panel.jscrate.dev/react/handbook/theming).
 
-## Theming
+## Styling the React color picker
 
 Set CSS variables on `.cp-root` to change how the panel looks:
 
@@ -47,7 +47,7 @@ mode, which is what stops the panel resizing when you switch tabs. Content talle
 it scrolls. Set it to `auto` if you would rather each mode sized itself, and accept
 that the panel will jump.
 
-### With Tailwind
+### React color picker with Tailwind CSS
 
 Pass your classes per slot instead of writing CSS:
 
@@ -147,7 +147,7 @@ registerNamedColors(namedColors);
 
 Now `parse('rebeccapurple')` works.
 
-## On a phone
+## React color picker on mobile
 
 Phones are handled for you, but there is one line to add to your page.
 
@@ -245,7 +245,7 @@ and tabs. This is the most common cause of a panel that looks almost right — s
 Store `hsva` and pass it back to `value` if a color has to survive a round trip
 unchanged.
 
-## Accessibility
+## Accessible React color picker
 
 The picker is keyboard and screen-reader operable out of the box. You do not need to
 add anything.

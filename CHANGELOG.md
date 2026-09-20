@@ -1,5 +1,14 @@
 # chroma-panel
 
+## 0.1.4
+
+### Patch Changes
+
+- Keep filtered palette results directly below the search field in tall inline
+  panels. The search field no longer grows into the panel's unused vertical space.
+  
+  Refresh the package description, discovery keywords and documented bundle sizes.
+
 ## 0.1.3
 
 ### Patch Changes
