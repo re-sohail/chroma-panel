@@ -1,6 +1,6 @@
 {
   "name": "chroma-panel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Accessible React color picker with CSS Color 4, gradients, color wheel, sliders, palettes, image sampling and an eyedropper. Zero dependencies.",
   "keywords": [
     "react color picker",

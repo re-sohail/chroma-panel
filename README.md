@@ -87,40 +87,20 @@ import { wheelMode } from 'chroma-panel/modes';
 
 The original side-effect import (`import 'chroma-panel/wheel'`) remains supported. Explicit mode objects are easier for bundlers to analyze. Every mode also has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
 
-## CSS Color 4 and wide gamut
+## New in 1.0
 
-The dependency-free color engine reads and converts `oklch()`, `oklab()`, `lab()`, `lch()`, `color(srgb …)` and `color(display-p3 …)`. Gamut checks do not silently clip wide-gamut input:
+The color engine reads OKLCH, OKLab, Lab, LCH, sRGB and Display P3, while preserving the source space and mapping wide-gamut colors perceptually:
 
 ```ts
 import { parseColor, convertColor, isInGamut, mapToGamut, serializeColor } from 'chroma-panel/color';
 
 const color = parseColor('oklch(72% 0.18 250)')!;
-isInGamut(color, 'srgb');
-serializeColor(mapToGamut(color, 'display-p3'));
+const fallback = isInGamut(color, 'srgb') ? color : mapToGamut(color, 'srgb');
 ```
 
-## Gradient editor
+`chroma-panel/gradient` adds a keyboard-accessible linear/radial gradient editor with perceptual interpolation. `chroma-panel/export` produces CSS, SCSS, Tailwind and design-token output. Alpha-aware contrast suggestions are available from `chroma-panel/contrast`.
 
-```tsx
-import { GradientEditor, type GradientValue } from 'chroma-panel/gradient';
-
-<GradientEditor defaultValue={gradient} onChangeComplete={(value) => save(value)} />
-```
-
-The same entry exports `gradientToCss`, `sampleGradient`, `normalizeGradient` and `addGradientStop`. It supports linear and radial gradients, movable color stops and OKLab/OKLCH interpolation.
-
-## Reliable change events
-
-The original `onChange` and `onChangeComplete` callbacks remain unchanged. The new callbacks include interaction metadata:
-
-```tsx
-<ColorInput
-  onValueChange={(color, meta) => preview(color.css, meta.source)}
-  onValueCommit={(color, meta) => save(color.css, meta.source)}
-/>
-```
-
-`meta.source` distinguishes pointer, keyboard, field, swatch, image, eyedropper, recent-color and programmatic changes.
+The original change callbacks remain intact. `onValueChange` and `onValueCommit` add metadata that identifies pointer, keyboard, field, swatch, image, eyedropper, recent-color and programmatic changes. See the [v1 API reference](docs/api.md).
 
 ## Theming
 
@@ -134,20 +114,14 @@ The panel follows the system color scheme. To change how it looks, override the 
 
 Full details in the [theming guide](https://chroma-panel.jscrate.dev/react/handbook/theming). Using Tailwind? See [styling with Tailwind](https://chroma-panel.jscrate.dev/react/handbook/tailwind).
 
-## Why the color survives a round trip
-
-HSV has two places where information disappears. At zero saturation there is no hue to speak of, and at zero brightness there is neither. Pickers that keep their state as RGB or hex hit this constantly: drag brightness to black and back up, and the hue you picked comes back as red.
-
-This one keeps the full HSVA value and merges changes into it instead of replacing it, so dragging to an extreme and back returns the color you started with.
-
 ## Size
 
 Measured as the increase in a real Vite production build, gzipped, with React external.
 
 | What you import | Added to your app |
 | --- | --- |
-| all five modes | 22.9 kB |
-| shell plus one mode | 14.9 kB |
+| all five modes | 23.1 kB |
+| shell plus one mode | 15.0 kB |
 
 `dependencies` is empty. `react` and `react-dom` are peer dependencies, so the copy already in your app is the one that gets used.
 

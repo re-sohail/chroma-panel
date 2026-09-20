@@ -1,5 +1,13 @@
 # chroma-panel
 
+## 1.0.1
+
+### Patch Changes
+
+- Finalize the v1 gradient controls and documentation, expose the current color
+  as visible text, and keep the package's release checks aligned with the new
+  CSS Color 4 entry points and measured bundle sizes.
+
 ## 1.0.0
 
 ### Major Changes

@@ -5,6 +5,10 @@ import * as core from '../src/core';
 import * as panel from '../src/panel';
 import * as contrast from '../src/contrast';
 import * as named from '../src/named-colors';
+import * as color from '../src/color';
+import * as gradient from '../src/gradient';
+import * as modes from '../src/modes';
+import * as tokenExport from '../src/export';
 
 const DOC_FILES = ['../README.md', '../docs/api.md', '../docs/guides.md'];
 const README = DOC_FILES.map((f) =>
@@ -17,6 +21,10 @@ const MODULES: Record<string, Record<string, unknown>> = {
   'chroma-panel/panel': panel,
   'chroma-panel/contrast': contrast,
   'chroma-panel/named-colors': named,
+  'chroma-panel/color': color,
+  'chroma-panel/gradient': gradient,
+  'chroma-panel/modes': modes,
+  'chroma-panel/export': tokenExport,
 };
 
 function documentedImports(): { specifier: string; names: string[] }[] {
