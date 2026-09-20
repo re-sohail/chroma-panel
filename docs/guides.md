@@ -155,12 +155,12 @@ Now `parse('rebeccapurple')` works.
 
 ## React color picker on mobile
 
-Phones are handled for you, but there is one line to add to your page.
+Below 640px, the built-in popover becomes a bottom sheet.
 
-Below 640px the popover becomes a bottom sheet: full width, rounded top, grab handle,
-and a scrim with the page locked behind it. Controls stay compact for a mouse and grow
-to a 44px hit area for touch. Pass `sheetOnMobile={false}` if you want an anchored
-popover at every width instead.
+The sheet is full width with a rounded top, grab handle, and scrim. Page
+scrolling is locked while it is open. Touch targets grow to 44px. Pass
+`sheetOnMobile={false}` on `Popover` if you want an anchored surface at every
+width.
 
 The line a library cannot add for you:
 
@@ -198,15 +198,12 @@ browser that clears the table above.
 
 ## Server rendering
 
-Import it and use it. Next.js App Router, Remix and other SSR setups need no special
-handling.
+Next.js App Router, Remix, and other SSR setups can render the picker. Nothing
+reads `window` while a module loads, and `injectStyles` does nothing when
+`document` is missing.
 
-Every file that needs the browser carries `'use client'`, so you can import from a
-server component without marking your own file. The first render emits the color as
-CSS custom properties, so there is no flash before hydration.
-
-Nothing is read from `window` at module scope. `injectStyles` is a no-op when
-`document` is undefined.
+Import `chroma-panel/style.css` in your root layout and pass
+`injectStyles={false}` if the picker must be fully styled before hydration.
 
 ## Controlled or uncontrolled
 
@@ -253,12 +250,9 @@ unchanged.
 
 ## Accessible React color picker
 
-The picker is keyboard and screen-reader operable out of the box. You do not need to
-add anything.
-
-Every color axis is a real `<input type="range">`, hidden visually, so keyboard
-handling and screen-reader support come from the browser rather than a reimplementation
-of it.
+Every color axis uses a native `<input type="range">`. Keyboard and
+screen-reader behavior comes from the browser, with text labels added for each
+value. Add a visible label or `aria-label` when you place the picker in a form.
 
 - Arrows step. Shift+arrow and Page Up/Down step by ten. Home and End jump.
 - The mode switcher is a tablist with a roving tab stop.
