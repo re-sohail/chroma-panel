@@ -8,7 +8,7 @@
 
 # chroma-panel — React color picker
 
-A React color picker for forms, toolbars, settings pages, and design tools. Use a small color input or render the full panel with a wheel, RGB and HSL sliders, searchable palettes, image sampling, opacity, and an eyedropper.
+A React color picker for forms, toolbars, settings, and design tools. Use a small color input or render the full panel with a wheel, RGB and HSL sliders, searchable palettes, image sampling, opacity, and an eyedropper.
 
 Version 1 also includes CSS Color 4 tools, a gradient editor, contrast suggestions, and design-token exports. The package has no runtime dependencies and includes TypeScript types.
 
@@ -16,7 +16,7 @@ Version 1 also includes CSS Color 4 tools, a gradient editor, contrast suggestio
 
 - Five ways to pick a color: a [wheel](https://chroma-panel.jscrate.dev/react/modes/wheel), [RGB, HSL and HSB sliders](https://chroma-panel.jscrate.dev/react/modes/sliders), [palettes](https://chroma-panel.jscrate.dev/react/modes/palettes), a [120-color pencil grid](https://chroma-panel.jscrate.dev/react/modes/pencils), and [sampling from an image](https://chroma-panel.jscrate.dev/react/modes/image)
 - Hex, RGB(A), HSL(A), HSB/HSV and opacity controls for exact color values
-- An [eyedropper](https://chroma-panel.jscrate.dev/react/utils/use-eyedropper) for grabbing a color from anywhere on screen, where the browser supports it
+- An [eyedropper](https://chroma-panel.jscrate.dev/react/utils/use-eyedropper) for grabbing a color from anywhere on screen in supported browsers
 - Drops into a [form](https://chroma-panel.jscrate.dev/react/handbook/forms) like an `<input>`, with `name`, `required` and `form.reset()`
 - [Accessible](https://chroma-panel.jscrate.dev/react/overview/accessibility): every color channel is a real range input, so keyboards and screen readers work
 - No runtime dependencies, TypeScript types included, ESM and CommonJS
