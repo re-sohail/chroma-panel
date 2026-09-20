@@ -154,5 +154,16 @@ describe('image extraction options are validated', () => {
     await expect(extractPalette(blob, { maxColors: 1 })).rejects.toThrow(/maxColors/);
     await expect(extractPalette(blob, { size: 2 })).rejects.toThrow(/size/);
     await expect(extractPalette(blob, { alphaThreshold: 999 })).rejects.toThrow(/alphaThreshold/);
+    await expect(extractPalette(blob, { maxFileSize: 0 })).rejects.toThrow(/maxFileSize/);
+    await expect(extractPalette(blob, { maxSourcePixels: 1 })).rejects.toThrow(/maxSourcePixels/);
+  });
+
+  it('rejects oversized and non-image blobs before decoding them', async () => {
+    const { extractPalette } = await import('../src/image/extract');
+
+    await expect(extractPalette(new Blob(['large'], { type: 'image/png' }), { maxFileSize: 2 }))
+      .rejects.toThrow(/MB or smaller/);
+    await expect(extractPalette(new Blob(['text'], { type: 'text/plain' })))
+      .rejects.toThrow(/not an image/);
   });
 });

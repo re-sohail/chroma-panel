@@ -447,6 +447,28 @@ describe('the image mode', () => {
     await waitFor('.cp-image-preview');
     expect(document.querySelector('.cp-image-preview')).not.toBeNull();
   });
+
+  it('lets pointer and keyboard users pick an exact image color', async () => {
+    let selected = '';
+    render(
+      <ChromaPanel
+        modes={['image']}
+        showTitleBar={false}
+        onChangeComplete={(result) => { selected = result.css; }}
+      />,
+    );
+    const input = await waitFor<HTMLInputElement>('input[type="file"]');
+    attach(input, pngFile());
+    const image = await waitFor<HTMLImageElement>('.cp-image-preview img');
+    if (!image.complete) await new Promise((resolve) => { image.onload = resolve; });
+    await settle();
+
+    expect(image.getAttribute('role')).toBe('button');
+    expect(image.tabIndex).toBe(0);
+    image.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await settle();
+    expect(selected, 'keyboard picking did not commit a color').toMatch(/^#/);
+  });
 });
 
 describe('control heights agree', () => {

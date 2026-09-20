@@ -456,6 +456,10 @@ export const css: string = `
   .cp-icon-button:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: 1px; }
   .cp-icon-button svg { width: 16px; height: 16px; display: block; }
   .cp-icon-button[disabled] { opacity: 0.4; cursor: default; }
+  .cp-icon-button[data-cp-copy-status="copied"] {
+    color: light-dark(#177245, #72d5a3);
+    border-color: currentColor;
+  }
 
   .cp-trigger {
     position: relative; width: 36px; height: 26px; padding: 0;
@@ -570,7 +574,23 @@ export const css: string = `
   }
   .cp-image-preview img {
     width: 100%; height: auto; max-height: 100%; margin: auto; display: block;
-    object-fit: contain;
+    object-fit: contain; cursor: crosshair;
+  }
+  .cp-image-preview img:focus-visible { outline: 2px solid var(--cp-focus); outline-offset: -3px; }
+  .cp-image-loupe {
+    position: absolute; z-index: 2; pointer-events: none;
+    width: 42px; height: 42px; translate: -50% -50%;
+    border: 2px solid #fff; border-radius: 50%;
+    background-repeat: no-repeat; background-size: 400% 400%;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 55%), inset 0 0 0 1px rgb(0 0 0 / 35%);
+  }
+  .cp-image-loupe::after {
+    content: ""; position: absolute; inset: 50% auto auto 50%;
+    width: 4px; height: 4px; translate: -50% -50%;
+    border: 1px solid #fff; box-shadow: 0 0 0 1px #000;
+  }
+  .cp-image-hint {
+    margin: -3px 0 0; color: var(--cp-text-muted); font-size: 10px; text-align: center;
   }
   .cp-image-remove {
     position: absolute; top: 6px; right: 6px;

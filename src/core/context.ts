@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import type { ColorFormat } from '../color/types';
 import type { ColorStore } from './store';
 
 export interface ChromaClassNames {
@@ -29,7 +30,9 @@ export interface PanelOptions {
   pencils: string[] | undefined;
   showAlpha: boolean;
   showEyedropper: boolean;
+  showCopyButton: boolean;
   showRecentColors: boolean;
+  format: ColorFormat;
   recentColors: string[];
   onRecentColorsChange?: (colors: string[]) => void;
 }

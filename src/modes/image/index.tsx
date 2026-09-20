@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { parse } from '../../color/parse';
 import { usePanel } from '../../core/context';
 import { extractPalette, type ExtractOptions } from '../../image/extract';
 import type { QuantizedSwatch } from '../../image/mmcq';
@@ -15,6 +16,13 @@ interface Kept {
   message: string;
   swatches: QuantizedSwatch[];
   preview: string | null;
+}
+
+interface ImagePoint {
+  x: number;
+  y: number;
+  left: number;
+  top: number;
 }
 
 const kept = new WeakMap<object, Kept>();
@@ -36,7 +44,9 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   const [message, setMessage] = React.useState(restored.message);
   const [swatches, setSwatches] = React.useState<QuantizedSwatch[]>(restored.swatches);
   const [preview, setPreview] = React.useState<string | null>(restored.preview);
+  const [point, setPoint] = React.useState<ImagePoint | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const imageRef = React.useRef<HTMLImageElement>(null);
 
   React.useEffect(() => {
     if (preview === null && status === 'idle') kept.delete(store);
@@ -99,7 +109,53 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
     setSwatches([]);
     setMessage('');
     setStatus('idle');
+    setPoint(null);
     if (inputRef.current !== null) inputRef.current.value = '';
+  };
+
+  const locate = (image: HTMLImageElement, clientX: number, clientY: number): ImagePoint | null => {
+    const rect = image.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0 || image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+      return null;
+    }
+
+    const scale = Math.min(rect.width / image.naturalWidth, rect.height / image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    const left = rect.left + (rect.width - width) / 2;
+    const top = rect.top + (rect.height - height) / 2;
+    if (clientX < left || clientX > left + width ||
+        clientY < top || clientY > top + height) return null;
+
+    return {
+      x: Math.min(1, Math.max(0, (clientX - left) / width)),
+      y: Math.min(1, Math.max(0, (clientY - top) / height)),
+      left: Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)),
+      top: Math.min(1, Math.max(0, (clientY - rect.top) / rect.height)),
+    };
+  };
+
+  const selectPixel = (next: ImagePoint): void => {
+    const image = imageRef.current;
+    if (image === null || image.naturalWidth <= 0 || image.naturalHeight <= 0) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (context === null) return;
+    const sx = Math.min(image.naturalWidth - 1, Math.floor(next.x * image.naturalWidth));
+    const sy = Math.min(image.naturalHeight - 1, Math.floor(next.y * image.naturalHeight));
+    context.drawImage(image, sx, sy, 1, 1, 0, 0, 1, 1);
+    const [r = 0, g = 0, b = 0, a = 0] = context.getImageData(0, 0, 1, 1).data;
+    if (a === 0) {
+      setMessage('That pixel is transparent. Choose another point.');
+      return;
+    }
+    const parsed = parse(`rgba(${r}, ${g}, ${b}, ${Math.round((a / 255) * 1000) / 1000})`);
+    if (parsed === null) return;
+    store.ingest(parsed);
+    store.commit();
+    setMessage('Color selected from image.');
   };
 
   const dragDepth = React.useRef(0);
@@ -151,7 +207,38 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
         </label>
       ) : (
         <div className="cp-image-preview">
-          <img src={preview} alt="" />
+          <img
+            ref={imageRef}
+            src={preview}
+            alt="Uploaded image. Move over it and click to select a color."
+            role="button"
+            tabIndex={disabled ? -1 : 0}
+            aria-label="Pick a color from the uploaded image"
+            onPointerMove={(event) => setPoint(locate(event.currentTarget, event.clientX, event.clientY))}
+            onPointerLeave={() => setPoint(null)}
+            onClick={(event) => {
+              if (disabled) return;
+              const next = locate(event.currentTarget, event.clientX, event.clientY);
+              if (next !== null) selectPixel(next);
+            }}
+            onKeyDown={(event) => {
+              if (disabled || (event.key !== 'Enter' && event.key !== ' ')) return;
+              event.preventDefault();
+              selectPixel(point ?? { x: 0.5, y: 0.5, left: 0.5, top: 0.5 });
+            }}
+          />
+          {point !== null && (
+            <span
+              className="cp-image-loupe"
+              aria-hidden="true"
+              style={{
+                left: `${point.left * 100}%`,
+                top: `${point.top * 100}%`,
+                backgroundImage: `url("${preview}")`,
+                backgroundPosition: `${point.x * 100}% ${point.y * 100}%`,
+              }}
+            />
+          )}
           <button
             type="button"
             className="cp-image-remove"
@@ -182,6 +269,9 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
       />
 
       {preview !== null && status === 'error' && <p className="cp-empty">{message}</p>}
+      {preview !== null && status !== 'error' && (
+        <p className="cp-image-hint">Click the image to pick an exact color.</p>
+      )}
 
       {status === 'ready' && (
         <SwatchGrid

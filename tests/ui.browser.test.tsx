@@ -218,3 +218,43 @@ describe('target sizes', () => {
     }
   });
 });
+
+describe('copy color', () => {
+  it('copies the selected color in the configured format', async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    let copied = '';
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async (value: string) => { copied = value; } },
+    });
+
+    try {
+      render(
+        <ChromaPanel defaultValue="#3366cc" format="rgb" modes={['wheel']}
+          showTitleBar={false} />,
+      );
+      const button = await waitFor<HTMLButtonElement>('[aria-label="Copy color"]');
+      button.click();
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      expect(copied).toBe('rgb(51, 102, 204)');
+      expect(button.getAttribute('aria-label')).toBe('Color copied');
+    } finally {
+      if (descriptor === undefined) delete (navigator as { clipboard?: Clipboard }).clipboard;
+      else Object.defineProperty(navigator, 'clipboard', descriptor);
+    }
+  });
+
+  it('is available by default and can be disabled', async () => {
+    const first = await render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false} />);
+    const button = await waitFor<HTMLButtonElement>('[aria-label="Copy color"]');
+    expect(button).not.toBeNull();
+    await first.unmount();
+
+    render(
+      <ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false}
+        showCopyButton={false} />,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect(document.querySelector('[aria-label="Copy color"]')).toBeNull();
+  });
+});

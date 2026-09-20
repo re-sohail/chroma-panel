@@ -117,8 +117,12 @@ const { swatches } = await extractPalette(file, { maxColors: 8 });
 // [{ hex: '#3e5f8a', rgb: [62, 95, 138], population: 4213 }, ...]
 ```
 
-Large images are downscaled before they are read, so a 4000x3000 photo never
-loads in full.
+Large images are downscaled to a bounded sampling surface before their pixels are
+read into JavaScript. Files above 20 MB and images above 40 megapixels are rejected
+by default; both limits can be changed through `imageOptions` or `extractPalette`.
+
+In the built-in image mode, move over the preview to see the zoom lens, then click
+to pick an exact pixel. Keyboard users can focus the preview and press Enter or Space.
 
 A loaded image stays put when you close and reopen the picker. It is released
 when you replace it, remove it, or leave the page.

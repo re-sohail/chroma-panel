@@ -40,6 +40,7 @@ export interface ChromaPanelProps {
   format?: ColorFormat;
   showAlpha?: boolean;
   showEyedropper?: boolean;
+  showCopyButton?: boolean;
   showRecentColors?: boolean;
   recentColors?: string[];
   defaultRecentColors?: string[];
@@ -79,7 +80,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     modes = ['wheel', 'sliders', 'palettes', 'image', 'pencils'],
     mode, defaultMode, onModeChange,
     format = 'hex',
-    showAlpha = true, showEyedropper = true, showRecentColors = true,
+    showAlpha = true, showEyedropper = true, showCopyButton = true, showRecentColors = true,
     recentColors, defaultRecentColors, onRecentColorsChange,
     palettes, pencils, modeProps, imageOptions,
     disabled = false, theme, showTitleBar = true, title = 'Colors',
@@ -205,11 +206,11 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       },
       palettes,
       pencils,
-      showAlpha, showEyedropper, showRecentColors,
+      showAlpha, showEyedropper, showCopyButton, showRecentColors, format,
       recentColors: activeRecents,
       onRecentColorsChange,
     }),
-    [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper,
+    [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper, showCopyButton, format,
      showRecentColors, activeRecents, onRecentColorsChange],
   );
 

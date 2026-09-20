@@ -6,6 +6,8 @@ export interface ExtractOptions {
   maxColors?: number;
   size?: number;
   alphaThreshold?: number;
+  maxFileSize?: number;
+  maxSourcePixels?: number;
   worker?: Worker | (() => Worker);
   signal?: AbortSignal;
 }
@@ -26,18 +28,37 @@ async function toBlob(source: Blob | string): Promise<Blob> {
   return await response.blob();
 }
 
-async function decode(blob: Blob, size: number): Promise<ImageBitmap> {
+const DEFAULT_MAX_FILE_SIZE = 20 * 1024 * 1024;
+const DEFAULT_MAX_SOURCE_PIXELS = 40_000_000;
+
+function validateBlob(blob: Blob, maxFileSize: number): void {
+  if (blob.size > maxFileSize) {
+    const limit = Math.round(maxFileSize / (1024 * 1024));
+    throw new RangeError(`chroma-panel: image must be ${limit} MB or smaller.`);
+  }
+  if (blob.type !== '' && !blob.type.toLowerCase().startsWith('image/')) {
+    throw new TypeError('chroma-panel: the selected file is not an image.');
+  }
+}
+
+async function decode(blob: Blob, size: number, maxSourcePixels: number): Promise<ImageBitmap> {
   if (typeof createImageBitmap !== 'function') {
     throw new Error('chroma-panel: this browser cannot decode images off-thread.');
   }
 
   const longest = Math.max(8, Math.round(size));
 
-  try {
-    const probe = await createImageBitmap(blob);
-    const wide = probe.width >= probe.height;
+  const probe = await createImageBitmap(blob);
+  const pixels = probe.width * probe.height;
+  if (pixels > maxSourcePixels) {
     probe.close();
+    const megapixels = Math.round(maxSourcePixels / 1_000_000);
+    throw new RangeError(`chroma-panel: image dimensions must not exceed ${megapixels} megapixels.`);
+  }
+  const wide = probe.width >= probe.height;
+  probe.close();
 
+  try {
     return await createImageBitmap(blob, {
       ...(wide ? { resizeWidth: longest } : { resizeHeight: longest }),
       resizeQuality: 'medium',
@@ -114,6 +135,8 @@ export async function extractPalette(
     maxColors = 8,
     size = 100,
     alphaThreshold = 128,
+    maxFileSize = DEFAULT_MAX_FILE_SIZE,
+    maxSourcePixels = DEFAULT_MAX_SOURCE_PIXELS,
     worker,
     signal,
   } = options;
@@ -127,13 +150,20 @@ export async function extractPalette(
   if (!Number.isFinite(alphaThreshold) || alphaThreshold < 0 || alphaThreshold > 255) {
     throw new RangeError('chroma-panel: alphaThreshold must be between 0 and 255.');
   }
+  if (!Number.isFinite(maxFileSize) || maxFileSize <= 0) {
+    throw new RangeError('chroma-panel: maxFileSize must be greater than 0.');
+  }
+  if (!Number.isFinite(maxSourcePixels) || maxSourcePixels < 64) {
+    throw new RangeError('chroma-panel: maxSourcePixels must be at least 64.');
+  }
 
   if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');
 
   const blob = await toBlob(source);
+  validateBlob(blob, maxFileSize);
   if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');
 
-  const bitmap = await decode(blob, size);
+  const bitmap = await decode(blob, size, maxSourcePixels);
   let data: Uint8ClampedArray;
   try {
     if (aborted(signal)) throw new DOMException('Aborted', 'AbortError');

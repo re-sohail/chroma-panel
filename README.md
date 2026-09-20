@@ -60,7 +60,7 @@ import { ChromaPanel } from 'chroma-panel';
 
 ## Pick colors from an image
 
-The image mode takes a dropped or chosen file and shows its dominant colors as swatches. The sampler behind it is exported too, for when you want the palette without the panel:
+The image mode takes a dropped or chosen file, shows its dominant colors as swatches, and lets you click an exact pixel through a zoom lens. The sampler behind it is exported too, for when you want the palette without the panel:
 
 ```ts
 import { extractPalette } from 'chroma-panel';
@@ -69,7 +69,7 @@ const { swatches } = await extractPalette(file, { maxColors: 8 });
 // [{ hex: '#3e5f8a', rgb: [62, 95, 138], population: 4213 }, ...]
 ```
 
-It takes a `File`, a `Blob` or an image URL, and downscales large images before reading them. More in the [image mode docs](https://chroma-panel.jscrate.dev/react/modes/image).
+It takes a `File`, a `Blob` or an image URL, validates safe size limits, and reads only a downscaled sampling surface. More in the [image mode docs](https://chroma-panel.jscrate.dev/react/modes/image).
 
 ## Smaller bundle
 
@@ -82,7 +82,7 @@ import 'chroma-panel/wheel';
 <ChromaPanel modes={['wheel']} />
 ```
 
-That is 12.5 kB instead of 19.3 kB. Every mode has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
+That is 13.0 kB instead of 20.6 kB. Every mode has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
 
 ## Theming
 

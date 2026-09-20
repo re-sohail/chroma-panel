@@ -2,15 +2,32 @@
 
 import * as React from 'react';
 import { parse } from '../color/parse';
-import { toHex } from '../color/serialize';
+import { toFormat, toHex } from '../color/serialize';
 import { cx, usePanel } from '../core/context';
-import { EyedropperIcon } from '../primitives/icons';
+import { EyedropperIcon, Icon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
 import { useScrollFade } from '../core/useScrollFade';
 
 export function PanelFooter(): React.ReactElement | null {
   const { store, classNames, options, disabled } = usePanel();
   const { supported, pick } = useEyedropper();
+  const [copyStatus, setCopyStatus] = React.useState<'idle' | 'copied' | 'error'>('idle');
+  const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => () => {
+    if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+  }, []);
+
+  const handleCopy = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(toFormat(store.get(), options.format));
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('error');
+    }
+    if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopyStatus('idle'), 1600);
+  };
 
   const handlePick = async (): Promise<void> => {
     const hex = await pick();
@@ -83,6 +100,25 @@ export function PanelFooter(): React.ReactElement | null {
           <EyedropperIcon />
         </button>
       )}
+
+      {options.showCopyButton && (
+        <button
+          type="button"
+          className="cp-icon-button"
+          aria-label={copyStatus === 'copied' ? 'Color copied' : 'Copy color'}
+          title={copyStatus === 'copied' ? 'Copied' : copyStatus === 'error' ? 'Could not copy' : 'Copy color'}
+          disabled={disabled}
+          data-cp-copy-status={copyStatus}
+          onClick={() => { void handleCopy(); }}
+        >
+          <Icon name="copy" />
+        </button>
+      )}
+
+      <span className="cp-visually-hidden" role="status" aria-live="polite">
+        {copyStatus === 'copied' ? 'Color copied to clipboard' : ''}
+        {copyStatus === 'error' ? 'Could not copy color' : ''}
+      </span>
     </div>
   );
 }

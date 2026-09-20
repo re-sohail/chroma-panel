@@ -1,5 +1,13 @@
 # chroma-panel
 
+## 0.2.0
+
+### Minor Changes
+
+- Add exact image pixel picking with an accessible zoom preview, safer configurable
+  image limits, and an optional copy-color footer control. Expand bundle checks with
+  Brotli reporting and budgets for every public feature entry point.
+
 ## 0.1.4
 
 ### Patch Changes

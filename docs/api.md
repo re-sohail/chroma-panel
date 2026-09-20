@@ -64,6 +64,7 @@ Mode ids are `'wheel'`, `'sliders'`, `'palettes'`, `'image'` and `'pencils'`. Th
 | --- | --- | --- | --- |
 | `showAlpha` | `boolean` | `true` | Turn off when opacity is not allowed |
 | `showEyedropper` | `boolean` | `true` | Turn off to hide it even where supported |
+| `showCopyButton` | `boolean` | `true` | Show a button that copies the current output format |
 | `showRecentColors` | `boolean` | `true` | Turn off in a one-shot picker |
 | `showTitleBar` | `boolean` | `true` | Turn off for an inline panel with no chrome |
 | `title` | `string` | `'Colors'` | Rename the title bar |
@@ -414,11 +415,17 @@ extractPalette(
 | `maxColors` | `number` | `8` | How many swatches to return |
 | `size` | `number` | `100` | Longest edge, in pixels, after downscaling |
 | `alphaThreshold` | `number` | `128` | Pixels below this alpha are ignored |
+| `maxFileSize` | `number` | `20971520` | Maximum source size in bytes (20 MB) |
+| `maxSourcePixels` | `number` | `40000000` | Maximum decoded dimensions (40 megapixels) |
 | `worker` | `Worker \| (() => Worker)` | — | Run the quantizer off the main thread |
 | `signal` | `AbortSignal` | — | Cancel a run |
 
 A swatch is `{ hex: string; rgb: [number, number, number]; population: number }`.
 `sampled` is how many pixels were counted.
+
+The image mode also lets pointer users click an exact pixel and keyboard users press
+Enter or Space to select the center pixel. Uploaded files are validated before palette
+processing, and only the bounded sampling surface is read into JavaScript.
 
 `quantize` is the algorithm on its own, for pixel data you already have:
 
