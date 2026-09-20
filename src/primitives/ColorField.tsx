@@ -39,7 +39,7 @@ export function ColorField(props: ColorFieldProps): React.ReactElement {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const parsed = parse(event.currentTarget.value);
     event.currentTarget.setAttribute('aria-invalid', parsed === null ? 'true' : 'false');
-    if (parsed !== null) store.ingest(parsed);
+    if (parsed !== null) store.ingest(parsed, 'field');
   };
 
   return (
@@ -61,7 +61,7 @@ export function ColorField(props: ColorFieldProps): React.ReactElement {
           focused.current = false;
           e.currentTarget.value = render(store.get());
           e.currentTarget.setAttribute('aria-invalid', 'false');
-          store.commit();
+          store.commit('field');
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

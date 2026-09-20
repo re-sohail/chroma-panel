@@ -2,25 +2,28 @@ import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
 import { rolldown } from 'rolldown';
 
 const BUDGETS = [
-  { entry: 'dist/core.js', label: 'core (color engine, no React)', limit: 2.5 },
-  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 5.0 },
-  { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 6.0 },
-  { entry: 'dist/palettes.js', label: 'palettes mode only', limit: 4.0 },
-  { entry: 'dist/image.js', label: 'image mode only', limit: 8.5 },
-  { entry: 'dist/pencils.js', label: 'pencils mode only', limit: 4.0 },
+  { entry: 'dist/core.js', label: 'core (CSS Color 4, no React)', limit: 4.5 },
+  { entry: 'dist/color.js', label: 'color engine only', limit: 4.5 },
+  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 7.0 },
+  { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 7.75 },
+  { entry: 'dist/palettes.js', label: 'palettes mode only', limit: 5.75 },
+  { entry: 'dist/image.js', label: 'image mode only', limit: 9.75 },
+  { entry: 'dist/pencils.js', label: 'pencils mode only', limit: 5.25 },
   { entry: 'dist/named-colors.js', label: 'named colors only', limit: 2.0 },
-  { entry: 'dist/contrast.js', label: 'contrast utilities only', limit: 2.0 },
+  { entry: 'dist/contrast.js', label: 'contrast utilities only', limit: 4.25 },
+  { entry: 'dist/gradient.js', label: 'gradient editor only', limit: 6.0 },
+  { entry: 'dist/export.js', label: 'token exports only', limit: 4.5 },
 
   {
     label: 'what you ship: ColorInput, all modes',
-    limit: 21.0,
+    limit: 24.0,
     source:
       "import { ColorInput } from './dist/index.js';\n" +
       "export { ColorInput };\n",
   },
   {
     label: 'what you ship: panel + one mode',
-    limit: 13.25,
+    limit: 15.75,
     source:
       "import { ChromaPanel } from './dist/panel.js';\n" +
       "import './dist/wheel.js';\n" +

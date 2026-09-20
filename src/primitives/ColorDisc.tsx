@@ -53,9 +53,9 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
       if (distance > 1e-6) {
         patch.h = normalizeHue((Math.atan2(dx, -dy) * 180) / Math.PI);
       }
-      store.patch(patch);
+      store.patch(patch, 'pointer');
     },
-    onEnd: () => store.commit(),
+    onEnd: () => store.commit('pointer'),
   });
 
   const initial = store.get();
@@ -81,8 +81,8 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
           max={360}
           defaultValue={Math.round(normalizeHue(initial.h))}
           disabled={disabled}
-          onInput={(h) => store.patch({ h })}
-          onCommit={() => store.commit()}
+          onInput={(h) => store.patch({ h }, 'keyboard')}
+          onCommit={() => store.commit('keyboard')}
         />
         <AxisInput
           ref={satRef}
@@ -91,8 +91,8 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
           max={100}
           defaultValue={Math.round(initial.s)}
           disabled={disabled}
-          onInput={(s) => store.patch({ s })}
-          onCommit={() => store.commit()}
+          onInput={(s) => store.patch({ s }, 'keyboard')}
+          onCommit={() => store.commit('keyboard')}
         />
         <div className={cx('cp-thumb', classNames.thumb)} aria-hidden="true" />
       </div>

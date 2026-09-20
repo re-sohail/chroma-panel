@@ -105,7 +105,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
 
   useFormReset(hiddenRef, () => {
     const parsed = typeof defaultValue === 'string' ? parse(defaultValue) : defaultValue;
-    if (parsed !== null && parsed !== undefined) store.ingest(parsed);
+    if (parsed !== null && parsed !== undefined) store.ingest(parsed, 'programmatic');
   });
 
   useConstraintValidation(hiddenRef, {

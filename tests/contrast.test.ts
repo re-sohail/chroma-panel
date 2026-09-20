@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   contrastRatio, meetsContrast, meetsNonTextContrast, contrastReport,
-  relativeLuminance,
+  contrastRatioWithAlpha, relativeLuminance, suggestAccessibleColor,
 } from '../src/a11y/contrast';
 
 describe('WCAG thresholds', () => {
@@ -35,6 +35,19 @@ describe('WCAG thresholds', () => {
     expect(report.text.normal.aaa).toBe(false);
     expect(report.text.large.aaa).toBe(true);
     expect(report.nonText).toBe(true);
+  });
+});
+
+describe('transparent and suggested colors', () => {
+  it('composites alpha before measuring contrast', () => {
+    expect(contrastRatioWithAlpha('rgb(0 0 0 / 50%)', '#ffffff')).toBeCloseTo(3.98, 1);
+  });
+
+  it('finds a nearby color that reaches the requested ratio', () => {
+    const suggestion = suggestAccessibleColor('#aaaaaa', '#ffffff', 4.5);
+    expect(suggestion).not.toBeNull();
+    expect(suggestion!.changed).toBe(true);
+    expect(suggestion!.ratio).toBeGreaterThanOrEqual(4.49);
   });
 });
 

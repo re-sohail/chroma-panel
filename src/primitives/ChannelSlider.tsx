@@ -59,8 +59,8 @@ export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
 
   const drag = usePointerDrag({
     disabled,
-    onMove: ({ x }) => store.set(write(min + x * (max - min), store.get())),
-    onEnd: () => store.commit(),
+    onMove: ({ x }) => store.set(write(min + x * (max - min), store.get()), 'pointer'),
+    onEnd: () => store.commit('pointer'),
   });
 
   const initial = read(store.get());
@@ -85,8 +85,8 @@ export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
         step={step ?? 1}
         defaultValue={initial}
         disabled={disabled}
-        onInput={(v) => store.set(write(v, store.get()))}
-        onCommit={() => store.commit()}
+        onInput={(v) => store.set(write(v, store.get()), 'keyboard')}
+        onCommit={() => store.commit('keyboard')}
       />
       <div className={cx('cp-thumb', classNames.thumb)} aria-hidden="true" />
     </div>

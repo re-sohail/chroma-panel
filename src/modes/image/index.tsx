@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { parse } from '../../color/parse';
+import { rgbaToHsva } from '../../color/convert';
 import { usePanel } from '../../core/context';
 import { extractPalette, type ExtractOptions } from '../../image/extract';
 import type { QuantizedSwatch } from '../../image/mmcq';
@@ -30,10 +31,11 @@ const EMPTY: Kept = { status: 'idle', message: '', swatches: [], preview: null }
 
 export interface ImagePanelProps {
   extractOptions?: ExtractOptions;
+  sortBy?: 'population' | 'luminance' | 'hue';
 }
 
 export function ImagePanel(props: ImagePanelProps): React.ReactElement {
-  const { extractOptions } = props;
+  const { extractOptions, sortBy = 'population' } = props;
   const { idPrefix, disabled } = usePanel();
   const inputId = `${idPrefix}-image-file`;
 
@@ -47,6 +49,11 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   const [point, setPoint] = React.useState<ImagePoint | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const imageRef = React.useRef<HTMLImageElement>(null);
+  const [clipboardRead, setClipboardRead] = React.useState(false);
+
+  React.useEffect(() => {
+    setClipboardRead(typeof navigator.clipboard?.read === 'function');
+  }, []);
 
   React.useEffect(() => {
     if (preview === null && status === 'idle') kept.delete(store);
@@ -102,6 +109,44 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
     if (file !== undefined) void run(file);
   };
 
+  const pasteFile = (items: DataTransferItemList): boolean => {
+    for (const item of Array.from(items)) {
+      if (item.kind !== 'file' || !item.type.startsWith('image/')) continue;
+      const file = item.getAsFile();
+      if (file !== null) void run(file);
+      return file !== null;
+    }
+    return false;
+  };
+
+  const readClipboard = async (): Promise<void> => {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((candidate) => candidate.startsWith('image/'));
+        if (type === undefined) continue;
+        const blob = await item.getType(type);
+        await run(new File([blob], 'clipboard-image', { type }));
+        return;
+      }
+      setStatus('error');
+      setMessage('The clipboard does not contain an image.');
+    } catch {
+      setStatus('error');
+      setMessage('Clipboard access was not allowed. Use paste or choose a file instead.');
+    }
+  };
+
+  const sortedSwatches = React.useMemo(() => [...swatches].sort((a, b) => {
+    if (sortBy === 'population') return b.population - a.population;
+    if (sortBy === 'luminance') {
+      const luminance = (rgb: [number, number, number]): number => 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+      return luminance(b.rgb) - luminance(a.rgb);
+    }
+    return rgbaToHsva({ r: a.rgb[0], g: a.rgb[1], b: a.rgb[2], a: 1 }).h
+      - rgbaToHsva({ r: b.rgb[0], g: b.rgb[1], b: b.rgb[2], a: 1 }).h;
+  }), [swatches, sortBy]);
+
   const clear = (): void => {
     controller.current?.abort();
     releasePreview();
@@ -153,8 +198,8 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
     }
     const parsed = parse(`rgba(${r}, ${g}, ${b}, ${Math.round((a / 255) * 1000) / 1000})`);
     if (parsed === null) return;
-    store.ingest(parsed);
-    store.commit();
+    store.ingest(parsed, 'image');
+    store.commit('image');
     setMessage('Color selected from image.');
   };
 
@@ -168,6 +213,9 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   return (
     <div
       className="cp-panel"
+      onPaste={(event) => {
+        if (!disabled && pasteFile(event.clipboardData.items)) event.preventDefault();
+      }}
       onDragEnter={(e) => {
         e.preventDefault();
         if (disabled) return;
@@ -268,6 +316,12 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
         onChange={(e) => onFiles(e.currentTarget.files)}
       />
 
+      {preview === null && clipboardRead && (
+        <button type="button" className="cp-button" disabled={disabled} onClick={() => { void readClipboard(); }}>
+          Paste image
+        </button>
+      )}
+
       {preview !== null && status === 'error' && <p className="cp-empty">{message}</p>}
       {preview !== null && status !== 'error' && (
         <p className="cp-image-hint">Click the image to pick an exact color.</p>
@@ -275,7 +329,7 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
 
       {status === 'ready' && (
         <SwatchGrid
-          swatches={swatches.map((s) => ({ color: s.hex, name: s.hex }))}
+          swatches={sortedSwatches.map((s) => ({ color: s.hex, name: s.hex }))}
           label="Extracted colors"
           columns={5}
         />

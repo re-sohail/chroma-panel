@@ -20,6 +20,7 @@ const library = defineConfig({
   entry: [
     'src/index.ts',
     'src/core.ts',
+    'src/color.ts',
     'src/panel.ts',
     'src/wheel.ts',
     'src/sliders.ts',
@@ -28,6 +29,9 @@ const library = defineConfig({
     'src/pencils.ts',
     'src/named-colors.ts',
     'src/contrast.ts',
+    'src/gradient.ts',
+    'src/modes.ts',
+    'src/export.ts',
   ],
 
   format: ['esm', 'cjs'],

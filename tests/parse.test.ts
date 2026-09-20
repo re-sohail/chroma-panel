@@ -114,7 +114,7 @@ describe('keywords and named colors', () => {
 
 describe('robustness', () => {
   it('returns null rather than throwing on junk', () => {
-    for (const bad of ['rgb(1,2)', 'hsl()', 'oklch(0.7 0.2 30)', 'rgb(a,b,c)', '   ', 'rgb(1 2 3 4 5)']) {
+    for (const bad of ['rgb(1,2)', 'hsl()', 'oklch(0.7 0.2)', 'rgb(a,b,c)', '   ', 'rgb(1 2 3 4 5)']) {
       expect(() => parse(bad)).not.toThrow();
       expect(parse(bad), bad).toBeNull();
     }

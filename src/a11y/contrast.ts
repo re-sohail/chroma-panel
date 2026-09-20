@@ -1,4 +1,7 @@
-import { hsvaToRgba } from '../color/convert';
+import { hsvaToRgba, rgbaToHsva } from '../color/convert';
+import { convertColor, mapToGamut } from '../color/css4';
+import { toHex } from '../color/serialize';
+import { parseColor } from '../color/value';
 import { parse } from '../color/parse';
 import type { Hsva, Rgb } from '../color/types';
 import { warnOnce } from '../core/dev';
@@ -26,6 +29,73 @@ export function contrastRatio(a: string | Hsva, b: string | Hsva): number {
   const light = Math.max(la, lb);
   const dark = Math.min(la, lb);
   return (light + 0.05) / (dark + 0.05);
+}
+
+export function compositeColor(foreground: string | Hsva, background: string | Hsva): Hsva | null {
+  const fg = typeof foreground === 'string' ? parse(foreground) : foreground;
+  const bg = typeof background === 'string' ? parse(background) : background;
+  if (fg === null || bg === null) return null;
+  const f = hsvaToRgba(fg);
+  const b = hsvaToRgba(bg);
+  const alpha = f.a + b.a * (1 - f.a);
+  if (alpha === 0) return { h: 0, s: 0, v: 0, a: 0 };
+  return rgbaToHsva({
+    r: (f.r * f.a + b.r * b.a * (1 - f.a)) / alpha,
+    g: (f.g * f.a + b.g * b.a * (1 - f.a)) / alpha,
+    b: (f.b * f.a + b.b * b.a * (1 - f.a)) / alpha,
+    a: alpha,
+  });
+}
+
+export function contrastRatioWithAlpha(
+  foreground: string | Hsva,
+  background: string | Hsva,
+  canvas: string | Hsva = '#ffffff',
+): number {
+  const opaqueBackground = compositeColor(background, canvas);
+  if (opaqueBackground === null) return 1;
+  const opaqueForeground = compositeColor(foreground, opaqueBackground);
+  return opaqueForeground === null ? 1 : contrastRatio(opaqueForeground, opaqueBackground);
+}
+
+export interface AccessibleColorSuggestion {
+  color: string;
+  ratio: number;
+  changed: boolean;
+}
+
+export function suggestAccessibleColor(
+  foreground: string,
+  background: string,
+  targetRatio: number = 4.5,
+): AccessibleColorSuggestion | null {
+  const source = parseColor(foreground);
+  if (source === null || parse(background) === null || !Number.isFinite(targetRatio) || targetRatio < 1) return null;
+  const currentRatio = contrastRatioWithAlpha(foreground, background);
+  if (currentRatio >= targetRatio) return { color: foreground, ratio: currentRatio, changed: false };
+  const oklch = convertColor(source, 'oklch');
+  const candidates: AccessibleColorSuggestion[] = [];
+  for (const endpoint of [0, 1]) {
+    let passing = endpoint;
+    let failing = oklch.channels[0];
+    const endpointColor = { ...oklch, channels: [endpoint, oklch.channels[1], oklch.channels[2]] as const, alpha: 1 };
+    const endpointHex = toHexColor(endpointColor);
+    if (contrastRatio(endpointHex, background) < targetRatio) continue;
+    for (let index = 0; index < 24; index++) {
+      const lightness = (passing + failing) / 2;
+      const candidate = { ...oklch, channels: [lightness, oklch.channels[1], oklch.channels[2]] as const, alpha: 1 };
+      if (contrastRatio(toHexColor(candidate), background) >= targetRatio) passing = lightness;
+      else failing = lightness;
+    }
+    const color = toHexColor({ ...oklch, channels: [passing, oklch.channels[1], oklch.channels[2]], alpha: 1 });
+    candidates.push({ color, ratio: contrastRatio(color, background), changed: true });
+  }
+  return candidates.sort((a, b) => Math.abs(convertColor(parseColor(a.color)!, 'oklch').channels[0] - oklch.channels[0]) - Math.abs(convertColor(parseColor(b.color)!, 'oklch').channels[0] - oklch.channels[0]))[0] ?? null;
+}
+
+function toHexColor(color: import('../color/types').ColorValue): string {
+  const srgb = mapToGamut(color, 'srgb');
+  return toHex(rgbaToHsva({ r: srgb.channels[0] * 255, g: srgb.channels[1] * 255, b: srgb.channels[2] * 255, a: 1 }));
 }
 
 export type TextSize = 'normal' | 'large';

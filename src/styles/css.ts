@@ -421,6 +421,10 @@ export const css: string = `
     background: var(--cp-preview-color, transparent);
     box-shadow: inset 0 0 0 1px rgb(0 0 0 / 12%);
   }
+  .cp-current-color {
+    max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--cp-text-muted); font: 500 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
   .cp-recents {
     display: flex; gap: 6px; flex: 1; min-width: 0;
     margin: 0; padding: 0; list-style: none;

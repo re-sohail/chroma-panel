@@ -1,15 +1,15 @@
 import { ingest, sameHsva } from '../color/sticky';
-import type { Hsva } from '../color/types';
+import type { ColorChangeMeta, ColorChangeSource, Hsva } from '../color/types';
 
-export type ColorListener = (color: Hsva) => void;
+export type ColorListener = (color: Hsva, meta: ColorChangeMeta) => void;
 export type Unsubscribe = () => void;
 
 export interface ColorStore {
   get(): Hsva;
-  set(next: Hsva): void;
-  patch(partial: Partial<Hsva>): void;
-  ingest(next: Hsva): void;
-  commit(): void;
+  set(next: Hsva, source?: ColorChangeSource): void;
+  patch(partial: Partial<Hsva>, source?: ColorChangeSource): void;
+  ingest(next: Hsva, source?: ColorChangeSource): void;
+  commit(source?: ColorChangeSource): void;
 
   subscribe(listener: ColorListener): Unsubscribe;
   subscribeCommit(listener: ColorListener): Unsubscribe;
@@ -20,26 +20,28 @@ export interface ColorStore {
 
 export function createColorStore(initial: Hsva): ColorStore {
   let state: Hsva = initial;
+  let lastSource: ColorChangeSource = 'unknown';
   const listeners = new Set<ColorListener>();
   const commitListeners = new Set<ColorListener>();
 
-  function emit(): void {
-    for (const listener of Array.from(listeners)) listener(state);
+  function emit(source: ColorChangeSource): void {
+    for (const listener of Array.from(listeners)) listener(state, { phase: 'change', source });
   }
 
-  function set(next: Hsva): void {
+  function set(next: Hsva, source: ColorChangeSource = 'unknown'): void {
     if (sameHsva(state, next)) return;
     state = next;
-    emit();
+    lastSource = source;
+    emit(source);
   }
 
   return {
     get: () => state,
     set,
-    patch: (partial: Partial<Hsva>): void => set({ ...state, ...partial }),
-    ingest: (next: Hsva): void => set(ingest(next, state)),
-    commit: (): void => {
-      for (const listener of Array.from(commitListeners)) listener(state);
+    patch: (partial: Partial<Hsva>, source?: ColorChangeSource): void => set({ ...state, ...partial }, source),
+    ingest: (next: Hsva, source?: ColorChangeSource): void => set(ingest(next, state), source),
+    commit: (source: ColorChangeSource = lastSource): void => {
+      for (const listener of Array.from(commitListeners)) listener(state, { phase: 'commit', source });
     },
     subscribe: (listener: ColorListener): Unsubscribe => {
       listeners.add(listener);

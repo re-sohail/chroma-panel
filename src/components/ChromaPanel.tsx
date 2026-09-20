@@ -4,7 +4,7 @@ import * as React from 'react';
 import { parse } from '../color/parse';
 import { toHex, toRgbaString, toResult } from '../color/serialize';
 import { sameRendered } from '../color/sticky';
-import type { ColorChangeResult, ColorFormat, Hsva } from '../color/types';
+import type { ColorChangeMeta, ColorChangeResult, ColorFormat, Hsva } from '../color/types';
 import {
   cx, PanelProvider, useStableId,
   type ChromaClassNames, type ColorPalette, type PanelContextValue, type PanelOptions,
@@ -31,8 +31,10 @@ export interface ChromaPanelProps {
   defaultValue?: string | Hsva;
   onChange?: (color: ColorChangeResult) => void;
   onChangeComplete?: (color: ColorChangeResult) => void;
+  onValueChange?: (color: ColorChangeResult, meta: ColorChangeMeta) => void;
+  onValueCommit?: (color: ColorChangeResult, meta: ColorChangeMeta) => void;
 
-  modes?: (ModeId | string | PickerMode)[];
+  modes?: readonly (ModeId | string | PickerMode)[];
   mode?: string;
   defaultMode?: string;
   onModeChange?: (mode: string) => void;
@@ -76,7 +78,7 @@ export interface ChromaPanelProps {
 
 export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const {
-    value, defaultValue = DEFAULT_COLOR, onChange, onChangeComplete,
+    value, defaultValue = DEFAULT_COLOR, onChange, onChangeComplete, onValueChange, onValueCommit,
     modes = ['wheel', 'sliders', 'palettes', 'image', 'pencils'],
     mode, defaultMode, onModeChange,
     format = 'hex',
@@ -127,7 +129,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       return;
     }
     if (sameRendered(parsed, store.get())) return;
-    store.ingest(parsed);
+    store.ingest(parsed, 'programmatic');
   }, [value, store]);
 
   const [internalRecents, setInternalRecents] = React.useState<string[]>(
@@ -136,27 +138,33 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const activeRecents = recentColors ?? internalRecents;
 
   const callbacks = React.useRef({
-    onChange, onChangeComplete, format, activeRecents, onRecentColorsChange,
+    onChange, onChangeComplete, onValueChange, onValueCommit, format, activeRecents, onRecentColorsChange,
     controlled: recentColors !== undefined,
   });
   React.useEffect(() => {
     callbacks.current = {
-      onChange, onChangeComplete, format, activeRecents, onRecentColorsChange,
+      onChange, onChangeComplete, onValueChange, onValueCommit, format, activeRecents, onRecentColorsChange,
       controlled: recentColors !== undefined,
     };
   });
 
   React.useEffect(
-    () => store.subscribe((c) => callbacks.current.onChange?.(toResult(c, callbacks.current.format))),
+    () => store.subscribe((c, meta) => {
+      const result = toResult(c, callbacks.current.format);
+      callbacks.current.onChange?.(result);
+      callbacks.current.onValueChange?.(result, meta);
+    }),
     [store],
   );
 
   React.useEffect(
     () =>
-      store.subscribeCommit((c) => {
+      store.subscribeCommit((c, meta) => {
         const { onChangeComplete: done, format: fmt, activeRecents: recents,
-          onRecentColorsChange: notify, controlled } = callbacks.current;
-        done?.(toResult(c, fmt));
+          onValueCommit: commit, onRecentColorsChange: notify, controlled } = callbacks.current;
+        const result = toResult(c, fmt);
+        done?.(result);
+        commit?.(result, meta);
 
         const next = pushRecent(recents, toHex(c));
         if (!controlled) setInternalRecents(next);

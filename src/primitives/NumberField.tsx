@@ -52,12 +52,12 @@ export function NumberField(props: NumberFieldProps): React.ReactElement {
         onChange={(e) => {
           const raw = e.currentTarget.valueAsNumber;
           if (Number.isNaN(raw)) return; 
-          store.set(fns.current.write(clamp(raw, min, max), store.get()));
+          store.set(fns.current.write(clamp(raw, min, max), store.get()), 'field');
         }}
         onBlur={(e) => {
           focused.current = false;
           e.currentTarget.value = String(Math.round(fns.current.read(store.get())));
-          store.commit();
+          store.commit('field');
         }}
       />
     </div>

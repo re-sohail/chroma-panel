@@ -1,4 +1,5 @@
 import { clamp, hslaToHsva, hwbaToHsva, rgbaToHsva } from './convert';
+import { colorValueToHsva, parseCss4Color } from './css4';
 import type { Hsva } from './types';
 
 let namedTable: Record<string, string> | null = null;
@@ -158,7 +159,8 @@ export function parse(input: string): Hsva | null {
     return hwbaToHsva({ h, w: clamp(w, 0, 100), b: clamp(b, 0, 100), a: alpha });
   }
 
-  return null;
+  const modern = parseCss4Color(raw);
+  return modern === null ? null : colorValueToHsva(modern);
 }
 
 export function isValidColor(input: string): boolean {

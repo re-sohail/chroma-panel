@@ -121,8 +121,10 @@ Large images are downscaled to a bounded sampling surface before their pixels ar
 read into JavaScript. Files above 20 MB and images above 40 megapixels are rejected
 by default; both limits can be changed through `imageOptions` or `extractPalette`.
 
-In the built-in image mode, move over the preview to see the zoom lens, then click
-to pick an exact pixel. Keyboard users can focus the preview and press Enter or Space.
+In the built-in image mode, drop, paste or choose an image, move over the preview
+to see the zoom lens, then click to pick an exact pixel. Keyboard users can focus
+the preview and press Enter or Space. Set `modeProps.image.sortBy` to
+`'population'`, `'luminance'` or `'hue'` to order the extracted palette.
 
 A loaded image stays put when you close and reopen the picker. It is released
 when you replace it, remove it, or leave the page.

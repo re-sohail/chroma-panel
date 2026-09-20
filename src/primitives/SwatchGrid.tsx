@@ -50,8 +50,8 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
     if (target === null) return;
     const parsed = parse(target.getAttribute('data-cp-color') ?? '');
     if (parsed === null) return;
-    store.ingest(parsed);
-    store.commit();
+    store.ingest(parsed, 'swatch');
+    store.commit('swatch');
   };
 
   const grid = (

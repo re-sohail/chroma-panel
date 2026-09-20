@@ -7,6 +7,11 @@ export {
   roundRgba,
 } from './color/convert';
 export { parse, isValidColor, registerNamedColors, clearNamedColors } from './color/parse';
+export { parseColor } from './color/value';
+export {
+  convertColor, isInGamut, mapToGamut, parseCss4Color,
+  colorValueToHsva, hsvaToColorValue, serializeColor,
+} from './color/css4';
 export {
   toHex, toHexa, toRgbString, toRgbaString, toHslString, toHslaString,
   toFormat, toResult,

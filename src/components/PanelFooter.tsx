@@ -7,11 +7,14 @@ import { cx, usePanel } from '../core/context';
 import { EyedropperIcon, Icon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
 import { useScrollFade } from '../core/useScrollFade';
+import { useColorValue } from '../core/useColorStore';
 
 export function PanelFooter(): React.ReactElement | null {
   const { store, classNames, options, disabled } = usePanel();
   const { supported, pick } = useEyedropper();
   const [copyStatus, setCopyStatus] = React.useState<'idle' | 'copied' | 'error'>('idle');
+  const color = useColorValue(store);
+  const colorLabel = toFormat(color, options.format);
   const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => () => {
@@ -34,8 +37,8 @@ export function PanelFooter(): React.ReactElement | null {
     if (hex === null) return;
     const parsed = parse(hex);
     if (parsed === null) return;
-    store.ingest(parsed);
-    store.commit();
+    store.ingest(parsed, 'eyedropper');
+    store.commit('eyedropper');
   };
 
   const recentsRef = React.useRef<HTMLUListElement>(null);
@@ -63,6 +66,7 @@ export function PanelFooter(): React.ReactElement | null {
   return (
     <div className={cx('cp-footer', classNames.footer)}>
       <div className="cp-preview" aria-hidden="true" />
+      <output className="cp-current-color" aria-label="Current color">{colorLabel}</output>
 
       {recents.length > 0 ? (
         <ul ref={recentsRef} className="cp-recents" aria-label="Recent colors">
@@ -77,8 +81,8 @@ export function PanelFooter(): React.ReactElement | null {
                 onClick={() => {
                   const parsed = parse(color);
                   if (parsed === null) return;
-                  store.ingest(parsed);
-                  store.commit();
+                  store.ingest(parsed, 'recent');
+                  store.commit('recent');
                 }}
               />
             </li>

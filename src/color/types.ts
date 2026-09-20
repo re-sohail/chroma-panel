@@ -47,3 +47,26 @@ export interface ColorChangeResult {
   hsva: Hsva;
   css: string;
 }
+
+export type ColorChangeSource =
+  | 'pointer' | 'keyboard' | 'field' | 'swatch' | 'eyedropper'
+  | 'image' | 'recent' | 'programmatic' | 'unknown';
+
+export interface ColorChangeMeta {
+  phase: 'change' | 'commit';
+  source: ColorChangeSource;
+}
+
+export type ModernColorSpace = 'srgb' | 'display-p3' | 'oklab' | 'oklch' | 'lab' | 'lch';
+
+export interface ColorValue {
+  space: ModernColorSpace;
+  channels: readonly [number, number, number];
+  alpha: number;
+}
+
+export interface SerializeColorOptions {
+  format?: ModernColorSpace;
+  precision?: number;
+  gamut?: 'preserve' | 'srgb' | 'display-p3';
+}

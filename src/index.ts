@@ -35,6 +35,7 @@ export { slidersMode, SlidersPanel } from './modes/sliders/index';
 export { palettesMode, PalettesPanel } from './modes/palettes/index';
 export { imageMode, ImagePanel } from './modes/image/index';
 export { pencilsMode, PencilsPanel } from './modes/pencils/index';
+export { builtInModes } from './modes';
 export {
   registerMode, getMode, resolveModes, type PickerMode, type ModeId,
 } from './modes/registry';
@@ -52,8 +53,9 @@ export { usePanel, type ChromaClassNames, type ColorPalette, type PanelOptions }
 
 export {
   relativeLuminance, contrastRatio, apcaContrast, readableTextColor,
+  compositeColor, contrastRatioWithAlpha, suggestAccessibleColor,
   meetsContrast, meetsNonTextContrast, contrastReport, wcagLevel,
-  type ContrastOptions, type ContrastReport, type TextSize, type WcagLevel,
+  type AccessibleColorSuggestion, type ContrastOptions, type ContrastReport, type TextSize, type WcagLevel,
 } from './a11y/contrast';
 
 export * from './core';

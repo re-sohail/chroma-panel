@@ -24,6 +24,8 @@ Every prop below works on both. `ColorInput` adds a few of its own further down.
 | `defaultValue` | `string \| Hsva` | `'#3366cc'` | You want the panel to keep it |
 | `onChange` | `(c: ColorChangeResult) => void` | — | Live preview while dragging |
 | `onChangeComplete` | `(c: ColorChangeResult) => void` | — | Saving, undo entries, network calls |
+| `onValueChange` | `(c, meta) => void` | — | Live preview plus interaction source |
+| `onValueCommit` | `(c, meta) => void` | — | Saving plus interaction source |
 | `format` | `'hex' \| 'hexa' \| 'rgb' \| 'rgba' \| 'hsl' \| 'hsla'` | `'hex'` | You need a particular string format |
 
 Pass `value` and you must handle `onChange`, or the panel will not move. Pass `defaultValue` instead and it manages itself.
@@ -204,13 +206,13 @@ interface ColorChangeResult {
 To keep full precision across a round trip, store `hsva` and pass it back. `value`
 accepts the object as well as a string.
 
-## Hex, RGB, HSL and HSV color engine
+## CSS Color 4 color engine
 
 Available from the main entry and from `chroma-panel/core`, which pulls in no React
 and touches no DOM.
 
 ```ts
-import { parse, toHex, hsvaToRgba } from 'chroma-panel/core';
+import { parse, parseColor, convertColor, isInGamut, mapToGamut } from 'chroma-panel/color';
 ```
 
 ### Parsing
@@ -223,8 +225,25 @@ import { parse, toHex, hsvaToRgba } from 'chroma-panel/core';
 | `clearNamedColors` | `() => void` |
 
 `parse` reads `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`, `hsl()`,
-`hsla()`, `hwb()`, `transparent`, and any names you register. It returns `null` for
+`hsla()`, `hwb()`, `oklab()`, `oklch()`, `lab()`, `lch()`, `color(srgb …)`,
+`color(display-p3 …)`, `transparent`, and any names you register. It returns `null` for
 anything else and never throws.
+
+`parseColor` returns a `ColorValue` with its original color space. Use
+`convertColor`, `isInGamut`, `mapToGamut` and `serializeColor` when preserving
+wide-gamut or perceptual values matters.
+
+## Gradient editor
+
+Import `GradientEditor`, `gradientToCss`, `sampleGradient`, `normalizeGradient`
+and `addGradientStop` from `chroma-panel/gradient`. The editor is controlled or
+uncontrolled, supports linear and radial gradients, and exposes separate live and
+commit callbacks.
+
+## Token exports
+
+Import `toCssVariables`, `toScssVariables`, `toTailwindColors` and
+`toDesignTokens` from `chroma-panel/export`.
 
 ```ts
 parse('hsl(210 60% 50%)');   // { h: 210, s: 75, v: 80, a: 1 }

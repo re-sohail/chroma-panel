@@ -130,4 +130,16 @@ describe('commit', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onCommit).not.toHaveBeenCalled();
   });
+
+  it('reports the interaction source and phase', () => {
+    const store = createColorStore(RED);
+    const changes = vi.fn();
+    const commits = vi.fn();
+    store.subscribe(changes);
+    store.subscribeCommit(commits);
+    store.patch({ h: 40 }, 'keyboard');
+    store.commit();
+    expect(changes.mock.calls[0]![1]).toEqual({ phase: 'change', source: 'keyboard' });
+    expect(commits.mock.calls[0]![1]).toEqual({ phase: 'commit', source: 'keyboard' });
+  });
 });

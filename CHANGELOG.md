@@ -1,5 +1,22 @@
 # chroma-panel
 
+## 1.0.0
+
+### Major Changes
+
+- Add a dependency-free CSS Color 4 engine for OKLCH, OKLab, Lab, LCH, sRGB and
+  Display P3, including conversion, serialization, gamut detection and perceptual
+  gamut mapping.
+- Add an accessible standalone gradient editor and gradient model utilities with
+  linear/radial gradients, editable stops and perceptual interpolation.
+- Add source-aware `onValueChange` and `onValueCommit` events while preserving the
+  existing `onChange` and `onChangeComplete` callbacks.
+- Add alpha-aware contrast measurement, accessible-color suggestions and exports
+  for CSS variables, SCSS variables, Tailwind colors and design tokens.
+- Add pasted-image input and population, luminance or hue sorting to image mode.
+- Add explicit built-in mode objects through `chroma-panel/modes`, plus focused
+  `color`, `gradient` and `export` entry points for smaller application bundles.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -8,7 +8,7 @@
 
 # chroma-panel — React color picker
 
-A lightweight, accessible React color picker component with the look and feel of the macOS color panel. It includes a color wheel, precise RGB, HSL and HSV sliders, searchable swatches, image color sampling, opacity and an eyedropper—with zero runtime dependencies and TypeScript types included.
+A lightweight, accessible React color picker component with the look and feel of the macOS color panel. Version 1 adds CSS Color 4, a gradient editor, accessible contrast suggestions and design-token exports alongside the color wheel, precise sliders, searchable swatches, image sampling, opacity and eyedropper—with zero runtime dependencies and TypeScript types included.
 
 **[Documentation and live demo](https://chroma-panel.jscrate.dev)** · [Quick start](https://chroma-panel.jscrate.dev/react/overview/quick-start) · [Comparison](https://chroma-panel.jscrate.dev/react/overview/comparison) · [FAQ](https://chroma-panel.jscrate.dev/react/overview/faq) · [Releases](https://chroma-panel.jscrate.dev/react/overview/releases)
 
@@ -18,6 +18,9 @@ A lightweight, accessible React color picker component with the look and feel of
 - Drops into a [form](https://chroma-panel.jscrate.dev/react/handbook/forms) like an `<input>`, with `name`, `required` and `form.reset()`
 - [Accessible](https://chroma-panel.jscrate.dev/react/overview/accessibility): every color channel is a real range input, so keyboards and screen readers work
 - No runtime dependencies, TypeScript types included, ESM and CommonJS
+- CSS Color 4: OKLCH, OKLab, Lab, LCH and Display P3 parsing, conversion and gamut mapping
+- A standalone, keyboard-accessible gradient editor with perceptual interpolation
+- Alpha-aware contrast checks, accessible-color suggestions and CSS/SCSS/design-token exports
 
 ## Install
 
@@ -60,7 +63,7 @@ import { ChromaPanel } from 'chroma-panel';
 
 ## Pick colors from an image
 
-The image mode takes a dropped or chosen file, shows its dominant colors as swatches, and lets you click an exact pixel through a zoom lens. The sampler behind it is exported too, for when you want the palette without the panel:
+The image mode takes a dropped, pasted or chosen file, shows its dominant colors as swatches, and lets you click an exact pixel through a zoom lens. Palettes can be ordered by population, luminance or hue. The sampler behind it is exported too, for when you want the palette without the panel:
 
 ```ts
 import { extractPalette } from 'chroma-panel';
@@ -73,16 +76,51 @@ It takes a `File`, a `Blob` or an image URL, validates safe size limits, and rea
 
 ## Smaller bundle
 
-Importing `chroma-panel` registers all five modes. If you only need one or two, import the shell and add them yourself:
+Importing `chroma-panel` registers all five modes. If you only need one or two, import the shell and pass explicit mode objects:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel/panel';
-import 'chroma-panel/wheel';
+import { wheelMode } from 'chroma-panel/modes';
 
-<ChromaPanel modes={['wheel']} />
+<ChromaPanel modes={[wheelMode]} />
 ```
 
-That is 13.0 kB instead of 20.6 kB. Every mode has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
+The original side-effect import (`import 'chroma-panel/wheel'`) remains supported. Explicit mode objects are easier for bundlers to analyze. Every mode also has its own entry point — see [entry points](https://chroma-panel.jscrate.dev/react/utils/entry-points).
+
+## CSS Color 4 and wide gamut
+
+The dependency-free color engine reads and converts `oklch()`, `oklab()`, `lab()`, `lch()`, `color(srgb …)` and `color(display-p3 …)`. Gamut checks do not silently clip wide-gamut input:
+
+```ts
+import { parseColor, convertColor, isInGamut, mapToGamut, serializeColor } from 'chroma-panel/color';
+
+const color = parseColor('oklch(72% 0.18 250)')!;
+isInGamut(color, 'srgb');
+serializeColor(mapToGamut(color, 'display-p3'));
+```
+
+## Gradient editor
+
+```tsx
+import { GradientEditor, type GradientValue } from 'chroma-panel/gradient';
+
+<GradientEditor defaultValue={gradient} onChangeComplete={(value) => save(value)} />
+```
+
+The same entry exports `gradientToCss`, `sampleGradient`, `normalizeGradient` and `addGradientStop`. It supports linear and radial gradients, movable color stops and OKLab/OKLCH interpolation.
+
+## Reliable change events
+
+The original `onChange` and `onChangeComplete` callbacks remain unchanged. The new callbacks include interaction metadata:
+
+```tsx
+<ColorInput
+  onValueChange={(color, meta) => preview(color.css, meta.source)}
+  onValueCommit={(color, meta) => save(color.css, meta.source)}
+/>
+```
+
+`meta.source` distinguishes pointer, keyboard, field, swatch, image, eyedropper, recent-color and programmatic changes.
 
 ## Theming
 
@@ -108,8 +146,8 @@ Measured as the increase in a real Vite production build, gzipped, with React ex
 
 | What you import | Added to your app |
 | --- | --- |
-| all five modes | 19.3 kB |
-| shell plus one mode | 12.5 kB |
+| all five modes | 22.9 kB |
+| shell plus one mode | 14.9 kB |
 
 `dependencies` is empty. `react` and `react-dom` are peer dependencies, so the copy already in your app is the one that gets used.
 

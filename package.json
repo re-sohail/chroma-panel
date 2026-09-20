@@ -1,7 +1,7 @@
 {
   "name": "chroma-panel",
-  "version": "0.2.0",
-  "description": "Accessible React color picker component with a color wheel, RGB, HSL and HSV sliders, palettes, image sampling and an eyedropper. Zero dependencies.",
+  "version": "1.0.0",
+  "description": "Accessible React color picker with CSS Color 4, gradients, color wheel, sliders, palettes, image sampling and an eyedropper. Zero dependencies.",
   "keywords": [
     "react color picker",
     "react color picker component",
@@ -25,6 +25,10 @@
     "color-picker",
     "colour-picker",
     "image-color-picker",
+    "gradient-color-picker",
+    "oklch-color-picker",
+    "display-p3",
+    "design-tokens",
     "eyedropper",
     "zero-dependency"
   ],
@@ -75,6 +79,16 @@
       "require": {
         "types": "./dist/core.d.cts",
         "default": "./dist/core.cjs"
+      }
+    },
+    "./color": {
+      "import": {
+        "types": "./dist/color.d.ts",
+        "default": "./dist/color.js"
+      },
+      "require": {
+        "types": "./dist/color.d.cts",
+        "default": "./dist/color.cjs"
       }
     },
     "./panel": {
@@ -155,6 +169,36 @@
       "require": {
         "types": "./dist/contrast.d.cts",
         "default": "./dist/contrast.cjs"
+      }
+    },
+    "./gradient": {
+      "import": {
+        "types": "./dist/gradient.d.ts",
+        "default": "./dist/gradient.js"
+      },
+      "require": {
+        "types": "./dist/gradient.d.cts",
+        "default": "./dist/gradient.cjs"
+      }
+    },
+    "./modes": {
+      "import": {
+        "types": "./dist/modes.d.ts",
+        "default": "./dist/modes.js"
+      },
+      "require": {
+        "types": "./dist/modes.d.cts",
+        "default": "./dist/modes.cjs"
+      }
+    },
+    "./export": {
+      "import": {
+        "types": "./dist/export.d.ts",
+        "default": "./dist/export.js"
+      },
+      "require": {
+        "types": "./dist/export.d.cts",
+        "default": "./dist/export.cjs"
       }
     },
     "./image-worker": "./dist/image-worker.js",

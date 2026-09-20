@@ -20,7 +20,7 @@ export function getMode(id: string): PickerMode | undefined {
   return registry.get(id);
 }
 
-export function resolveModes(requested: (string | PickerMode)[]): PickerMode[] {
+export function resolveModes(requested: readonly (string | PickerMode)[]): PickerMode[] {
   const out: PickerMode[] = [];
   for (const entry of requested) {
     if (typeof entry !== 'string') {

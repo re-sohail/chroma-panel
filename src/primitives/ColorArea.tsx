@@ -40,8 +40,8 @@ export function ColorArea(props: ColorAreaProps): React.ReactElement {
 
   const drag = usePointerDrag({
     disabled,
-    onMove: ({ x, y }) => store.patch({ s: x * 100, v: (1 - y) * 100 }),
-    onEnd: () => store.commit(),
+    onMove: ({ x, y }) => store.patch({ s: x * 100, v: (1 - y) * 100 }, 'pointer'),
+    onEnd: () => store.commit('pointer'),
   });
 
   const initial = store.get();
@@ -66,8 +66,8 @@ export function ColorArea(props: ColorAreaProps): React.ReactElement {
         max={100}
         defaultValue={Math.round(initial.s)}
         disabled={disabled}
-        onInput={(s) => store.patch({ s })}
-        onCommit={() => store.commit()}
+        onInput={(s) => store.patch({ s }, 'keyboard')}
+        onCommit={() => store.commit('keyboard')}
       />
       <AxisInput
         ref={valRef}
@@ -76,8 +76,8 @@ export function ColorArea(props: ColorAreaProps): React.ReactElement {
         max={100}
         defaultValue={Math.round(initial.v)}
         disabled={disabled}
-        onInput={(v) => store.patch({ v })}
-        onCommit={() => store.commit()}
+        onInput={(v) => store.patch({ v }, 'keyboard')}
+        onCommit={() => store.commit('keyboard')}
       />
       <div className={cx('cp-thumb', classNames.thumb)} aria-hidden="true" />
     </div>
