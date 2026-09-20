@@ -8,9 +8,9 @@
 import { ColorInput, ChromaPanel } from 'chroma-panel';
 ```
 
-`ColorInput` is a swatch button that opens the panel in a popover. Reach for it when the picker should sit inline in a form or toolbar.
+`ColorInput` is a swatch button that opens the panel in a popover. Use it in a form or toolbar.
 
-`ChromaPanel` is the panel by itself, always visible. Reach for it when you are placing the picker in a sidebar, a modal you control, or a page of your own.
+`ChromaPanel` is the panel by itself, always visible. Use it in a sidebar, a modal you control, or directly on a page.
 
 Every prop below works on both. `ColorInput` adds a few of its own further down.
 

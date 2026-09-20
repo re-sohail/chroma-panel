@@ -8,7 +8,9 @@
 
 # chroma-panel — React color picker
 
-A lightweight, accessible React color picker component with the look and feel of the macOS color panel. Version 1 adds CSS Color 4, a gradient editor, accessible contrast suggestions and design-token exports alongside the color wheel, precise sliders, searchable swatches, image sampling, opacity and eyedropper—with zero runtime dependencies and TypeScript types included.
+A React color picker for forms, toolbars, settings pages, and design tools. Use a small color input or render the full panel with a wheel, RGB and HSL sliders, searchable palettes, image sampling, opacity, and an eyedropper.
+
+Version 1 also includes CSS Color 4 tools, a gradient editor, contrast suggestions, and design-token exports. The package has no runtime dependencies and includes TypeScript types.
 
 **[Documentation and live demo](https://chroma-panel.jscrate.dev)** · [Quick start](https://chroma-panel.jscrate.dev/react/overview/quick-start) · [Comparison](https://chroma-panel.jscrate.dev/react/overview/comparison) · [FAQ](https://chroma-panel.jscrate.dev/react/overview/faq) · [Releases](https://chroma-panel.jscrate.dev/react/overview/releases)
 
@@ -28,7 +30,7 @@ A lightweight, accessible React color picker component with the look and feel of
 npm install chroma-panel
 ```
 
-## React color picker example
+## Usage
 
 ```tsx
 import { useState } from 'react';
@@ -74,7 +76,7 @@ const { swatches } = await extractPalette(file, { maxColors: 8 });
 
 It takes a `File`, a `Blob` or an image URL, validates safe size limits, and reads only a downscaled sampling surface. More in the [image mode docs](https://chroma-panel.jscrate.dev/react/modes/image).
 
-## Smaller bundle
+## Import fewer modes
 
 Importing `chroma-panel` registers all five modes. If you only need one or two, import the shell and pass explicit mode objects:
 
