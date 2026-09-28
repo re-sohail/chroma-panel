@@ -1,5 +1,13 @@
 # chroma-panel
 
+## 1.0.2
+
+### Patch Changes
+
+- Refresh the README and docs wording on npm: a clearer introduction, "Usage" and
+  "Import fewer modes" headings, and simpler guides for mobile handling and server
+  rendering.
+
 ## 1.0.1
 
 ### Patch Changes
