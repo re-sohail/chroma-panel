@@ -5,13 +5,12 @@ const minifyInlinedCss = {
   name: 'chroma-panel:minify-inlined-css',
   transform(code: string, id: string) {
     if (!id.replace(/\\/g, '/').endsWith('src/styles/css.ts')) return null;
-    const match = code.match(/export const css: string = `([\s\S]*?)`;/);
-    if (match === null) return null;
+    // Every stylesheet chunk (`css`, `discCss`, ...) is a template literal.
     const next = code.replace(
-      match[0],
-      'export const css: string = `' + minifyCss(match[1] as string) + '`;',
+      /export const (\w+): string = `([\s\S]*?)`;/g,
+      (_, name: string, body: string) => `export const ${name}: string = \`${minifyCss(body)}\`;`,
     );
-    return { code: next, map: null };
+    return next === code ? null : { code: next, map: null };
   },
 };
 

@@ -32,6 +32,8 @@ Pass `value` and you must handle `onChange`, or the panel will not move. Pass `d
 
 `format` changes two things: the `css` string inside `ColorChangeResult`, and the value `ColorInput` submits with a form. Every other field on the result is always present, so you can read `hex` and `rgba` whatever you set here.
 
+While the opacity control is on (`showAlpha`, the default), a translucent color keeps its opacity: `hex`, `rgb` and `hsl` are written as `hexa`, `rgba` and `hsla`. Opaque colors are written exactly in your `format`. The `hex` field never has opacity, so store `hexa` or `css` when opacity matters.
+
 ### Which modes appear
 
 | Prop | Type | Default | When you'd use it |
@@ -161,8 +163,8 @@ Use `onChange` to show the color. Use `onChangeComplete` to record it.
 
 ```tsx
 <ColorInput
-  onChange={(c) => setPreview(c.hex)}     // cheap, local
-  onChangeComplete={(c) => saveToApi(c.hex)}  // once
+  onChange={(c) => setPreview(c.hexa)}     // cheap, local
+  onChangeComplete={(c) => saveToApi(c.hexa)}  // once
 />
 ```
 

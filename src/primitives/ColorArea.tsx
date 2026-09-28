@@ -3,6 +3,8 @@
 import * as React from 'react';
 import type { Hsva } from '../color/types';
 import { cx, usePanel } from '../core/context';
+import { useStyleChunk } from '../core/useStyleChunk';
+import { areaCss } from '../styles/css';
 import { useTransientColor } from '../core/useColorStore';
 import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
@@ -14,9 +16,10 @@ export interface ColorAreaProps {
 
 export function ColorArea(props: ColorAreaProps): React.ReactElement {
   const { height = 150, className } = props;
-  const { store, disabled, classNames } = usePanel();
+  const { store, disabled, classNames, options } = usePanel();
 
   const areaRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(areaCss, 'area', areaRef, options.injectStyles !== false);
   const satRef = React.useRef<HTMLInputElement>(null);
   const valRef = React.useRef<HTMLInputElement>(null);
 

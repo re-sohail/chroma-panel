@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { parse } from '../color/parse';
-import { toFormat, toRgbaString } from '../color/serialize';
+import { toOutputFormat, toRgbaString } from '../color/serialize';
 import type { Hsva } from '../color/types';
 import { cx, useStableId } from '../core/context';
 import { createColorStore } from '../core/store';
@@ -12,7 +12,7 @@ import {
 } from '../core/useFormControl';
 import { useTransientColor } from '../core/useColorStore';
 import { injectStyles } from '../core/styleInjector';
-import { css, STYLE_ID } from '../styles/css';
+import { css, STYLE_ID, triggerCss } from '../styles/css';
 import { ChromaPanel, DEFAULT_COLOR, FALLBACK, type ChromaPanelProps } from './ChromaPanel';
 import { Popover } from './Popover';
 
@@ -53,7 +53,9 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
 
   const shouldInject = panelProps.injectStyles ?? true;
   React.useEffect(() => {
-    if (shouldInject) injectStyles(css, STYLE_ID, trigger);
+    if (!shouldInject) return;
+    injectStyles(css, STYLE_ID, trigger);
+    injectStyles(triggerCss, `${STYLE_ID}-trigger`, trigger);
   }, [shouldInject, trigger]);
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const isOpen = open ?? internalOpen;
@@ -92,15 +94,16 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
     trigger?.focus({ preventScroll: true });
   }, [setOpen, trigger]);
 
-  const formatRef = React.useRef(format);
+  const showAlpha = panelProps.showAlpha ?? true;
+  const formatRef = React.useRef({ format, showAlpha });
   React.useEffect(() => {
-    formatRef.current = format;
+    formatRef.current = { format, showAlpha };
   });
 
   useTransientColor(store, (c: Hsva) => {
     trigger?.style.setProperty('--cp-trigger-color', toRgbaString(c));
     const hidden = hiddenRef.current;
-    if (hidden !== null) setNativeValue(hidden, toFormat(c, formatRef.current));
+    if (hidden !== null) setNativeValue(hidden, toOutputFormat(c, formatRef.current.format, formatRef.current.showAlpha));
   });
 
   useFormReset(hiddenRef, () => {
@@ -139,7 +142,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
           type="text"
           name={name}
           form={form}
-          defaultValue={toFormat(seed, format)}
+          defaultValue={toOutputFormat(seed, format, showAlpha)}
           disabled={disabled}
           required={required}
           readOnly={readOnly}
@@ -156,6 +159,7 @@ export function ColorInput(props: ColorInputProps): React.ReactElement {
         open={isOpen}
         onClose={() => setOpen(false)}
         className={classNames.popover}
+        injectStyles={shouldInject}
       >
         <div className="cp-dialog" role="dialog" aria-label={ariaLabel} aria-modal="false">
           <ChromaPanel

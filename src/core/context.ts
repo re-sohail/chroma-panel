@@ -33,6 +33,8 @@ export interface PanelOptions {
   showCopyButton: boolean;
   showRecentColors: boolean;
   format: ColorFormat;
+  /** False when the app ships `chroma-panel/style.css` itself. Undefined means true. */
+  injectStyles?: boolean;
   recentColors: string[];
   onRecentColorsChange?: (colors: string[]) => void;
 }

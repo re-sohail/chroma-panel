@@ -63,4 +63,42 @@ describe('the stylesheet reaches the trigger', () => {
     const doc = await renderIsolated(<ColorInput injectStyles={false} />);
     expect(doc.querySelector('style[data-chroma-panel]')).toBeNull();
   });
+
+  it('honours injectStyles={false} for every chunk of an inline panel', async () => {
+    const doc = await renderIsolated(
+      <ChromaPanel modes={['wheel', 'sliders', 'image']} injectStyles={false} />,
+    );
+    expect(doc.querySelector('style[data-chroma-panel]')).toBeNull();
+  });
+});
+
+const chunkIds = (doc: Document): string[] =>
+  [...doc.querySelectorAll('style[data-chroma-panel]')]
+    .map((style) => style.getAttribute('data-chroma-panel')!)
+    .sort();
+
+describe('a panel injects only the styles it renders', () => {
+  it('a palettes-only panel gets the shell and nothing else', async () => {
+    const doc = await renderIsolated(<ChromaPanel modes={['palettes']} />);
+    expect(chunkIds(doc)).toEqual(['v3']);
+  });
+
+  it('a wheel-only panel adds the disc and slider chunks', async () => {
+    const doc = await renderIsolated(<ChromaPanel modes={['wheel']} />);
+    expect(chunkIds(doc)).toEqual(['v3', 'v3-disc', 'v3-slider']);
+    const disc = doc.querySelector<HTMLElement>('.cp-disc')!;
+    expect(doc.defaultView!.getComputedStyle(disc).borderRadius).toBe('50%');
+  });
+
+  it('an image-only panel adds the image chunk', async () => {
+    const doc = await renderIsolated(<ChromaPanel modes={['image']} />);
+    expect(chunkIds(doc)).toEqual(['v3', 'v3-image']);
+    const dropzone = doc.querySelector<HTMLElement>('.cp-dropzone')!;
+    expect(doc.defaultView!.getComputedStyle(dropzone).borderStyle).toBe('dashed');
+  });
+
+  it('a closed ColorInput adds the trigger and popover chunks', async () => {
+    const doc = await renderIsolated(<ColorInput />);
+    expect(chunkIds(doc)).toEqual(['v3', 'v3-popover', 'v3-trigger']);
+  });
 });

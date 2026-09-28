@@ -184,7 +184,7 @@ describe('regressions from other pickers', () => {
     expect(added).toEqual([]);
   });
 
-  it('injects exactly one stylesheet no matter how many panels mount', async () => {
+  it('injects each stylesheet chunk once no matter how many panels mount', async () => {
     render(
       <div>
         <ChromaPanel defaultValue="#ff0000" modes={['wheel']} />
@@ -193,7 +193,10 @@ describe('regressions from other pickers', () => {
       </div>,
     );
     await expect.element(page.getByRole('slider', { name: 'Hue' }).first()).toBeInTheDocument();
-    expect(document.querySelectorAll('style[data-chroma-panel]')).toHaveLength(1);
+    const ids = [...document.querySelectorAll('style[data-chroma-panel]')]
+      .map((style) => style.getAttribute('data-chroma-panel'));
+    expect(ids.length).toBeGreaterThan(0);
+    expect(new Set(ids).size, `duplicate chunks: ${ids.join(', ')}`).toBe(ids.length);
   });
 });
 

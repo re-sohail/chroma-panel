@@ -138,19 +138,19 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const activeRecents = recentColors ?? internalRecents;
 
   const callbacks = React.useRef({
-    onChange, onChangeComplete, onValueChange, onValueCommit, format, activeRecents, onRecentColorsChange,
+    onChange, onChangeComplete, onValueChange, onValueCommit, format, showAlpha, activeRecents, onRecentColorsChange,
     controlled: recentColors !== undefined,
   });
   React.useEffect(() => {
     callbacks.current = {
-      onChange, onChangeComplete, onValueChange, onValueCommit, format, activeRecents, onRecentColorsChange,
+      onChange, onChangeComplete, onValueChange, onValueCommit, format, showAlpha, activeRecents, onRecentColorsChange,
       controlled: recentColors !== undefined,
     };
   });
 
   React.useEffect(
     () => store.subscribe((c, meta) => {
-      const result = toResult(c, callbacks.current.format);
+      const result = toResult(c, callbacks.current.format, callbacks.current.showAlpha);
       callbacks.current.onChange?.(result);
       callbacks.current.onValueChange?.(result, meta);
     }),
@@ -160,9 +160,9 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   React.useEffect(
     () =>
       store.subscribeCommit((c, meta) => {
-        const { onChangeComplete: done, format: fmt, activeRecents: recents,
+        const { onChangeComplete: done, format: fmt, showAlpha: alpha, activeRecents: recents,
           onValueCommit: commit, onRecentColorsChange: notify, controlled } = callbacks.current;
-        const result = toResult(c, fmt);
+        const result = toResult(c, fmt, alpha);
         done?.(result);
         commit?.(result, meta);
 
@@ -215,11 +215,12 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       palettes,
       pencils,
       showAlpha, showEyedropper, showCopyButton, showRecentColors, format,
+      injectStyles: shouldInject,
       recentColors: activeRecents,
       onRecentColorsChange,
     }),
     [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper, showCopyButton, format,
-     showRecentColors, activeRecents, onRecentColorsChange],
+     shouldInject, showRecentColors, activeRecents, onRecentColorsChange],
   );
 
   const context = React.useMemo<PanelContextValue>(

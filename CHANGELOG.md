@@ -1,5 +1,13 @@
 # chroma-panel
 
+## 1.1.0
+
+### Minor Changes
+
+- Keep opacity when a color is translucent. With the opacity control on (the default), `hex`, `rgb` and `hsl` output now becomes `hexa`, `rgba` and `hsla` for translucent colors: in the value a `ColorInput` submits with a form, the `css` field of change events, the footer label and the copy button. Before, a user could pick 50% opacity and the form received `#3366cc`. Opaque colors, and pickers with `showAlpha={false}`, output exactly what they did before.
+- Load only the styles a picker uses. The wheel, area, slider, image-mode, trigger and popover styles are now injected by the components that render them, so a panel with one mode downloads less (panel + wheel: 15.03 → 14.36 KB gzip). `chroma-panel/style.css` still contains every rule. `Popover` takes a new `injectStyles` prop.
+- The README and docs examples store `c.hexa` instead of `c.hex`, so copied examples keep opacity.
+
 ## 1.0.2
 
 ### Patch Changes

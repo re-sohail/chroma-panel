@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { parse } from '../color/parse';
-import { toFormat, toHex } from '../color/serialize';
+import { toHex, toOutputFormat } from '../color/serialize';
 import { cx, usePanel } from '../core/context';
 import { EyedropperIcon, Icon } from '../primitives/icons';
 import { useEyedropper } from '../primitives/useEyedropper';
@@ -14,7 +14,7 @@ export function PanelFooter(): React.ReactElement | null {
   const { supported, pick } = useEyedropper();
   const [copyStatus, setCopyStatus] = React.useState<'idle' | 'copied' | 'error'>('idle');
   const color = useColorValue(store);
-  const colorLabel = toFormat(color, options.format);
+  const colorLabel = toOutputFormat(color, options.format, options.showAlpha);
   const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => () => {
@@ -23,7 +23,7 @@ export function PanelFooter(): React.ReactElement | null {
 
   const handleCopy = async (): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(toFormat(store.get(), options.format));
+      await navigator.clipboard.writeText(toOutputFormat(store.get(), options.format, options.showAlpha));
       setCopyStatus('copied');
     } catch {
       setCopyStatus('error');

@@ -210,7 +210,7 @@ Import `chroma-panel/style.css` in your root layout and pass
 Uncontrolled is the default. Pass `defaultValue` and let the panel keep the value:
 
 ```tsx
-<ColorInput defaultValue="#3366cc" onChangeComplete={(c) => save(c.hex)} />
+<ColorInput defaultValue="#3366cc" onChangeComplete={(c) => save(c.hexa)} />
 ```
 
 Controlled means you own it. Pass `value` and update it yourself:
@@ -218,8 +218,10 @@ Controlled means you own it. Pass `value` and update it yourself:
 ```tsx
 const [color, setColor] = useState('#3366cc');
 
-<ColorInput value={color} onChange={(c) => setColor(c.hex)} />
+<ColorInput value={color} onChange={(c) => setColor(c.hexa)} />
 ```
+
+Store `hexa` (or `css`), not `hex`. `hex` has no opacity, so a controlled picker fed `hex` jumps back to 100% opacity after every change.
 
 Pass `value` and you must handle `onChange`, or the panel will not move.
 

@@ -42,8 +42,8 @@ export function Example() {
   return (
     <ColorInput
       value={color}
-      onChange={(c) => setColor(c.hex)}
-      onChangeComplete={(c) => save(c.hex)}
+      onChange={(c) => setColor(c.hexa)}
+      onChangeComplete={(c) => save(c.hexa)}
     />
   );
 }
@@ -51,7 +51,7 @@ export function Example() {
 
 No CSS import and no provider. [`ColorInput`](https://chroma-panel.jscrate.dev/react/components/color-input) renders a swatch button that opens the panel in a popover.
 
-`onChange` fires continuously while you drag, `onChangeComplete` once when you let go. [Which to use](https://chroma-panel.jscrate.dev/react/handbook/controlled#onchange-vs-onchangecomplete).
+`onChange` fires while you drag, `onChangeComplete` once when you let go. [Which to use](https://chroma-panel.jscrate.dev/react/handbook/controlled#onchange-vs-onchangecomplete).
 
 ## Inline panel
 

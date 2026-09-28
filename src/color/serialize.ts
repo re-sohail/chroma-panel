@@ -52,7 +52,21 @@ export function toFormat(hsva: Hsva, format: ColorFormat): string {
   }
 }
 
-export function toResult(hsva: Hsva, format: ColorFormat): ColorChangeResult {
+/**
+ * Like `toFormat`, but a translucent color keeps its opacity: `hex`, `rgb` and
+ * `hsl` widen to `hexa`, `rgba` and `hsla`. Opaque colors, and panels with the
+ * opacity control turned off, serialize exactly as `toFormat` does.
+ */
+export function toOutputFormat(hsva: Hsva, format: ColorFormat, alpha = true): string {
+  if (alpha && hsva.a < 1) {
+    if (format === 'hex') return toHexa(hsva);
+    if (format === 'rgb') return toRgbaString(hsva);
+    if (format === 'hsl') return toHslaString(hsva);
+  }
+  return toFormat(hsva, format);
+}
+
+export function toResult(hsva: Hsva, format: ColorFormat, alpha = true): ColorChangeResult {
   const rgba = roundRgba(hsvaToRgba(hsva));
   const hsla = hsvaToHsla(hsva);
 
@@ -70,6 +84,6 @@ export function toResult(hsva: Hsva, format: ColorFormat): ColorChangeResult {
     hsl,
     hsla: { ...hsl, a: round(hsva.a, 3) },
     hsva,
-    css: toFormat(hsva, format),
+    css: toOutputFormat(hsva, format, alpha),
   };
 }

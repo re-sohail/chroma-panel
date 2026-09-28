@@ -4,6 +4,8 @@ import * as React from 'react';
 import { clamp } from '../color/convert';
 import type { Hsva } from '../color/types';
 import { cx, usePanel } from '../core/context';
+import { useStyleChunk } from '../core/useStyleChunk';
+import { sliderCss } from '../styles/css';
 import { useTransientColor } from '../core/useColorStore';
 import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
@@ -27,9 +29,10 @@ export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
     label, shortLabel, min, max, step, read, write, gradient,
     channel, formatValue, className,
   } = props;
-  const { store, disabled, classNames } = usePanel();
+  const { store, disabled, classNames, options } = usePanel();
 
   const trackRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(sliderCss, 'slider', trackRef, options.injectStyles !== false);
   const fillRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 

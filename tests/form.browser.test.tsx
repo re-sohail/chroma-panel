@@ -36,6 +36,23 @@ describe('native form semantics', () => {
     expect(submitted(form)).toEqual({ brand: '#3366cc' });
   });
 
+  it('keeps opacity in the submitted value when the color is translucent', async () => {
+    render(
+      <form>
+        <ColorInput defaultValue="#3366cc80" name="hex" />
+        <ColorInput defaultValue="#3366cc80" name="rgb" format="rgb" />
+        <ColorInput defaultValue="#3366cc80" name="opaqueOnly" showAlpha={false} />
+      </form>,
+    );
+    await waitFor('.cp-trigger');
+    const form = document.querySelector<HTMLFormElement>('form')!;
+    expect(submitted(form)).toEqual({
+      hex: '#3366cc80',
+      rgb: 'rgba(51, 102, 204, 0.502)',
+      opaqueOnly: '#3366cc',
+    });
+  });
+
   it('does NOT submit when disabled', async () => {
     render(
       <form>

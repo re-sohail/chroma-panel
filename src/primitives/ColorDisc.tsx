@@ -4,6 +4,8 @@ import * as React from 'react';
 import { normalizeHue } from '../color/convert';
 import type { Hsva } from '../color/types';
 import { cx, usePanel } from '../core/context';
+import { useStyleChunk } from '../core/useStyleChunk';
+import { discCss } from '../styles/css';
 import { useTransientColor } from '../core/useColorStore';
 import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
@@ -15,9 +17,10 @@ export interface ColorDiscProps {
 
 export function ColorDisc(props: ColorDiscProps): React.ReactElement {
   const { size = 200, className } = props;
-  const { store, disabled, classNames } = usePanel();
+  const { store, disabled, classNames, options } = usePanel();
 
   const discRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(discCss, 'disc', discRef, options.injectStyles !== false);
   const hueRef = React.useRef<HTMLInputElement>(null);
   const satRef = React.useRef<HTMLInputElement>(null);
 

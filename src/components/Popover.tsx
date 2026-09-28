@@ -4,6 +4,8 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { cx } from '../core/context';
 import { COMPACT_QUERY, useMediaQuery } from '../core/useMediaQuery';
+import { injectStyles as inject } from '../core/styleInjector';
+import { popoverCss, STYLE_ID } from '../styles/css';
 
 export interface PopoverProps {
   anchor: HTMLElement | null;
@@ -12,6 +14,8 @@ export interface PopoverProps {
   offset?: number;
   sheetOnMobile?: boolean;
   className?: string;
+  /** Set to false when the app ships `chroma-panel/style.css` itself. */
+  injectStyles?: boolean;
   children: React.ReactNode;
 }
 
@@ -25,7 +29,8 @@ const FOCUSABLE =
 
 export function Popover(props: PopoverProps): React.ReactElement | null {
   const {
-    anchor, open, onClose, offset = 8, sheetOnMobile = true, className, children,
+    anchor, open, onClose, offset = 8, sheetOnMobile = true, className,
+    injectStyles = true, children,
   } = props;
 
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -37,6 +42,12 @@ export function Popover(props: PopoverProps): React.ReactElement | null {
 
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+
+  // Before the placement layout effect below: `place()` measures the panel, and
+  // an unstyled .cp-popover is not yet position: absolute.
+  React.useLayoutEffect(() => {
+    if (injectStyles && anchor !== null) inject(popoverCss, `${STYLE_ID}-popover`, anchor);
+  }, [injectStyles, anchor]);
 
   const place = React.useCallback((): void => {
     const panel = panelRef.current;

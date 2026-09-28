@@ -4,10 +4,12 @@ import * as React from 'react';
 import { parse } from '../../color/parse';
 import { rgbaToHsva } from '../../color/convert';
 import { usePanel } from '../../core/context';
+import { useStyleChunk } from '../../core/useStyleChunk';
 import { extractPalette, type ExtractOptions } from '../../image/extract';
 import type { QuantizedSwatch } from '../../image/mmcq';
 import { Icon, ImageIcon } from '../../primitives/icons';
 import { SwatchGrid } from '../../primitives/SwatchGrid';
+import { imageCss } from '../../styles/css';
 import type { PickerMode } from '../registry';
 
 type Status = 'idle' | 'working' | 'ready' | 'error';
@@ -36,10 +38,10 @@ export interface ImagePanelProps {
 
 export function ImagePanel(props: ImagePanelProps): React.ReactElement {
   const { extractOptions, sortBy = 'population' } = props;
-  const { idPrefix, disabled } = usePanel();
+  const { idPrefix, disabled, store, options } = usePanel();
   const inputId = `${idPrefix}-image-file`;
-
-  const { store } = usePanel();
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(imageCss, 'image', rootRef, options.injectStyles !== false);
   const restored = kept.get(store) ?? EMPTY;
 
   const [status, setStatus] = React.useState<Status>(restored.status);
@@ -212,6 +214,7 @@ export function ImagePanel(props: ImagePanelProps): React.ReactElement {
 
   return (
     <div
+      ref={rootRef}
       className="cp-panel"
       onPaste={(event) => {
         if (!disabled && pasteFile(event.clipboardData.items)) event.preventDefault();
