@@ -17,14 +17,16 @@ import { injectStyles } from '../core/styleInjector';
 import { css, STYLE_ID } from '../styles/css';
 import { resolveModes, type ModeId, type PickerMode } from '../modes/registry';
 import type { ExtractOptions } from '../image/extract';
-import { WindowGlyph } from '../primitives/icons';
 import { ModeToolbar } from './ModeToolbar';
 import { PanelFooter, pushRecent } from './PanelFooter';
+import { PanelHeader } from './PanelHeader';
 
 export const DEFAULT_COLOR = '#3366cc';
 export const FALLBACK: Hsva = { h: 220, s: 75, v: 80, a: 1 };
 
 export type PanelSize = 'default' | 'expanded';
+
+const DEFAULT_MODES: readonly ModeId[] = ['wheel', 'classic', 'harmony', 'sliders', 'palettes', 'image'];
 
 export interface ChromaPanelProps {
   value?: string | Hsva;
@@ -54,7 +56,7 @@ export interface ChromaPanelProps {
   imageOptions?: ExtractOptions;
 
   disabled?: boolean;
-  theme?: 'dark' | 'light';
+  theme?: 'dark' | 'light' | 'auto';
   showTitleBar?: boolean;
   title?: string;
 
@@ -62,10 +64,12 @@ export interface ChromaPanelProps {
 
   collapsed?: boolean;
   defaultCollapsed?: boolean;
+  /** @deprecated 2.0 removed the collapse button, so nothing calls this. Control `collapsed` instead. */
   onCollapsedChange?: (collapsed: boolean) => void;
 
   size?: PanelSize;
   defaultSize?: PanelSize;
+  /** @deprecated 2.0 removed the widen button, so nothing calls this. Control `size` instead. */
   onSizeChange?: (size: PanelSize) => void;
 
   injectStyles?: boolean;
@@ -79,7 +83,7 @@ export interface ChromaPanelProps {
 export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
   const {
     value, defaultValue = DEFAULT_COLOR, onChange, onChangeComplete, onValueChange, onValueCommit,
-    modes = ['wheel', 'sliders', 'palettes', 'image', 'pencils'],
+    modes = DEFAULT_MODES,
     mode, defaultMode, onModeChange,
     format = 'hex',
     showAlpha = true, showEyedropper = true, showCopyButton = true, showRecentColors = true,
@@ -87,8 +91,8 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     palettes, pencils, modeProps, imageOptions,
     disabled = false, theme, showTitleBar = true, title = 'Colors',
     onClose,
-    collapsed, defaultCollapsed = false, onCollapsedChange,
-    size, defaultSize = 'default', onSizeChange,
+    collapsed, defaultCollapsed = false,
+    size, defaultSize = 'default',
     injectStyles: shouldInject = true,
     className, classNames = {}, style, store: externalStore,
   } = props;
@@ -173,6 +177,11 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     [store],
   );
 
+  const setRecentColors = React.useCallback((next: string[]): void => {
+    if (!callbacks.current.controlled) setInternalRecents(next);
+    callbacks.current.onRecentColorsChange?.(next);
+  }, []);
+
   const resolved = React.useMemo(() => resolveModes(modes), [modes]);
   const first = resolved[0];
   const [internalMode, setInternalMode] = React.useState(() => defaultMode ?? first?.id ?? 'wheel');
@@ -186,21 +195,8 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
     onModeChange?.(id);
   };
 
-  const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed);
-  const isCollapsed = collapsed ?? internalCollapsed;
-  const toggleCollapsed = (): void => {
-    const next = !isCollapsed;
-    if (collapsed === undefined) setInternalCollapsed(next);
-    onCollapsedChange?.(next);
-  };
-
-  const [internalSize, setInternalSize] = React.useState<PanelSize>(defaultSize);
-  const activeSize = size ?? internalSize;
-  const toggleSize = (): void => {
-    const next: PanelSize = activeSize === 'expanded' ? 'default' : 'expanded';
-    if (size === undefined) setInternalSize(next);
-    onSizeChange?.(next);
-  };
+  const isCollapsed = collapsed ?? defaultCollapsed;
+  const activeSize = size ?? defaultSize;
 
   const bodyId = `${idPrefix}-body`;
 
@@ -218,9 +214,10 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       injectStyles: shouldInject,
       recentColors: activeRecents,
       onRecentColorsChange,
+      setRecentColors,
     }),
     [palettes, pencils, modeProps, imageOptions, showAlpha, showEyedropper, showCopyButton, format,
-     shouldInject, showRecentColors, activeRecents, onRecentColorsChange],
+     shouldInject, showRecentColors, activeRecents, onRecentColorsChange, setRecentColors],
   );
 
   const context = React.useMemo<PanelContextValue>(
@@ -235,7 +232,7 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
       <div
         ref={rootRef}
         className={cx('cp-root', classNames.root, className)}
-        data-cp-theme={theme}
+        data-cp-theme={theme === 'auto' ? undefined : theme}
         data-cp-disabled={disabled ? 'true' : undefined}
         data-cp-collapsed={isCollapsed ? 'true' : undefined}
         data-cp-size={activeSize === 'expanded' ? 'expanded' : undefined}
@@ -249,53 +246,13 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
           ...style,
         } as React.CSSProperties}
       >
-        {showTitleBar && (
-          <div className={cx('cp-titlebar', classNames.titlebar)}>
-            <div className="cp-lights">
-              <button
-                type="button"
-                className="cp-light"
-                data-cp-light="close"
-                aria-label="Close"
-                disabled={disabled || onClose === undefined}
-                onClick={() => onClose?.()}
-              >
-                <WindowGlyph name="close" />
-              </button>
-              <button
-                type="button"
-                className="cp-light"
-                data-cp-light="min"
-                aria-label={isCollapsed ? 'Expand panel' : 'Collapse panel'}
-                aria-expanded={!isCollapsed}
-                aria-controls={bodyId}
-                disabled={disabled}
-                onClick={toggleCollapsed}
-              >
-                <WindowGlyph name="collapse" />
-              </button>
-              <button
-                type="button"
-                className="cp-light"
-                data-cp-light="max"
-                aria-label={activeSize === 'expanded' ? 'Restore panel width' : 'Widen panel'}
-                aria-pressed={activeSize === 'expanded'}
-                disabled={disabled}
-                onClick={toggleSize}
-              >
-                <WindowGlyph name="expand" />
-              </button>
-            </div>
-            <span className="cp-title">{title}</span>
-            <div className="cp-titlebar-spacer" aria-hidden="true" />
-          </div>
-        )}
+        <PanelHeader
+          title={showTitleBar ? title : undefined}
+          onClose={onClose}
+          className={classNames.titlebar}
+        />
 
         <div className="cp-body" id={bodyId}>
-          {resolved.length > 1 && (
-            <ModeToolbar modes={resolved} activeId={activeId} onSelect={selectMode} />
-          )}
-
           {active !== undefined && (
             <div
               role="tabpanel"
@@ -310,6 +267,10 @@ export function ChromaPanel(props: ChromaPanelProps): React.ReactElement {
           )}
 
           <PanelFooter />
+
+          {resolved.length > 1 && (
+            <ModeToolbar modes={resolved} activeId={activeId} onSelect={selectMode} />
+          )}
         </div>
       </div>
     </PanelProvider>

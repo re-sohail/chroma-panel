@@ -78,27 +78,39 @@ const chunkIds = (doc: Document): string[] =>
     .sort();
 
 describe('a panel injects only the styles it renders', () => {
-  it('a palettes-only panel gets the shell and nothing else', async () => {
+  it('a palettes-only panel gets the shell and its own chunk, nothing else', async () => {
     const doc = await renderIsolated(<ChromaPanel modes={['palettes']} />);
-    expect(chunkIds(doc)).toEqual(['v3']);
+    expect(chunkIds(doc)).toEqual(['v4', 'v4-card', 'v4-palette']);
   });
 
-  it('a wheel-only panel adds the disc and slider chunks', async () => {
+  it('keeps visually hidden inputs hidden whatever modes are loaded', async () => {
+    for (const modes of [['wheel'], ['sliders'], ['classic'], ['image']]) {
+      const doc = await renderIsolated(<ChromaPanel modes={modes} />);
+      const hidden = Array.from(doc.querySelectorAll<HTMLElement>('.cp-visually-hidden'));
+      expect(hidden.length, `${modes[0]}: nothing to check`).toBeGreaterThan(0);
+      for (const el of hidden) {
+        const box = el.getBoundingClientRect();
+        expect(Math.max(box.width, box.height), `${modes[0]}: a hidden control is visible`).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it('a wheel-only panel adds the disc, field and slider chunks', async () => {
     const doc = await renderIsolated(<ChromaPanel modes={['wheel']} />);
-    expect(chunkIds(doc)).toEqual(['v3', 'v3-disc', 'v3-slider']);
+    expect(chunkIds(doc)).toEqual(['v4', 'v4-disc', 'v4-field', 'v4-slider']);
     const disc = doc.querySelector<HTMLElement>('.cp-disc')!;
     expect(doc.defaultView!.getComputedStyle(disc).borderRadius).toBe('50%');
   });
 
   it('an image-only panel adds the image chunk', async () => {
     const doc = await renderIsolated(<ChromaPanel modes={['image']} />);
-    expect(chunkIds(doc)).toEqual(['v3', 'v3-image']);
+    expect(chunkIds(doc)).toEqual(['v4', 'v4-image']);
     const dropzone = doc.querySelector<HTMLElement>('.cp-dropzone')!;
     expect(doc.defaultView!.getComputedStyle(dropzone).borderStyle).toBe('dashed');
   });
 
   it('a closed ColorInput adds the trigger and popover chunks', async () => {
     const doc = await renderIsolated(<ColorInput />);
-    expect(chunkIds(doc)).toEqual(['v3', 'v3-popover', 'v3-trigger']);
+    expect(chunkIds(doc)).toEqual(['v4', 'v4-popover', 'v4-trigger']);
   });
 });

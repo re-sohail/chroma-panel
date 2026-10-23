@@ -15,7 +15,7 @@ export interface ColorAreaProps {
 }
 
 export function ColorArea(props: ColorAreaProps): React.ReactElement {
-  const { height = 150, className } = props;
+  const { height, className } = props;
   const { store, disabled, classNames, options } = usePanel();
 
   const areaRef = React.useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ export function ColorArea(props: ColorAreaProps): React.ReactElement {
     <div
       ref={areaRef}
       className={cx('cp-area', className)}
-      style={{ ...drag.style, height }}
+      style={height === undefined ? drag.style : { ...drag.style, height }}
       onPointerDown={drag.onPointerDown}
       onPointerMove={drag.onPointerMove}
       onPointerUp={drag.onPointerUp}

@@ -2,127 +2,88 @@
 
 import * as React from 'react';
 import { parse } from '../color/parse';
-import { toHex, toOutputFormat } from '../color/serialize';
+import { toHex } from '../color/serialize';
 import { cx, usePanel } from '../core/context';
-import { EyedropperIcon, Icon } from '../primitives/icons';
-import { useEyedropper } from '../primitives/useEyedropper';
-import { useScrollFade } from '../core/useScrollFade';
-import { useColorValue } from '../core/useColorStore';
+
+const SLOTS = 8;
 
 export function PanelFooter(): React.ReactElement | null {
-  const { store, classNames, options, disabled } = usePanel();
-  const { supported, pick } = useEyedropper();
-  const [copyStatus, setCopyStatus] = React.useState<'idle' | 'copied' | 'error'>('idle');
-  const color = useColorValue(store);
-  const colorLabel = toOutputFormat(color, options.format, options.showAlpha);
-  const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { store, classNames, options, disabled, idPrefix } = usePanel();
 
-  React.useEffect(() => () => {
-    if (copyTimer.current !== null) clearTimeout(copyTimer.current);
-  }, []);
-
-  const handleCopy = async (): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(toOutputFormat(store.get(), options.format, options.showAlpha));
-      setCopyStatus('copied');
-    } catch {
-      setCopyStatus('error');
-    }
-    if (copyTimer.current !== null) clearTimeout(copyTimer.current);
-    copyTimer.current = setTimeout(() => setCopyStatus('idle'), 1600);
-  };
-
-  const handlePick = async (): Promise<void> => {
-    const hex = await pick();
-    if (hex === null) return;
-    const parsed = parse(hex);
-    if (parsed === null) return;
-    store.ingest(parsed, 'eyedropper');
-    store.commit('eyedropper');
-  };
-
-  const recentsRef = React.useRef<HTMLUListElement>(null);
   const [current, setCurrent] = React.useState<string | null>(null);
+  const [active, setActive] = React.useState(0);
+  const listRef = React.useRef<HTMLUListElement>(null);
   React.useEffect(
     () => store.subscribeCommit((c) => setCurrent(toHex(c).toLowerCase())),
     [store],
   );
 
-  const recents = options.showRecentColors
-    ? options.recentColors
-        .filter((color) => {
-          if (current === null) return true;
-          const parsed = parse(color);
-          const hex = parsed === null ? color : toHex(parsed);
-          return hex.toLowerCase() !== current;
-        })
-        .slice(0, 10)
-    : [];
-  const showEyedropper = options.showEyedropper && supported;
+  if (!options.showRecentColors) return null;
 
-  useScrollFade(recentsRef, recents.length, 'x');
-
+  const recents = options.recentColors
+    .filter((color) => {
+      if (current === null) return true;
+      const parsed = parse(color);
+      const hex = parsed === null ? color : toHex(parsed);
+      return hex.toLowerCase() !== current;
+    })
+    .slice(0, SLOTS);
+  if (recents.length === 0) return null;
+  const titleId = `${idPrefix}-history`;
 
   return (
     <div className={cx('cp-footer', classNames.footer)}>
-      <div className="cp-preview" aria-hidden="true" />
-      <output className="cp-current-color" aria-label="Current color">{colorLabel}</output>
-
-      {recents.length > 0 ? (
-        <ul ref={recentsRef} className="cp-recents" aria-label="Recent colors">
-          {recents.map((color, index) => (
-            <li key={`${color}-${index}`}>
-              <button
-                type="button"
-                className={cx('cp-swatch', 'cp-swatch-round', classNames.swatch)}
-                style={{ ['--cp-swatch-color' as string]: color } as React.CSSProperties}
-                aria-label={`Recent color ${color}`}
-                disabled={disabled}
-                onClick={() => {
-                  const parsed = parse(color);
-                  if (parsed === null) return;
-                  store.ingest(parsed, 'recent');
-                  store.commit('recent');
-                }}
-              />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="cp-footer-spacer" />
-      )}
-
-      {showEyedropper && (
+      <div className="cp-footer-head">
+        <h3 className="cp-footer-title" id={titleId}>History</h3>
         <button
           type="button"
-          className="cp-icon-button"
-          aria-label="Pick a color from the screen"
-          title="Pick a color from the screen"
+          className="cp-text-button"
           disabled={disabled}
-          onClick={() => { void handlePick(); }}
+          onClick={(e) => {
+            const host = e.currentTarget.closest('.cp-root')?.querySelector<HTMLElement>('[role="tabpanel"]');
+            options.setRecentColors?.([]);
+            host?.focus({ preventScroll: true });
+          }}
         >
-          <EyedropperIcon />
+          Clear
         </button>
-      )}
+      </div>
 
-      {options.showCopyButton && (
-        <button
-          type="button"
-          className="cp-icon-button"
-          aria-label={copyStatus === 'copied' ? 'Color copied' : 'Copy color'}
-          title={copyStatus === 'copied' ? 'Copied' : copyStatus === 'error' ? 'Could not copy' : 'Copy color'}
-          disabled={disabled}
-          data-cp-copy-status={copyStatus}
-          onClick={() => { void handleCopy(); }}
-        >
-          <Icon name="copy" />
-        </button>
-      )}
-
-      <span className="cp-visually-hidden" role="status" aria-live="polite">
-        {copyStatus === 'copied' ? 'Color copied to clipboard' : ''}
-        {copyStatus === 'error' ? 'Could not copy color' : ''}
-      </span>
+      <ul
+        ref={listRef}
+        className="cp-recents"
+        aria-labelledby={titleId}
+        onKeyDown={(e) => {
+          const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+            : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+          const to = e.key === 'Home' ? 0 : e.key === 'End' ? recents.length - 1
+            : step === 0 ? -1 : (Math.min(active, recents.length - 1) + step + recents.length) % recents.length;
+          if (to < 0) return;
+          e.preventDefault();
+          setActive(to);
+          listRef.current?.querySelectorAll<HTMLButtonElement>('button')[to]?.focus();
+        }}
+      >
+        {recents.map((color, index) => (
+          <li key={`${color}-${index}`}>
+            <button
+              type="button"
+              className={cx('cp-swatch', classNames.swatch)}
+              style={{ ['--cp-swatch-color' as string]: color } as React.CSSProperties}
+              aria-label={`Recent color ${color}`}
+              tabIndex={index === Math.min(active, recents.length - 1) ? 0 : -1}
+              disabled={disabled}
+              onClick={() => {
+                setActive(index);
+                const parsed = parse(color);
+                if (parsed === null) return;
+                store.ingest(parsed, 'recent');
+                store.commit('recent');
+              }}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

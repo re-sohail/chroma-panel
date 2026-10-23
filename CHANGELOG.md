@@ -1,5 +1,24 @@
 # chroma-panel
 
+## 2.0.0
+
+### Major Changes
+
+- A new look, and a picker that follows your site's theme.
+  
+  - Redesigned panel: a header with the title, original and current color chips (click the original to go back), eyedropper, copy and close; a History row with Clear; and a bottom tab bar with labeled icons. The macOS-style window dots are gone. `collapsed` and `size` still work as props; `onCollapsedChange` and `onSizeChange` are deprecated because nothing calls them now.
+  - New modes: `classic` (saturation/brightness square with hue and opacity) and `harmony` (complementary, analogous, triadic, split and tetradic partners on the wheel). Both have their own entry points, `chroma-panel/classic` and `chroma-panel/harmony`.
+  - The `sliders` mode is now "Value": hue, saturation, brightness, red, green, blue and opacity at once, each with an editable number. The RGB/HSL/HSB tabs are removed.
+  - Palettes have a Compact/Cards toggle.
+  - Default `modes` is now `['wheel', 'classic', 'harmony', 'sliders', 'palettes', 'image']`. Pass `pencils` in `modes` to keep the pencil grid.
+  - Auto theme follows the page first: a `.dark`/`.light` class, `data-theme` or inline `color-scheme` on an ancestor (Tailwind, next-themes), then the system. `theme` accepts `'auto'`.
+  - Browsers without `light-dark()` (Safari before 17.5) now get the full palette instead of a transparent panel.
+  - Layout follows the space the panel has (container queries), not the viewport width. Each mode is sized by its content; long modes scroll with an edge fade. A panel with one mode shows no tab bar, the header hides when nothing in it is turned on, and History hides until there is a color in it.
+  - Fixed: the popover shadow never rendered, `ColorDisc` ignored `--cp-disc-size`, and the image mode's Paste button was unstyled.
+  - Fixed the CSS minifier, which dropped the space in descendant selectors such as `.a :is(.b)` and rewrote quoted strings.
+  - Modern value controls: the hex field shows a color dot, a `#` prefix and six uppercase digits (eight only when the color is translucent); Value-mode numbers sit inline with their units (°, %); the harmony rule is a row of scrollable chips instead of a native select; harmony swatches and palette cards show their hex.
+  - History is one tab stop with arrow-key navigation, Clear keeps focus inside the panel and has a 24px target, and a failed copy shows an error color.
+
 ## 1.1.0
 
 ### Minor Changes

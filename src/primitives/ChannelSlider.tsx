@@ -9,6 +9,7 @@ import { sliderCss } from '../styles/css';
 import { useTransientColor } from '../core/useColorStore';
 import { usePointerDrag } from '../core/usePointerDrag';
 import { AxisInput } from './AxisInput';
+import { NumberField } from './NumberField';
 
 export interface ChannelSliderProps {
   label: string;
@@ -21,13 +22,15 @@ export interface ChannelSliderProps {
   gradient?: (color: Hsva) => string;
   channel?: string;
   formatValue?: (value: number) => string;
+  showValue?: boolean;
+  unit?: string;
   className?: string;
 }
 
 export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
   const {
     label, shortLabel, min, max, step, read, write, gradient,
-    channel, formatValue, className,
+    channel, formatValue, showValue = false, unit, className,
   } = props;
   const { store, disabled, classNames, options } = usePanel();
 
@@ -101,6 +104,18 @@ export function ChannelSlider(props: ChannelSliderProps): React.ReactElement {
     <div className="cp-slider-row">
       <span className="cp-slider-label" aria-hidden="true">{shortLabel}</span>
       {track}
+      {showValue && (
+        <div className="cp-slider-value" data-cp-unit={unit}>
+          <NumberField
+            label={`${label} value`}
+            min={min}
+            max={max}
+            step={step}
+            read={read}
+            write={write}
+          />
+        </div>
+      )}
     </div>
   );
 }

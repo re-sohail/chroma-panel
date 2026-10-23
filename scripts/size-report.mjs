@@ -4,9 +4,11 @@ import { rolldown } from 'rolldown';
 const BUDGETS = [
   { entry: 'dist/core.js', label: 'core (CSS Color 4, no React)', limit: 4.5 },
   { entry: 'dist/color.js', label: 'color engine only', limit: 4.5 },
-  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 8.0 },
+  { entry: 'dist/wheel.js', label: 'wheel mode only', limit: 8.5 },
+  { entry: 'dist/classic.js', label: 'classic mode only', limit: 8.5 },
+  { entry: 'dist/harmony.js', label: 'harmony mode only', limit: 7.5 },
   { entry: 'dist/sliders.js', label: 'sliders mode only', limit: 8.5 },
-  { entry: 'dist/palettes.js', label: 'palettes mode only', limit: 5.75 },
+  { entry: 'dist/palettes.js', label: 'palettes mode only', limit: 7.25 },
   { entry: 'dist/image.js', label: 'image mode only', limit: 10.5 },
   { entry: 'dist/pencils.js', label: 'pencils mode only', limit: 5.25 },
   { entry: 'dist/named-colors.js', label: 'named colors only', limit: 2.0 },
@@ -16,14 +18,14 @@ const BUDGETS = [
 
   {
     label: 'what you ship: ColorInput, all modes',
-    limit: 24.0,
+    limit: 26.75,
     source:
       "import { ColorInput } from './dist/index.js';\n" +
       "export { ColorInput };\n",
   },
   {
     label: 'what you ship: panel + one mode',
-    limit: 14.75,
+    limit: 15.75,
     source:
       "import { ChromaPanel } from './dist/panel.js';\n" +
       "import './dist/wheel.js';\n" +

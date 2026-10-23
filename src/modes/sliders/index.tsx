@@ -1,28 +1,19 @@
 'use client';
 
 import * as React from 'react';
-import { hslaToHsva, hsvaToHsla, hsvaToRgba, rgbaToHsva } from '../../color/convert';
+import { hsvaToRgba, rgbaToHsva } from '../../color/convert';
 import { ingest } from '../../color/sticky';
 import type { Hsva } from '../../color/types';
 import { usePanel } from '../../core/context';
+import { useStyleChunk } from '../../core/useStyleChunk';
 import { ChannelSlider } from '../../primitives/ChannelSlider';
 import { ColorField } from '../../primitives/ColorField';
-import { NumberField } from '../../primitives/NumberField';
 import { SlidersIcon } from '../../primitives/icons';
-import { SegmentedControl } from '../../primitives/SegmentedControl';
 import {
-  alphaTrack, blueTrack, brightnessTrack, greenTrack,
-  lightnessTrack, redTrack, saturationTrack,
+  alphaTrack, blueTrack, brightnessTrack, greenTrack, redTrack, saturationTrack,
 } from '../gradients';
+import { valuesCss } from '../../styles/css';
 import type { PickerMode } from '../registry';
-
-type Model = 'rgb' | 'hsl' | 'hsb';
-
-const MODELS = [
-  { id: 'rgb', label: 'RGB', content: 'RGB' },
-  { id: 'hsl', label: 'HSL', content: 'HSL' },
-  { id: 'hsb', label: 'HSB', content: 'HSB' },
-];
 
 function writeRgb(key: 'r' | 'g' | 'b') {
   return (value: number, current: Hsva): Hsva => {
@@ -37,105 +28,40 @@ function readRgb(key: 'r' | 'g' | 'b') {
 
 export function SlidersPanel(): React.ReactElement {
   const { options } = usePanel();
-  const [model, setModel] = React.useState<Model>('rgb');
-
-  const alpha = options.showAlpha ? (
-    <ChannelSlider
-      label="Opacity" shortLabel="A" min={0} max={100}
-      read={(c) => c.a * 100}
-      write={(v, c) => ({ ...c, a: v / 100 })}
-      gradient={alphaTrack} channel="alpha"
-      formatValue={(v) => `${Math.round(v)} percent`}
-    />
-  ) : null;
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(valuesCss, 'values', panelRef, options.injectStyles !== false);
 
   return (
-    <div className="cp-panel">
-      <SegmentedControl
-        size="sm"
-        ariaLabel="Color model"
-        items={MODELS}
-        value={model}
-        onChange={(id) => setModel(id as Model)}
-      />
-
-      {model === 'rgb' && (
-        <>
-          <ChannelSlider label="Red" shortLabel="R" min={0} max={255}
-            read={readRgb('r')} write={writeRgb('r')} gradient={redTrack} channel="red" />
-          <ChannelSlider label="Green" shortLabel="G" min={0} max={255}
-            read={readRgb('g')} write={writeRgb('g')} gradient={greenTrack} channel="green" />
-          <ChannelSlider label="Blue" shortLabel="B" min={0} max={255}
-            read={readRgb('b')} write={writeRgb('b')} gradient={blueTrack} channel="blue" />
-          {alpha}
-          <div className="cp-fields">
-            <NumberField label="R" min={0} max={255} read={readRgb('r')} write={writeRgb('r')} />
-            <NumberField label="G" min={0} max={255} read={readRgb('g')} write={writeRgb('g')} />
-            <NumberField label="B" min={0} max={255} read={readRgb('b')} write={writeRgb('b')} />
-          </div>
-        </>
+    <div ref={panelRef} className="cp-panel cp-values">
+      <ChannelSlider label="Hue" shortLabel="H" min={0} max={360} showValue unit="°"
+        read={(c) => Math.round(c.h)} write={(h, c) => ({ ...c, h })}
+        channel="hue" formatValue={(v) => `${Math.round(v)} degrees`} />
+      <ChannelSlider label="Saturation" shortLabel="S" min={0} max={100} showValue unit="%"
+        read={(c) => Math.round(c.s)} write={(s, c) => ({ ...c, s })}
+        gradient={saturationTrack} channel="saturation" />
+      <ChannelSlider label="Brightness" shortLabel="B" min={0} max={100} showValue unit="%"
+        read={(c) => Math.round(c.v)} write={(v, c) => ({ ...c, v })}
+        gradient={brightnessTrack} channel="brightness" />
+      <ChannelSlider label="Red" shortLabel="R" min={0} max={255} showValue
+        read={readRgb('r')} write={writeRgb('r')} gradient={redTrack} channel="red" />
+      <ChannelSlider label="Green" shortLabel="G" min={0} max={255} showValue
+        read={readRgb('g')} write={writeRgb('g')} gradient={greenTrack} channel="green" />
+      <ChannelSlider label="Blue" shortLabel="B" min={0} max={255} showValue
+        read={readRgb('b')} write={writeRgb('b')} gradient={blueTrack} channel="blue" />
+      {options.showAlpha && (
+        <ChannelSlider label="Opacity" shortLabel="A" min={0} max={100} showValue unit="%"
+          read={(c) => Math.round(c.a * 100)} write={(v, c) => ({ ...c, a: v / 100 })}
+          gradient={alphaTrack} channel="alpha" formatValue={(v) => `${Math.round(v)} percent`} />
       )}
-
-      {model === 'hsl' && (
-        <>
-          <ChannelSlider label="Hue" shortLabel="H" min={0} max={360}
-            read={(c) => Math.round(c.h)} write={(h, c) => ({ ...c, h })}
-            channel="hue" formatValue={(v) => `${Math.round(v)} degrees`} />
-          <ChannelSlider label="Saturation" shortLabel="S" min={0} max={100}
-            read={(c) => Math.round(hsvaToHsla(c).s)}
-            write={(s, c) => ingest(hslaToHsva({ ...hsvaToHsla(c), s }), c)}
-            gradient={saturationTrack} channel="saturation" />
-          <ChannelSlider label="Lightness" shortLabel="L" min={0} max={100}
-            read={(c) => Math.round(hsvaToHsla(c).l)}
-            write={(l, c) => ingest(hslaToHsva({ ...hsvaToHsla(c), l }), c)}
-            gradient={lightnessTrack} channel="lightness" />
-          {alpha}
-          <div className="cp-fields">
-            <NumberField label="H" min={0} max={360}
-              read={(c) => Math.round(c.h)} write={(h, c) => ({ ...c, h })} />
-            <NumberField label="S" min={0} max={100}
-              read={(c) => Math.round(hsvaToHsla(c).s)}
-              write={(s, c) => ingest(hslaToHsva({ ...hsvaToHsla(c), s }), c)} />
-            <NumberField label="L" min={0} max={100}
-              read={(c) => Math.round(hsvaToHsla(c).l)}
-              write={(l, c) => ingest(hslaToHsva({ ...hsvaToHsla(c), l }), c)} />
-          </div>
-        </>
-      )}
-
-      {model === 'hsb' && (
-        <>
-          <ChannelSlider label="Hue" shortLabel="H" min={0} max={360}
-            read={(c) => Math.round(c.h)} write={(h, c) => ({ ...c, h })}
-            channel="hue" formatValue={(v) => `${Math.round(v)} degrees`} />
-          <ChannelSlider label="Saturation" shortLabel="S" min={0} max={100}
-            read={(c) => Math.round(c.s)} write={(s, c) => ({ ...c, s })}
-            gradient={saturationTrack} channel="saturation" />
-          <ChannelSlider label="Brightness" shortLabel="B" min={0} max={100}
-            read={(c) => Math.round(c.v)} write={(v, c) => ({ ...c, v })}
-            gradient={brightnessTrack} channel="brightness" />
-          {alpha}
-          <div className="cp-fields">
-            <NumberField label="H" min={0} max={360}
-              read={(c) => Math.round(c.h)} write={(h, c) => ({ ...c, h })} />
-            <NumberField label="S" min={0} max={100}
-              read={(c) => Math.round(c.s)} write={(s, c) => ({ ...c, s })} />
-            <NumberField label="B" min={0} max={100}
-              read={(c) => Math.round(c.v)} write={(v, c) => ({ ...c, v })} />
-          </div>
-        </>
-      )}
-
-      <div className="cp-fields">
-        <ColorField withAlpha={options.showAlpha} />
-      </div>
+      <ColorField label="Hexadecimal" withAlpha={options.showAlpha} className="cp-field-inline" />
     </div>
   );
 }
 
 export const slidersMode: PickerMode = {
   id: 'sliders',
-  label: 'Sliders',
+  label: 'Channel values',
+  tabLabel: 'Value',
   icon: SlidersIcon,
   Panel: SlidersPanel,
 };

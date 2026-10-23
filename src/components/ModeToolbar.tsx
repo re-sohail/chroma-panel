@@ -19,7 +19,11 @@ export function ModeToolbar(props: ModeToolbarProps): React.ReactElement {
     () =>
       modes.map((mode) => {
         const Icon = mode.icon;
-        return { id: mode.id, label: mode.label, content: <Icon /> };
+        return {
+          id: mode.id,
+          label: mode.label,
+          content: <><Icon /><span className="cp-tab-label" aria-hidden="true">{mode.tabLabel ?? mode.label}</span></>,
+        };
       }),
     [modes],
   );

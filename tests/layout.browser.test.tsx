@@ -5,7 +5,7 @@ import * as React from 'react';
 import { ChromaPanel, ColorInput, defaultPalettes, defaultPencils } from '../src/index';
 
 const DESKTOP = { width: 1280, height: 900 };
-const ALL_MODES = ['wheel', 'sliders', 'palettes', 'image', 'pencils'] as const;
+const ALL_MODES = ['wheel', 'classic', 'harmony', 'sliders', 'palettes', 'image', 'pencils'] as const;
 
 async function waitFor<T extends Element>(selector: string, timeout = 3000): Promise<T> {
   const deadline = Date.now() + timeout;
@@ -52,35 +52,37 @@ afterEach(async () => {
   await page.viewport(DESKTOP.width, DESKTOP.height);
 });
 
-describe('the panel is the same size in every mode', () => {
+describe('every mode is sized by its content', () => {
   for (const [w, h] of [[1280, 900], [390, 844], [360, 640]] as const) {
-    it(`holds one panel height across all five modes at ${w}x${h}`, async () => {
+    it(`leaves no unused space under any mode at ${w}x${h}`, async () => {
       await page.viewport(w, h);
       render(panel({ showTitleBar: false }));
-      await waitFor('.cp-panel-host');
+      const host = await waitFor<HTMLElement>('.cp-panel-host');
 
-      const heights = await acrossModes('.cp-root', () =>
-        Math.round(document.querySelector('.cp-panel-host')!.getBoundingClientRect().height));
+      const gaps = await acrossModes('.cp-root', () => {
+        const content = host.querySelector('.cp-panel') ?? host.firstElementChild!;
+        const last = content.lastElementChild ?? content;
+        return Math.round(host.getBoundingClientRect().bottom - last.getBoundingClientRect().bottom);
+      });
 
-      const unique = new Set(heights.map((r) => r.value));
-      expect(
-        unique.size,
-        `panel height varies by mode: ${heights.map((r) => `${r.mode}=${r.value}`).join(' ')}`,
-      ).toBe(1);
+      for (const { mode, value } of gaps) {
+        if (mode === 'palettes') continue;
+        expect(value, `"${mode}" leaves ${value}px empty under its content`).toBeLessThanOrEqual(2);
+      }
     });
   }
 
-  it('keeps the whole panel one size, not just the tab panel', async () => {
+  it('caps a long mode at --cp-panel-h and scrolls it', async () => {
     render(panel());
-    await waitFor('.cp-root');
+    const host = await waitFor<HTMLElement>('.cp-panel-host');
+    await acrossModes('.cp-root', () => null);
+    const tab = Array.from(document.querySelectorAll<HTMLElement>('.cp-root [role="tab"]'))
+      .find((t) => t.getAttribute('aria-controls')?.endsWith('-panel-palettes') === true)!;
+    tab.click();
+    await settle();
 
-    const boxes = await acrossModes('.cp-root', () => {
-      const r = document.querySelector('.cp-root')!.getBoundingClientRect();
-      return `${Math.round(r.width)}x${Math.round(r.height)}`;
-    });
-
-    expect(new Set(boxes.map((b) => b.value)).size,
-      `panel box varies: ${boxes.map((b) => `${b.mode}=${b.value}`).join(' ')}`).toBe(1);
+    expect(Math.round(host.getBoundingClientRect().height)).toBeLessThanOrEqual(384);
+    expect(host.scrollHeight).toBeGreaterThan(host.clientHeight + 1);
   });
 
   it('every mode fits the reserved height without a scrollbar', async () => {
@@ -105,8 +107,8 @@ describe('the panel is the same size in every mode', () => {
   });
 });
 
-describe('the bottom sheet stays put', () => {
-  it('does not move its top edge when the mode changes', async () => {
+describe('the bottom sheet stays on screen', () => {
+  it('keeps its top edge inside the viewport in every mode', async () => {
     await page.viewport(390, 844);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
       palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -117,8 +119,9 @@ describe('the bottom sheet stays put', () => {
     const tops = await acrossModes('.cp-sheet', () =>
       Math.round(document.querySelector('.cp-sheet')!.getBoundingClientRect().top));
 
-    expect(new Set(tops.map((t) => t.value)).size,
-      `sheet top edge moves: ${tops.map((t) => `${t.mode}=${t.value}`).join(' ')}`).toBe(1);
+    for (const { mode, value } of tops) {
+      expect(value, `"${mode}" pushes the sheet above the viewport`).toBeGreaterThanOrEqual(0);
+    }
   });
 });
 
@@ -187,7 +190,7 @@ describe('scrolling', () => {
 
 describe('the sheet passes its height constraint all the way down', () => {
   for (const [w, h] of [[320, 568], [320, 480], [360, 640]] as const) {
-    it(`keeps the footer inside the sheet at ${w}x${h}`, async () => {
+    it(`keeps the tab bar inside the sheet at ${w}x${h}`, async () => {
       await page.viewport(w, h);
       render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
         palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -196,15 +199,15 @@ describe('the sheet passes its height constraint all the way down', () => {
       await settle();
 
       const seen = await acrossModes('.cp-sheet', () => {
-        const footer = sheet.querySelector('.cp-footer')!.getBoundingClientRect();
-        return Math.round(footer.bottom);
+        const bar = sheet.querySelector('.cp-toolbar')!.getBoundingClientRect();
+        return Math.round(bar.bottom);
       });
 
       const sheetBottom = Math.round(sheet.getBoundingClientRect().bottom);
       for (const { mode, value } of seen) {
-        expect(value, `"${mode}" pushes the footer past the sheet edge`)
+        expect(value, `"${mode}" pushes the tab bar past the sheet edge`)
           .toBeLessThanOrEqual(sheetBottom + 1);
-        expect(value, `"${mode}" pushes the footer off screen`)
+        expect(value, `"${mode}" pushes the tab bar off screen`)
           .toBeLessThanOrEqual(window.innerHeight + 1);
       }
     });
@@ -473,7 +476,7 @@ describe('the image mode', () => {
 
 describe('control heights agree', () => {
   for (const coarse of [false, true]) {
-    it(`draws the tab bar and a text input at one height (${coarse ? 'touch' : 'mouse'})`, async () => {
+    it(`draws a segmented control and a text input at one height (${coarse ? 'touch' : 'mouse'})`, async () => {
       if (coarse) await page.viewport(390, 844);
       render(panel());
       await waitFor('.cp-panel-host');
@@ -483,22 +486,23 @@ describe('control heights agree', () => {
       tab.click();
       await settle();
 
-      const bar = document.querySelector<HTMLElement>('.cp-toolbar')!;
+      const bar = document.querySelector<HTMLElement>('.cp-panel-host .cp-seg')!;
       const input = document.querySelector<HTMLElement>('.cp-panel-host .cp-input')!;
 
       const barH = bar.getBoundingClientRect().height;
       const inputH = input.getBoundingClientRect().height;
-      expect(inputH, `tab bar ${barH}px vs input ${inputH}px`).toBe(barH);
+      expect(inputH, `segmented control ${barH}px vs input ${inputH}px`).toBe(barH);
 
-      const preview = document.querySelector<HTMLElement>('.cp-preview')!;
-      expect(preview.getBoundingClientRect().height)
-        .toBe(preview.getBoundingClientRect().width);
+      const chips = Array.from(document.querySelectorAll<HTMLElement>('.cp-chip'))
+        .map((c) => Math.round(c.getBoundingClientRect().height));
+      expect(chips).toHaveLength(2);
+      expect(chips[0]).toBe(chips[1]);
     });
   }
 });
 
 describe('the popover never exceeds the viewport', () => {
-  it('stays on screen and keeps the footer reachable in a short viewport', async () => {
+  it('stays on screen and keeps the tab bar reachable in a short viewport', async () => {
     await page.viewport(900, 420);
     render(<ColorInput defaultValue="#3366cc" modes={[...ALL_MODES]}
       palettes={defaultPalettes()} pencils={defaultPencils()} />);
@@ -508,7 +512,7 @@ describe('the popover never exceeds the viewport', () => {
 
     const seen = await acrossModes('.cp-popover', () => {
       const box = document.querySelector('.cp-popover')!.getBoundingClientRect();
-      const footer = document.querySelector('.cp-popover .cp-footer')!.getBoundingClientRect();
+      const footer = document.querySelector('.cp-popover .cp-toolbar')!.getBoundingClientRect();
       return {
         top: Math.round(box.top),
         bottom: Math.round(box.bottom),
@@ -519,7 +523,7 @@ describe('the popover never exceeds the viewport', () => {
     for (const { mode, value } of seen) {
       expect(value.top, `"${mode}" starts above the viewport`).toBeGreaterThanOrEqual(0);
       expect(value.bottom, `"${mode}" runs past the bottom edge`).toBeLessThanOrEqual(420);
-      expect(value.footerBottom, `"${mode}" hides its footer`).toBeLessThanOrEqual(420);
+      expect(value.footerBottom, `"${mode}" hides its tab bar`).toBeLessThanOrEqual(420);
     }
   });
 });
@@ -568,7 +572,7 @@ describe('the selection ring', () => {
   });
 });
 
-describe('the footer', () => {
+describe('the history', () => {
   it('shows the current color once, not twice', async () => {
     render(panel());
     await waitFor('.cp-panel-host');
@@ -582,7 +586,7 @@ describe('the footer', () => {
     swatches[25]!.click();
     await settle();
 
-    const preview = getComputedStyle(document.querySelector('.cp-preview')!)
+    const preview = getComputedStyle(document.querySelector('.cp-root')!)
       .getPropertyValue('--cp-preview-color').trim();
     const rendered = Array.from(document.querySelectorAll<HTMLElement>('.cp-recents .cp-swatch'))
       .map((el) => el.style.getPropertyValue('--cp-swatch-color').trim().toLowerCase());
@@ -598,7 +602,7 @@ describe('the footer', () => {
     expect(after).toContain('#002875');
   });
 
-  it('fades the history row on the side that has more swatches', async () => {
+  it('shows up to eight recent colors in one row, without scrolling', async () => {
     const recents = [
       '#111111', '#222222', '#333333', '#444444', '#555555',
       '#666666', '#777777', '#888888', '#999999', '#aaaaaa',
@@ -607,46 +611,26 @@ describe('the footer', () => {
     const row = await waitFor<HTMLElement>('.cp-recents');
     await settle();
 
-    expect(row.scrollWidth, 'nothing overflows — test is not exercising the fade')
-      .toBeGreaterThan(row.clientWidth);
-
-    expect(row.getAttribute('data-cp-fade'), 'at the left end').toBe('end');
-
-    row.scrollLeft = Math.round((row.scrollWidth - row.clientWidth) / 2);
-    await settle();
-    expect(row.getAttribute('data-cp-fade'), 'mid-scroll').toBe('both');
-
-    row.scrollLeft = row.scrollWidth;
-    await settle();
-    expect(row.getAttribute('data-cp-fade'), 'at the right end').toBe('start');
+    const items = Array.from(row.querySelectorAll('li'));
+    expect(items).toHaveLength(8);
+    expect(row.scrollWidth, 'the history row overflows').toBeLessThanOrEqual(row.clientWidth + 1);
+    const tops = new Set(items.map((li) => Math.round(li.getBoundingClientRect().top)));
+    expect(tops.size, 'the history wrapped onto a second row').toBe(1);
   });
 
-  it('applies no mask to a history row that fits', async () => {
-    render(panel({ recentColors: ['#111111', '#222222'], onRecentColorsChange: () => {} }));
-    const row = await waitFor<HTMLElement>('.cp-recents');
+  it('is hidden until there is something in it, and Clear empties it', async () => {
+    render(panel());
+    await waitFor('.cp-panel-host');
     await settle();
+    expect(document.querySelector('.cp-footer'), 'an empty History section rendered').toBeNull();
 
-    expect(row.scrollWidth).toBeLessThanOrEqual(row.clientWidth + 1);
-    expect(row.getAttribute('data-cp-fade'), 'a row that fits should carry no fade').toBeNull();
-  });
-
-  it('lets every recent color be reached rather than clipping them', async () => {
-    const recents = [
-      '#111111', '#222222', '#333333', '#444444', '#555555',
-      '#666666', '#777777', '#888888', '#999999', '#aaaaaa',
-    ];
-    render(panel({ recentColors: recents, onRecentColorsChange: () => {} }));
-    await waitFor('.cp-recents');
+    const recents = ['#111111', '#222222'];
+    let latest: string[] = recents;
+    render(panel({ defaultRecentColors: recents, onRecentColorsChange: (c: string[]) => { latest = c; } }));
+    const clear = await waitFor<HTMLButtonElement>('.cp-footer .cp-text-button');
+    clear.click();
     await settle();
-
-    const row = document.querySelector<HTMLElement>('.cp-recents')!;
-    expect(row.querySelectorAll('li')).toHaveLength(recents.length);
-    expect(getComputedStyle(row).overflowX).toBe('auto');
-    expect(row.scrollWidth, 'nothing to scroll — test is not exercising the bug')
-      .toBeGreaterThan(row.clientWidth);
-
-    row.scrollLeft = row.scrollWidth;
-    await settle();
-    expect(row.scrollLeft, 'the row clips instead of scrolling').toBeGreaterThan(0);
+    expect(latest).toEqual([]);
+    expect(document.querySelectorAll('.cp-footer')).toHaveLength(0);
   });
 });

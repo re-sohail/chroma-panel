@@ -40,9 +40,7 @@ export function WheelPanel(): React.ReactElement {
           formatValue={(v) => `${Math.round(v)} percent`}
         />
       )}
-      <div className="cp-fields">
-        <ColorField withAlpha={options.showAlpha} />
-      </div>
+      <ColorField withAlpha={options.showAlpha} className="cp-field-inline" />
     </div>
   );
 }
@@ -50,6 +48,7 @@ export function WheelPanel(): React.ReactElement {
 export const wheelMode: PickerMode = {
   id: 'wheel',
   label: 'Color wheel',
+  tabLabel: 'Wheel',
   icon: WheelIcon,
   Panel: WheelPanel,
 };

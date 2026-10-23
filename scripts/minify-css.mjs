@@ -1,5 +1,14 @@
+function squeeze(code) {
+  return code
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{};,>])\s*/g, '$1')
+    .replace(/:\s+/g, ':')
+    .replace(/;}/g, '}');
+}
+
 export function minifyCss(input) {
   let out = '';
+  let code = '';
   let i = 0;
 
   while (i < input.length) {
@@ -9,7 +18,8 @@ export function minifyCss(input) {
       const quote = ch;
       let j = i + 1;
       while (j < input.length && !(input[j] === quote && input[j - 1] !== '\\')) j++;
-      out += input.slice(i, j + 1);
+      out += squeeze(code) + input.slice(i, j + 1);
+      code = '';
       i = j + 1;
       continue;
     }
@@ -17,17 +27,13 @@ export function minifyCss(input) {
     if (ch === '/' && input[i + 1] === '*') {
       const end = input.indexOf('*/', i + 2);
       i = end === -1 ? input.length : end + 2;
-      out += ' ';
+      code += ' ';
       continue;
     }
 
-    out += ch;
+    code += ch;
     i++;
   }
 
-  return out
-    .replace(/\s+/g, ' ')
-    .replace(/\s*([{}:;,>])\s*/g, '$1')
-    .replace(/;}/g, '}')
-    .trim();
+  return (out + squeeze(code)).trim();
 }

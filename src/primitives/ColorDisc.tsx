@@ -13,10 +13,11 @@ import { AxisInput } from './AxisInput';
 export interface ColorDiscProps {
   size?: number;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function ColorDisc(props: ColorDiscProps): React.ReactElement {
-  const { size = 200, className } = props;
+  const { size, className, children } = props;
   const { store, disabled, classNames, options } = usePanel();
 
   const discRef = React.useRef<HTMLDivElement>(null);
@@ -68,7 +69,7 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
       <div
         ref={discRef}
         className={cx('cp-disc', classNames.panel, className)}
-        style={{ ...drag.style, width: size }}
+        style={size === undefined ? drag.style : { ...drag.style, width: size }}
         onPointerDown={drag.onPointerDown}
         onPointerMove={drag.onPointerMove}
         onPointerUp={drag.onPointerUp}
@@ -97,6 +98,7 @@ export function ColorDisc(props: ColorDiscProps): React.ReactElement {
           onInput={(s) => store.patch({ s }, 'keyboard')}
           onCommit={() => store.commit('keyboard')}
         />
+        {children}
         <div className={cx('cp-thumb', classNames.thumb)} aria-hidden="true" />
       </div>
     </div>

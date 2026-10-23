@@ -24,7 +24,7 @@ const openMode = async (label: string): Promise<void> => {
 
 describe('a picker with no props is not half empty', () => {
   it('fills the pencils mode from generated defaults', async () => {
-    render(<ChromaPanel />);
+    render(<ChromaPanel modes={['wheel', 'pencils']} />);
     await waitFor('.cp-root');
     await openMode('Pencils');
 
@@ -44,7 +44,7 @@ describe('a picker with no props is not half empty', () => {
   });
 
   it('still respects data the consumer passes', async () => {
-    render(<ChromaPanel pencils={['#ff0000', '#00ff00']} />);
+    render(<ChromaPanel modes={['wheel', 'pencils']} pencils={['#ff0000', '#00ff00']} />);
     await waitFor('.cp-root');
     await openMode('Pencils');
     expect(document.querySelectorAll('.cp-swatch-grid .cp-swatch')).toHaveLength(2);
@@ -87,8 +87,7 @@ describe('the color a picker starts on', () => {
     await waitFor('.cp-panel-host');
     await new Promise((r) => setTimeout(r, 80));
 
-    const hex = [...document.querySelectorAll<HTMLInputElement>('.cp-input')]
-      .map((i) => i.value).find((v) => v.startsWith('#'));
-    expect(hex?.slice(0, 7)).toBe(DEFAULT_COLOR);
+    const hex = document.querySelector<HTMLInputElement>('.cp-hex .cp-input')!.value;
+    expect(`#${hex.toLowerCase()}`).toBe(DEFAULT_COLOR);
   });
 });

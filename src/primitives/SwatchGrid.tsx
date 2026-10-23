@@ -10,9 +10,10 @@ import { useTransientColor } from '../core/useColorStore';
 export interface SwatchEntry {
   color: string;
   name?: string;
+  ink?: string;
 }
 
-export type SwatchVariant = 'mosaic' | 'spaced';
+export type SwatchVariant = 'mosaic' | 'spaced' | 'cards';
 
 export interface SwatchGridProps {
   swatches: SwatchEntry[];
@@ -57,7 +58,7 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
   const grid = (
     <ul
       ref={gridRef}
-      className={cx('cp-swatch-grid', variant === 'spaced' && className)}
+      className={cx('cp-swatch-grid', variant !== 'mosaic' && className)}
       style={{ ['--cp-columns' as string]: columns } as React.CSSProperties}
       data-cp-variant={variant}
       data-cp-large={swatches.length > 1000 ? 'true' : undefined}
@@ -72,12 +73,22 @@ export function SwatchGrid(props: SwatchGridProps): React.ReactElement {
             <button
               type="button"
               className={cx('cp-swatch', round && 'cp-swatch-round', classNames.swatch)}
-              style={{ ['--cp-swatch-color' as string]: swatch.color } as React.CSSProperties}
+              style={{
+                ['--cp-swatch-color' as string]: swatch.color,
+                ['--cp-card-ink' as string]: swatch.ink,
+              } as React.CSSProperties}
               data-cp-color={match}
               aria-label={swatch.name ?? swatch.color}
               aria-pressed={false}
               disabled={disabled}
-            />
+            >
+              {variant === 'cards' && (
+                <span className="cp-card-name" aria-hidden="true">
+                  {swatch.name !== undefined && <span className="cp-card-title">{swatch.name}</span>}
+                  <span className="cp-card-hex">{match.replace('#', '').toUpperCase()}</span>
+                </span>
+              )}
+            </button>
           </li>
         );
       })}

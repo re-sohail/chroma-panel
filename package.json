@@ -1,6 +1,6 @@
 {
   "name": "chroma-panel",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Accessible React color picker with CSS Color 4, gradients, color wheel, sliders, palettes, image sampling and an eyedropper. Zero dependencies.",
   "keywords": [
     "react color picker",
@@ -41,6 +41,10 @@
     "./dist/index.cjs",
     "./dist/wheel.js",
     "./dist/wheel.cjs",
+    "./dist/classic.js",
+    "./dist/classic.cjs",
+    "./dist/harmony.js",
+    "./dist/harmony.cjs",
     "./dist/sliders.js",
     "./dist/sliders.cjs",
     "./dist/palettes.js",
@@ -109,6 +113,26 @@
       "require": {
         "types": "./dist/wheel.d.cts",
         "default": "./dist/wheel.cjs"
+      }
+    },
+    "./classic": {
+      "import": {
+        "types": "./dist/classic.d.ts",
+        "default": "./dist/classic.js"
+      },
+      "require": {
+        "types": "./dist/classic.d.cts",
+        "default": "./dist/classic.cjs"
+      }
+    },
+    "./harmony": {
+      "import": {
+        "types": "./dist/harmony.d.ts",
+        "default": "./dist/harmony.js"
+      },
+      "require": {
+        "types": "./dist/harmony.d.cts",
+        "default": "./dist/harmony.cjs"
       }
     },
     "./sliders": {

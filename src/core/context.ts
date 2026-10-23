@@ -37,6 +37,7 @@ export interface PanelOptions {
   injectStyles?: boolean;
   recentColors: string[];
   onRecentColorsChange?: (colors: string[]) => void;
+  setRecentColors?: (colors: string[]) => void;
 }
 
 export interface PanelContextValue {

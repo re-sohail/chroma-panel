@@ -22,6 +22,8 @@ const library = defineConfig({
     'src/color.ts',
     'src/panel.ts',
     'src/wheel.ts',
+    'src/classic.ts',
+    'src/harmony.ts',
     'src/sliders.ts',
     'src/palettes.ts',
     'src/image.ts',

@@ -61,7 +61,9 @@ describe.skipIf(!built)('the built library', () => {
 describe.skipIf(!built)('tree-shaking survival', () => {
   const MODES: Record<string, string> = {
     wheel: 'Color wheel',
-    sliders: 'HSB',
+    classic: 'Classic picker',
+    harmony: 'Split complementary',
+    sliders: 'Channel values',
     palettes: 'Name or hex',
     image: 'Drop an image here',
     pencils: 'No pencils configured',
@@ -86,12 +88,12 @@ describe.skipIf(!built)('tree-shaking survival', () => {
     return Object.keys(MODES).filter((id) => js.includes(MODES[id] as string));
   }
 
-  it('keeps all five modes when importing from the package root', async () => {
+  it('keeps all seven modes when importing from the package root', async () => {
     const modes = await survivingModes(
       `import { ColorInput } from '${dist('index.js')}'; export { ColorInput };`,
     );
     expect(modes.sort(), 'the picker would render with an empty toolbar')
-      .toEqual(['image', 'palettes', 'pencils', 'sliders', 'wheel']);
+      .toEqual(['classic', 'harmony', 'image', 'palettes', 'pencils', 'sliders', 'wheel']);
   }, 60_000);
 
   it('ships only the modes you ask for via the subpath entries', async () => {

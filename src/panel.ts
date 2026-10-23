@@ -5,6 +5,7 @@ export { ChromaPanel, type ChromaPanelProps } from './components/ChromaPanel';
 export { Popover, type PopoverProps } from './components/Popover';
 export { ModeToolbar, type ModeToolbarProps } from './components/ModeToolbar';
 export { PanelFooter, pushRecent } from './components/PanelFooter';
+export { PanelHeader, type PanelHeaderProps } from './components/PanelHeader';
 
 export { ColorArea, type ColorAreaProps } from './primitives/ColorArea';
 export { ColorDisc, type ColorDiscProps } from './primitives/ColorDisc';

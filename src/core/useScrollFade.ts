@@ -36,7 +36,10 @@ export function useScrollFade(
 
     const observer = new ResizeObserver(schedule);
     observer.observe(el);
-    for (let i = 0; i < el.children.length; i++) observer.observe(el.children[i] as Element);
+    for (const child of Array.from(el.children)) {
+      observer.observe(child);
+      for (const grandchild of Array.from(child.children)) observer.observe(grandchild);
+    }
 
     return () => {
       el.removeEventListener('scroll', schedule);

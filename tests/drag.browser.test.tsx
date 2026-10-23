@@ -82,7 +82,7 @@ describe('the drag loop', () => {
     );
     await settle();
 
-    const slider = document.querySelector('.cp-slider');
+    const slider = document.querySelector('.cp-slider[data-cp-channel="red"]');
     await pointerDrag(slider as Element, { x: 0.95, y: 0.5 }, { x: 0.05, y: 0.5 }, 20);
 
     expect(onChange.mock.calls.length).toBeGreaterThan(0);
@@ -138,7 +138,7 @@ describe('the drag loop', () => {
     );
     await settle();
 
-    const slider = document.querySelector('.cp-slider');
+    const slider = document.querySelector('.cp-slider[data-cp-channel="red"]');
     await pointerDrag(slider as Element, { x: 0.1, y: 0.5 }, { x: 0.8, y: 0.5 }, 15);
 
     expect(onChangeComplete).toHaveBeenCalledTimes(1);

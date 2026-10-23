@@ -114,15 +114,23 @@ describe('labelling', () => {
     }
   });
 
-  it('exposes the window dots as real, labelled buttons', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
-    const lights = await waitFor<HTMLElement>('.cp-lights');
+  it('labels every header control', async () => {
+    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} onClose={() => {}} />);
+    const header = await waitFor<HTMLElement>('.cp-titlebar');
 
-    expect(lights.getAttribute('aria-hidden')).toBeNull();
-    const buttons = Array.from(lights.querySelectorAll('button'));
-    expect(buttons).toHaveLength(3);
+    const buttons = Array.from(header.querySelectorAll('button'));
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
     for (const b of buttons) {
       expect(b.getAttribute('aria-label')).toBeTruthy();
+    }
+  });
+
+  it('gives each tab a visible word that is part of its accessible name', async () => {
+    render(<ChromaPanel defaultValue="#3366cc" />);
+    await waitFor('.cp-toolbar');
+    for (const tab of Array.from(document.querySelectorAll<HTMLElement>('.cp-toolbar [role="tab"]'))) {
+      const visible = tab.querySelector('.cp-tab-label')!.textContent!.toLowerCase();
+      expect(tab.getAttribute('aria-label')!.toLowerCase()).toContain(visible);
     }
   });
 });
@@ -134,11 +142,6 @@ describe('regressions from other pickers', () => {
       <ChromaPanel defaultValue="#3366cc" modes={['sliders']} showTitleBar={false} onChange={onChange} />,
     );
     await expect.element(page.getByRole('slider', { name: /red/i })).toBeInTheDocument();
-
-    const hsb = (await waitForAll<HTMLElement>('[role="tab"]', 3))
-      .find((t) => t.textContent === 'HSB');
-    hsb?.click();
-    await new Promise((r) => setTimeout(r, 30));
 
     const brightness = await waitFor<HTMLInputElement>('input[aria-label="Brightness"]');
     const hue = await waitFor<HTMLInputElement>('input[aria-label="Hue"]');

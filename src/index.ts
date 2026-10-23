@@ -2,12 +2,16 @@
 
 import { registerMode } from './modes/registry';
 import { wheelMode } from './modes/wheel/index';
+import { classicMode } from './modes/classic/index';
+import { harmonyMode } from './modes/harmony/index';
 import { slidersMode } from './modes/sliders/index';
 import { palettesMode } from './modes/palettes/index';
 import { imageMode } from './modes/image/index';
 import { pencilsMode } from './modes/pencils/index';
 
 registerMode(wheelMode);
+registerMode(classicMode);
+registerMode(harmonyMode);
 registerMode(slidersMode);
 registerMode(palettesMode);
 registerMode(imageMode);
@@ -18,6 +22,7 @@ export { ChromaPanel, type ChromaPanelProps } from './components/ChromaPanel';
 export { Popover, type PopoverProps } from './components/Popover';
 export { ModeToolbar, type ModeToolbarProps } from './components/ModeToolbar';
 export { PanelFooter, pushRecent } from './components/PanelFooter';
+export { PanelHeader, type PanelHeaderProps } from './components/PanelHeader';
 
 export { ColorArea, type ColorAreaProps } from './primitives/ColorArea';
 export { ColorDisc, type ColorDiscProps } from './primitives/ColorDisc';
@@ -31,6 +36,10 @@ export { Icon, type IconProps, type IconName } from './primitives/icons';
 export { useEyedropper, type Eyedropper } from './primitives/useEyedropper';
 
 export { wheelMode, WheelPanel } from './modes/wheel/index';
+export { classicMode, ClassicPanel } from './modes/classic/index';
+export {
+  harmonyMode, HarmonyPanel, harmonyColors, type HarmonyPanelProps, type HarmonyRule,
+} from './modes/harmony/index';
 export { slidersMode, SlidersPanel } from './modes/sliders/index';
 export { palettesMode, PalettesPanel } from './modes/palettes/index';
 export { imageMode, ImagePanel } from './modes/image/index';

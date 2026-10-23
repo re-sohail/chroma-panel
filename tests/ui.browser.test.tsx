@@ -58,8 +58,8 @@ describe('segmented control', () => {
     expect(seg.style.getPropertyValue('--cp-seg-active')).toBe('1');
   });
 
-  it('gives the nested color-model switcher a different weight from the mode switcher', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['sliders']} showTitleBar={false} />);
+  it('gives the nested palette-view switcher a different weight from the mode switcher', async () => {
+    render(<ChromaPanel defaultValue="#3366cc" modes={['palettes']} showTitleBar={false} />);
     await waitFor('.cp-seg-sm');
 
     const nested = document.querySelector<HTMLElement>('.cp-seg-sm')!;

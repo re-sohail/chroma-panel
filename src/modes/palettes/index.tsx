@@ -1,10 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { parse } from '../../color/parse';
 import { usePanel } from '../../core/context';
+import { useStyleChunk } from '../../core/useStyleChunk';
 import { defaultPalettes } from '../../data/defaults';
 import { PalettesIcon } from '../../primitives/icons';
+import { SegmentedControl } from '../../primitives/SegmentedControl';
 import { SwatchGrid, type SwatchEntry } from '../../primitives/SwatchGrid';
+import { cardCss, paletteCss } from '../../styles/css';
+import { inkFor } from '../ink';
 import type { PickerMode } from '../registry';
 
 function normalise(colors: (string | { color: string; name?: string })[]): SwatchEntry[] {
@@ -13,9 +18,18 @@ function normalise(colors: (string | { color: string; name?: string })[]): Swatc
   );
 }
 
+const VIEWS = [
+  { id: 'compact', label: 'Compact', content: 'Compact' },
+  { id: 'cards', label: 'Cards', content: 'Cards' },
+];
+
 export function PalettesPanel(): React.ReactElement {
   const { options, idPrefix } = usePanel();
   const [query, setQuery] = React.useState('');
+  const [view, setView] = React.useState<'compact' | 'cards'>('compact');
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useStyleChunk(paletteCss, 'palette', panelRef, options.injectStyles !== false);
+  useStyleChunk(cardCss, 'card', panelRef, options.injectStyles !== false);
   const searchId = `${idPrefix}-palette-search`;
 
   const groups = React.useMemo(() => {
@@ -23,18 +37,31 @@ export function PalettesPanel(): React.ReactElement {
     return (options.palettes ?? defaultPalettes())
       .map((palette) => ({
         name: palette.name,
-        swatches: normalise(palette.colors).filter(
-          (s) =>
-            needle === '' ||
-            s.color.toLowerCase().includes(needle) ||
-            (s.name ?? '').toLowerCase().includes(needle),
-        ),
+        swatches: normalise(palette.colors)
+          .filter(
+            (s) =>
+              needle === '' ||
+              s.color.toLowerCase().includes(needle) ||
+              (s.name ?? '').toLowerCase().includes(needle),
+          )
+          .map((s) => {
+            if (view !== 'cards') return s;
+            const parsed = parse(s.color);
+            return { ...s, ink: parsed === null ? undefined : inkFor(parsed) };
+          }),
       }))
       .filter((group) => group.swatches.length > 0);
-  }, [options.palettes, query]);
+  }, [options.palettes, query, view]);
 
   return (
-    <div className="cp-panel">
+    <div ref={panelRef} className="cp-panel">
+      <SegmentedControl
+        size="sm"
+        ariaLabel="Palette view"
+        items={VIEWS}
+        value={view}
+        onChange={(id) => setView(id as 'compact' | 'cards')}
+      />
       <div className="cp-field cp-palette-search">
         <label className="cp-field-label" htmlFor={searchId}>Search</label>
         <input
@@ -58,7 +85,7 @@ export function PalettesPanel(): React.ReactElement {
                 swatches={group.swatches}
                 label={group.name}
                 columns={6}
-                variant="spaced"
+                variant={view === 'cards' ? 'cards' : 'spaced'}
               />
             </section>
           ))

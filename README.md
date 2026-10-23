@@ -1,4 +1,4 @@
-[![chroma-panel, a React color picker: a color wheel, a photo with the palette extracted from it, and a 120-color pencil grid](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)](https://chroma-panel.jscrate.dev)
+[![chroma-panel, a React color picker: a color wheel, a photo with the palette extracted from it, and channel sliders](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/hero.png)](https://chroma-panel.jscrate.dev)
 
 [![npm](https://img.shields.io/npm/v/chroma-panel?color=2d7ff9)](https://www.npmjs.com/package/chroma-panel)
 <!-- [![install size](https://img.shields.io/npm/unpacked-size/chroma-panel?color=2d7ff9&label=install%20size)](https://www.npmjs.com/package/chroma-panel) -->
@@ -8,13 +8,13 @@
 
 # chroma-panel — React color picker
 
-A React color picker for forms, toolbars, settings, and design tools. Use a small color input or render the full panel with a wheel, RGB and HSL sliders, searchable palettes, image sampling, opacity, and an eyedropper.
+A React color picker for forms, toolbars, settings, and design tools. Use a small color input or render the full panel with a wheel, a square, harmonies, sliders, searchable palettes, image sampling, opacity, and an eyedropper.
 
 Version 1 also includes CSS Color 4 tools, a gradient editor, contrast suggestions, and design-token exports. The package has no runtime dependencies and includes TypeScript types.
 
 **[Documentation and live demo](https://chroma-panel.jscrate.dev)** · [Quick start](https://chroma-panel.jscrate.dev/react/overview/quick-start) · [Comparison](https://chroma-panel.jscrate.dev/react/overview/comparison) · [FAQ](https://chroma-panel.jscrate.dev/react/overview/faq) · [Releases](https://chroma-panel.jscrate.dev/react/overview/releases)
 
-- Five ways to pick a color: a [wheel](https://chroma-panel.jscrate.dev/react/modes/wheel), [RGB, HSL and HSB sliders](https://chroma-panel.jscrate.dev/react/modes/sliders), [palettes](https://chroma-panel.jscrate.dev/react/modes/palettes), a [120-color pencil grid](https://chroma-panel.jscrate.dev/react/modes/pencils), and [sampling from an image](https://chroma-panel.jscrate.dev/react/modes/image)
+- Seven ways to pick a color: a [wheel](https://chroma-panel.jscrate.dev/react/modes/wheel), a classic square, harmonies, [HSB and RGB sliders](https://chroma-panel.jscrate.dev/react/modes/sliders), [palettes](https://chroma-panel.jscrate.dev/react/modes/palettes), a [pencil grid](https://chroma-panel.jscrate.dev/react/modes/pencils), and [image sampling](https://chroma-panel.jscrate.dev/react/modes/image)
 - Hex, RGB(A), HSL(A), HSB/HSV and opacity controls for exact color values
 - An [eyedropper](https://chroma-panel.jscrate.dev/react/utils/use-eyedropper) for grabbing a color from anywhere on screen in supported browsers
 - Drops into a [form](https://chroma-panel.jscrate.dev/react/handbook/forms) like an `<input>`, with `name`, `required` and `form.reset()`
@@ -78,7 +78,7 @@ It takes a `File`, a `Blob` or an image URL, validates safe size limits, and rea
 
 ## Import fewer modes
 
-Importing `chroma-panel` registers all five modes. If you only need one or two, import the shell and pass explicit mode objects:
+Importing `chroma-panel` registers every mode. If you only need one or two, import the shell and pass explicit mode objects:
 
 ```tsx
 import { ChromaPanel } from 'chroma-panel/panel';
@@ -106,9 +106,9 @@ The original change callbacks remain intact. `onValueChange` and `onValueCommit`
 
 ## Theming
 
-![The chroma-panel React color picker in light and dark themes: the color wheel on a light page and the RGB sliders on a dark one](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
+![The chroma-panel React color picker in light and dark themes: the classic square on a light page and color harmonies on a dark one](https://raw.githubusercontent.com/re-sohail/chroma-panel/main/assets/themes.png)
 
-The panel follows the system color scheme. To change how it looks, override the CSS variables or pass your own class per part:
+The panel follows your page's `.dark` class or `data-theme`, then the system. To change how it looks, override the CSS variables or pass your own class per part:
 
 ```tsx
 <ColorInput classNames={{ root: 'shadow-2xl', trigger: 'h-8 w-12' }} />
@@ -122,7 +122,7 @@ Measured as the increase in a real Vite production build, gzipped, with React ex
 
 | What you import | Added to your app |
 | --- | --- |
-| all five modes | 23.1 kB |
+| all modes | 23.1 kB |
 | shell plus one mode | 15.0 kB |
 
 `dependencies` is empty. `react` and `react-dom` are peer dependencies, so the copy already in your app is the one that gets used.
@@ -133,12 +133,12 @@ Measured as the increase in a real Vite production build, gzipped, with React ex
 | --- | --- |
 | React | 16.14 and newer, including 19 |
 | React DOM | Required. The popover renders through `createPortal` |
-| Browsers | Chrome 123, Firefox 120, Safari 17.5 |
+| Browsers | Chrome 111, Firefox 113, Safari 16.2 |
 | TypeScript | Types included, no `@types` package needed |
 | Modules | ESM and CommonJS |
 | Server rendering | Safe. Browser-dependent files are marked `'use client'`. [Next.js and SSR](https://chroma-panel.jscrate.dev/react/handbook/server-rendering) |
 
-The browser versions come from `light-dark()`, a CSS function the stylesheet relies on. [What happens on older browsers](https://chroma-panel.jscrate.dev/react/handbook/browser-support).
+Older browsers get a `light-dark()` fallback. [Browser support](https://chroma-panel.jscrate.dev/react/handbook/browser-support).
 
 ## Help
 

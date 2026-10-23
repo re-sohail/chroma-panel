@@ -24,8 +24,8 @@ async function gone(selector: string, timeout = 3000): Promise<void> {
   }
 }
 
-const light = (which: 'close' | 'min' | 'max'): HTMLButtonElement =>
-  document.querySelector<HTMLButtonElement>(`.cp-light[data-cp-light="${which}"]`)!;
+const closeButton = (): HTMLButtonElement =>
+  document.querySelector<HTMLButtonElement>('.cp-titlebar button[aria-label="Close"]')!;
 
 const committedColor = (): { trigger: string; form: string | undefined } => ({
   trigger: getComputedStyle(document.querySelector('.cp-trigger')!)
@@ -38,7 +38,7 @@ afterEach(async () => {
 });
 
 describe('closing never loses the color', () => {
-  it('keeps the color when closed with the red control', async () => {
+  it('keeps the color when closed with the close button', async () => {
     render(<ColorInput defaultValue="#3366cc" name="c" modes={['sliders']} />);
     const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
     trigger.click();
@@ -51,7 +51,7 @@ describe('closing never loses the color', () => {
     await new Promise((r) => setTimeout(r, 60));
     const before = committedColor();
 
-    light('close').click();
+    closeButton().click();
     await gone('.cp-popover');
 
     expect(committedColor()).toEqual(before);
@@ -64,7 +64,7 @@ describe('closing never loses the color', () => {
     trigger.click();
     await waitFor('.cp-popover');
 
-    light('close').click();
+    closeButton().click();
     await gone('.cp-popover');
     await new Promise((r) => setTimeout(r, 60));
     expect(document.activeElement).toBe(trigger);
@@ -86,7 +86,7 @@ describe('closing never loses the color', () => {
     await userEvent.keyboard('{Enter}');
     await new Promise((r) => setTimeout(r, 60));
 
-    light('close').click();
+    closeButton().click();
     await gone('.cp-popover');
 
     trigger.click();
@@ -97,7 +97,7 @@ describe('closing never loses the color', () => {
     expect(reopenedHex.value.toLowerCase()).toContain('12ab56');
 
     const selected = document.querySelector('.cp-popover [role="tab"][aria-selected="true"]');
-    expect(selected?.getAttribute('aria-label')).toBe('Sliders');
+    expect(selected?.getAttribute('aria-label')).toBe('Channel values');
   });
 
   it('keeps a hex typed but never blurred', async () => {
@@ -111,99 +111,89 @@ describe('closing never loses the color', () => {
     await userEvent.fill(hex, '#0a0b0c');
     await new Promise((r) => setTimeout(r, 60));
 
-    light('close').click();
+    closeButton().click();
     await gone('.cp-popover');
     expect(committedColor().form).toBe('#0a0b0c');
   });
 });
 
 describe('collapse', () => {
-  it('hides the body, keeps the color, and restores everything', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
+  it('hides the body, keeps the header and the color, and restores everything', async () => {
+    const { rerender } = await render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     const body = await waitFor<HTMLElement>('.cp-body');
     const hexBefore = (await waitFor<HTMLInputElement>('input[type=text]')).value;
 
-    expect(getComputedStyle(body).display).not.toBe('none');
-    light('min').click();
+    await rerender(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} collapsed />);
     await new Promise((r) => setTimeout(r, 60));
-
     expect(getComputedStyle(body).display).toBe('none');
-    expect(document.querySelector('.cp-body')).toBe(body);
-    expect(light('min').getAttribute('aria-expanded')).toBe('false');
+    expect(document.querySelector('.cp-titlebar')).not.toBeNull();
 
-    light('min').click();
+    await rerender(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} collapsed={false} />);
     await new Promise((r) => setTimeout(r, 60));
     expect(getComputedStyle(body).display).not.toBe('none');
-    expect(light('min').getAttribute('aria-expanded')).toBe('true');
     expect(document.querySelector<HTMLInputElement>('input[type=text]')!.value).toBe(hexBefore);
-  });
-
-  it('points aria-controls at the body it collapses', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
-    const body = await waitFor<HTMLElement>('.cp-body');
-    expect(light('min').getAttribute('aria-controls')).toBe(body.id);
-    expect(body.id).toBeTruthy();
   });
 });
 
-describe('zoom', () => {
+describe('size', () => {
   it('widens the panel without disturbing the color', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
+    const { rerender } = await render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
     const root = await waitFor<HTMLElement>('.cp-root');
     const hexBefore = (await waitFor<HTMLInputElement>('input[type=text]')).value;
     const widthBefore = root.getBoundingClientRect().width;
 
-    expect(light('max').getAttribute('aria-pressed')).toBe('false');
-    light('max').click();
+    await rerender(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} size="expanded" />);
     await new Promise((r) => setTimeout(r, 80));
-
     expect(root.getBoundingClientRect().width).toBeGreaterThan(widthBefore);
-    expect(light('max').getAttribute('aria-pressed')).toBe('true');
     expect(document.querySelector<HTMLInputElement>('input[type=text]')!.value).toBe(hexBefore);
-
-    light('max').click();
-    await new Promise((r) => setTimeout(r, 80));
-    expect(root.getBoundingClientRect().width).toBeCloseTo(widthBefore, 0);
   });
 });
 
 describe('availability and keyboard', () => {
-  it('disables close when there is nothing to close, rather than removing it', async () => {
+  it('shows a close button only when there is something to close', async () => {
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
-    await waitFor('.cp-lights');
-
-    expect(document.querySelectorAll('.cp-lights button')).toHaveLength(3);
-    expect(light('close').disabled).toBe(true);
-    expect(light('min').disabled).toBe(false);
-    expect(light('max').disabled).toBe(false);
+    await waitFor('.cp-titlebar');
+    expect(closeButton()).toBeNull();
   });
 
-  it('enables close once the panel is in something that can close', async () => {
+  it('drops the whole header when nothing in it is turned on', async () => {
+    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} showTitleBar={false}
+      showCopyButton={false} showEyedropper={false} />);
+    await waitFor('.cp-panel-host');
+    expect(document.querySelector('.cp-titlebar')).toBeNull();
+    expect(document.querySelector('.cp-toolbar'), 'one mode needs no tab bar').toBeNull();
+  });
+
+  it('offers close once the panel is in something that can close', async () => {
     render(<ColorInput defaultValue="#3366cc" name="c" modes={['wheel']} />);
     const trigger = await waitFor<HTMLButtonElement>('.cp-trigger');
     trigger.click();
     await waitFor('.cp-popover');
-    expect(light('close').disabled).toBe(false);
+    expect(closeButton().disabled).toBe(false);
   });
 
-  it('operates all three controls from the keyboard', async () => {
+  it('closes from the keyboard', async () => {
     const onClose = vi.fn();
     render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} onClose={onClose} />);
-    await waitFor('.cp-lights');
+    await waitFor('.cp-titlebar');
 
-    light('min').focus();
-    await userEvent.keyboard('{Enter}');
-    await new Promise((r) => setTimeout(r, 60));
-    expect(light('min').getAttribute('aria-expanded')).toBe('false');
-
-    light('max').focus();
-    await userEvent.keyboard('{Enter}');
-    await new Promise((r) => setTimeout(r, 60));
-    expect(light('max').getAttribute('aria-pressed')).toBe('true');
-
-    light('close').focus();
+    closeButton().focus();
     await userEvent.keyboard('{Enter}');
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('reverts to the original color from the header chip', async () => {
+    const onChange = vi.fn();
+    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} onChange={onChange} />);
+    const hex = await waitFor<HTMLInputElement>('input[type=text]');
+    hex.focus();
+    await userEvent.fill(hex, '#12ab56');
+    await userEvent.keyboard('{Enter}');
+    await new Promise((r) => setTimeout(r, 60));
+
+    document.querySelector<HTMLButtonElement>('.cp-chip[aria-label^="Revert"]')!.click();
+    await new Promise((r) => setTimeout(r, 60));
+    expect(hex.value.toLowerCase()).toContain('3366cc');
   });
 });
 
@@ -225,21 +215,15 @@ describe('the sheet', () => {
 });
 
 describe('target size', () => {
-  it('spaces the window controls far enough apart to satisfy the spacing exception', async () => {
-    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} />);
-    await waitFor('.cp-lights');
+  it('gives every header button at least a 24px target', async () => {
+    render(<ChromaPanel defaultValue="#3366cc" modes={['wheel']} onClose={() => {}} />);
+    await waitFor('.cp-titlebar');
 
-    const centres = Array.from(document.querySelectorAll<HTMLElement>('.cp-lights button'))
-      .map((b) => {
-        const r = b.getBoundingClientRect();
-        return r.left + r.width / 2;
-      })
-      .sort((a, b) => a - b);
-
-    expect(centres).toHaveLength(3);
-    for (let i = 1; i < centres.length; i++) {
-      const pitch = centres[i]! - centres[i - 1]!;
-      expect(pitch, `only ${pitch.toFixed(1)}px between control centres`)
+    const buttons = Array.from(document.querySelectorAll<HTMLElement>('.cp-titlebar button'));
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    for (const b of buttons) {
+      const r = b.getBoundingClientRect();
+      expect(Math.min(r.width, r.height), `${b.getAttribute('aria-label')} is too small`)
         .toBeGreaterThanOrEqual(24);
     }
   });

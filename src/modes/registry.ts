@@ -1,11 +1,12 @@
 import type * as React from 'react';
 import { warnOnce } from '../core/dev';
 
-export type ModeId = 'wheel' | 'sliders' | 'palettes' | 'image' | 'pencils';
+export type ModeId = 'wheel' | 'classic' | 'harmony' | 'sliders' | 'palettes' | 'image' | 'pencils';
 
 export interface PickerMode {
   id: string;
   label: string;
+  tabLabel?: string;
   icon: React.ComponentType;
   Panel: React.ComponentType;
 }

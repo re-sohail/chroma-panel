@@ -16,7 +16,11 @@ export type IconName =
   | 'brush'
   | 'pipette'
   | 'copy'
-  | 'x';
+  | 'check'
+  | 'x'
+  | 'disc'
+  | 'area'
+  | 'harmony';
 
 const ICONS: Record<IconName, Shape[]> = {
   palette: [
@@ -47,6 +51,10 @@ const ICONS: Record<IconName, Shape[]> = {
     'M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15',
   ],
   x: ['M18 6 6 18', 'm6 6 12 12'],
+  check: ['M20 6 9 17l-5-5'],
+  disc: [['circle', 12, 12, 9], ['circle', 12, 12, 3.5]],
+  area: [['rect', 3, 3, 18, 18, 3], ['circle', 15, 9, 2.5]],
+  harmony: [['circle', 12, 12, 9], ['dot', 12, 5.5, 1.6], ['dot', 17.6, 15.3, 1.6], ['dot', 6.4, 15.3, 1.6]],
   copy: [
     ['rect', 9, 9, 11, 11, 2],
     'M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3',
@@ -105,33 +113,9 @@ const make = (name: IconName): (() => React.ReactElement) => {
   return Component;
 };
 
-const GLYPHS = {
-  close: 'M2.4 2.4 5.6 5.6M5.6 2.4 2.4 5.6',
-  collapse: 'M2.1 4h3.8',
-  expand: 'M2.2 4.6v1.2h1.2M5.8 3.4V2.2H4.6',
-} as const;
-
-export type WindowGlyphName = keyof typeof GLYPHS;
-
-export function WindowGlyph(props: { name: WindowGlyphName }): React.ReactElement {
-  return (
-    <svg
-      className="cp-light-glyph"
-      viewBox="0 0 8 8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d={GLYPHS[props.name]} />
-    </svg>
-  );
-}
-
-export const WheelIcon: () => React.ReactElement = make('palette');
+export const WheelIcon: () => React.ReactElement = make('disc');
+export const ClassicIcon: () => React.ReactElement = make('area');
+export const HarmonyIcon: () => React.ReactElement = make('harmony');
 export const SlidersIcon: () => React.ReactElement = make('sliders');
 export const PalettesIcon: () => React.ReactElement = make('swatches');
 export const ImageIcon: () => React.ReactElement = make('image');
